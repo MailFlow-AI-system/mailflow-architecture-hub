@@ -1,0 +1,24 @@
+---
+import TopicView from '../../components/architecture/TopicView.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+const decisions = architectureRegistry.decisions.filter((item) =>
+  /platform\.(cloudflare|infisical|postgresql|compute|infrastructure|mvp-deployment|first-distributed|progressive-placement|automation-full-mesh)|billing/u.test(
+    item.id,
+  ),
+);
+---
+
+<Layout
+  title="Infrastructure and deployment"
+  description="Static edge, managed data, private compute, secrets, and topology."
+  currentPath="/infrastructure/"
+  ><div class="content-wrap">
+    <TopicView
+      eyebrow="Static-first architecture repository"
+      title="Infrastructure"
+      description="Cloudflare edge and R2, Neon, Infisical, OCI-preferred compute, DigitalOcean fallback, reproducible hosts, WireGuard, and independently deployable service boundaries."
+      {decisions}
+    />
+  </div></Layout
+>

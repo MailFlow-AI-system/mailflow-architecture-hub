@@ -1,0 +1,20 @@
+---
+import TopicView from '../../components/architecture/TopicView.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+const decisions = architectureRegistry.decisions.filter((item) => item.status !== 'confirmed');
+---
+
+<Layout
+  title="Trade-offs and deferred choices"
+  description="Conditional, gated, deferred, and superseded decisions."
+  currentPath="/trade-offs/"
+  ><div class="content-wrap">
+    <TopicView
+      eyebrow={`${decisions.length} non-finalized records`}
+      title="Trade-offs"
+      description="These choices remain gated, deliberately deferred, or superseded. Fallbacks and triggers are explicit; none may silently alter the accepted architecture."
+      {decisions}
+    />
+  </div></Layout
+>

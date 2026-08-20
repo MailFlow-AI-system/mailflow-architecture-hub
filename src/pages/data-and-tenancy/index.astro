@@ -1,0 +1,22 @@
+---
+import TopicView from '../../components/architecture/TopicView.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+const decisions = architectureRegistry.decisions.filter((item) =>
+  /tenancy|authorization|lifecycle|privacy|vector-store|analytics.*tenant|database/u.test(item.id),
+);
+---
+
+<Layout
+  title="Data and tenancy"
+  description="Workspace isolation, ownership, lifecycle, and deletion."
+  currentPath="/data-and-tenancy/"
+  ><div class="content-wrap">
+    <TopicView
+      eyebrow="Workspace is the tenant"
+      title="Data and tenancy"
+      description="Ownership remains service-local. Explicit workspace scoping, PostgreSQL RLS, database-per-service, deletion ledgers, exports, retention, and tenant-safe analytical/retrieval paths reinforce the boundary."
+      {decisions}
+    />
+  </div></Layout
+>

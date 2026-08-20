@@ -1,0 +1,61 @@
+---
+import PageHeading from '../../components/ui/PageHeading.astro';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Architecture governance"
+  description="How MailFlow architecture decisions are proposed, changed, superseded, and audited."
+  currentPath="/governance/"
+>
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow="Change is a traced transaction"
+      title="Governance"
+      description="The baseline remains active narrative authority. Catalogs and diagrams are maintained projections. A material architecture change requires human approval and synchronized evidence."
+    />
+    <section class="record-panel">
+      <h2>Completion gate</h2><p>
+        An architecture change is complete only when all six conditions hold:
+      </p><ol>
+        <li>The applicable baseline is updated.</li><li>Descriptive content is updated.</li><li>
+          Affected diagrams are updated.
+        </li><li>Related decisions are updated.</li><li>
+          The applicable ADR or changelog is updated.
+        </li><li>Coverage tests pass.</li>
+      </ol>
+    </section>
+    <section class="record-panel">
+      <h2>Change workflow</h2><ol>
+        <li>Open an impact review using the repository template.</li><li>
+          Locate affected source ranges and stable IDs.
+        </li><li>Record a new decision, a decision change, or an explicit supersession.</li><li>
+          Update the active baseline after human approval.
+        </li><li>Refresh structured projections, topology, descriptive pages, and ADR.</li><li>
+          Run integrity, coverage, links, accessibility, E2E, build, and privacy gates.
+        </li>
+      </ol>
+    </section>
+    <section class="record-panel">
+      <h2>Stable identity</h2><p>
+        Decision, service, stack, gate, diagram, relationship, trust-boundary, section, and block
+        IDs are presentation-independent. A decision never lives only inside a component, and a
+        visual component never redefines it.
+      </p>
+    </section>
+    <section class="record-panel">
+      <h2>Working material</h2><ul class="record-links">
+        <li><a href="/coverage/">Coverage report</a></li><li>
+          <a href="/decisions/">Decision catalog</a>
+        </li><li><a href="/gates/">Validation gates</a></li><li>
+          <a href="/explorer/">Diagram explorer</a>
+        </li>
+      </ul><p>
+        Repository templates live in <code>docs/templates/</code>; ADR guidance and template live in <code
+          >docs/adr/</code
+        >. Private commercial documents remain in <code>docs/client/</code> and are excluded from the
+        public build.
+      </p>
+    </section>
+  </div>
+</Layout>

@@ -1,0 +1,28 @@
+---
+import type { Decision } from '../../domain/architecture';
+import EntityCard from '../ui/EntityCard.astro';
+import PageHeading from '../ui/PageHeading.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  decisions: Decision[];
+}
+const { eyebrow, title, description, decisions } = Astro.props;
+---
+
+<PageHeading {eyebrow} {title} {description} />
+<div class="catalog-grid" data-pagefind-body>
+  {
+    decisions.map((decision) => (
+      <EntityCard
+        href={decision.pagePath}
+        eyebrow={`${decision.status.replaceAll('_', ' ')} · ${decision.phase}`}
+        title={decision.title}
+        summary={decision.summary}
+        meta={decision.id}
+      />
+    ))
+  }
+</div>

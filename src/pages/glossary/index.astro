@@ -1,0 +1,71 @@
+---
+import PageHeading from '../../components/ui/PageHeading.astro';
+import Layout from '../../layouts/Layout.astro';
+const terms = [
+  [
+    'Workspace',
+    'The mandatory tenant boundary. Teams may scope authorization but never replace tenancy.',
+  ],
+  [
+    'Bounded context',
+    'A domain ownership boundary with its own data, contracts, policy, and eventual deployable identity.',
+  ],
+  [
+    'Outbox',
+    'Domain change and publication intent committed atomically before asynchronous delivery.',
+  ],
+  ['Inbox', 'Consumer-side receipt and idempotency record protecting at-least-once processing.'],
+  ['Workload token', 'Short-lived service identity restricted to the intended audience.'],
+  [
+    'Delegation assertion',
+    'Short-lived actor/workspace authority carried separately from workload identity.',
+  ],
+  [
+    'JWKS',
+    'Public verification keys cached by services; never a cache of authorization decisions.',
+  ],
+  ['Control plane', 'Workflow authoring, validation, versioning, publication, and desired state.'],
+  [
+    'Data plane',
+    'Automation Runtime execution, scheduling, state transitions, and domain action orchestration.',
+  ],
+  [
+    'Decision gate',
+    'Explicit evidence criterion that activates a preferred choice or documented fallback.',
+  ],
+  [
+    'Source anchor',
+    'Baseline path, line range, heading, and digest proving where a projection originated.',
+  ],
+  [
+    'Strangler pattern',
+    'Incremental extraction of modules behind stable contracts rather than a wholesale rewrite.',
+  ],
+];
+---
+
+<Layout
+  title="Glossary"
+  description="Canonical architecture terms used throughout MailFlow."
+  currentPath="/glossary/"
+  ><div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={`${terms.length} core terms`}
+      title="Glossary"
+      description="Short orientation definitions. Detailed meaning and constraints remain in linked decisions and baseline evidence."
+    /><dl>
+      {
+        terms.map(([term, definition]) => (
+          <div class="record-panel">
+            <>
+              <dt>
+                <h2>{term}</h2>
+              </dt>
+              <dd>{definition}</dd>
+            </>
+          </div>
+        ))
+      }
+    </dl>
+  </div></Layout
+>

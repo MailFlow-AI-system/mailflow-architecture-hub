@@ -1,0 +1,22 @@
+---
+import TopicView from '../../components/architecture/TopicView.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+const decisions = architectureRegistry.decisions.filter((item) =>
+  /auth\.|authorization|privacy|credential|security|clamav|sandbox|zero-trust/u.test(item.id),
+);
+---
+
+<Layout
+  title="Security and trust"
+  description="Authentication, authorization, workload identity, trust, and confidential data."
+  currentPath="/security/"
+  ><div class="content-wrap">
+    <TopicView
+      eyebrow="Local validation, explicit ownership"
+      title="Security and trust"
+      description="Browser sessions, Gateway/Identity ingress, workload and delegated identities, JWKS validation, broker ACLs, credential envelopes, provider ownership, and data-circulation constraints."
+      {decisions}
+    />
+  </div></Layout
+>

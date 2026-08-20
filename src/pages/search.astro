@@ -1,0 +1,147 @@
+---
+import PageHeading from '../components/ui/PageHeading.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Search"
+  description="Search services, decisions, stacks, gates, and architecture topics."
+  currentPath="/search/"
+>
+  <div class="content-wrap">
+    <PageHeading
+      eyebrow="Static full-text index"
+      title="Search"
+      description="Search generated pages by service, stack, decision, phase, trust boundary, or baseline language."
+    />
+    <form class="search-form" role="search" data-search-form>
+      <label for="architecture-query">Architecture query</label>
+      <div>
+        <input
+          id="architecture-query"
+          name="q"
+          type="search"
+          autocomplete="off"
+          placeholder="e.g. workload token, Resend, ClickHouse"
+        /><button type="submit">Search</button>
+      </div>
+    </form>
+    <p class="search-status" role="status" aria-live="polite" data-search-status>
+      Enter a query to search the generated architecture index.
+    </p>
+    <ol class="search-results" data-search-results></ol>
+  </div>
+</Layout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-search-form]');
+  const input = form?.querySelector<HTMLInputElement>('input[name="q"]');
+  const status = document.querySelector<HTMLElement>('[data-search-status]');
+  const results = document.querySelector<HTMLOListElement>('[data-search-results]');
+
+  async function search(query: string) {
+    if (!status || !results) return;
+    results.replaceChildren();
+    if (!query.trim()) {
+      status.textContent = 'Enter a query to search the generated architecture index.';
+      return;
+    }
+    status.textContent = `Searching for “${query}”…`;
+    try {
+      const pagefindPath = '/pagefind/pagefind.js';
+      const pagefind = await import(/* @vite-ignore */ pagefindPath);
+      const response = await pagefind.search(query);
+      const entries = await Promise.all(
+        response.results
+          .slice(0, 30)
+          .map(
+            (item: {
+              data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }>;
+            }) => item.data(),
+          ),
+      );
+      for (const entry of entries) {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = entry.url;
+        link.textContent = entry.meta.title ?? entry.url;
+        const excerpt = document.createElement('p');
+        excerpt.innerHTML = entry.excerpt;
+        item.append(link, excerpt);
+        results.append(item);
+      }
+      status.textContent = `${response.results.length} result${response.results.length === 1 ? '' : 's'} for “${query}”.`;
+    } catch {
+      status.textContent =
+        'The search index is available after a production build. Use the navigation while developing.';
+    }
+  }
+
+  const initialQuery = new URL(window.location.href).searchParams.get('q') ?? '';
+  if (input) input.value = initialQuery;
+  if (initialQuery) void search(initialQuery);
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = input?.value.trim() ?? '';
+    const url = new URL(window.location.href);
+    query ? url.searchParams.set('q', query) : url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    void search(query);
+  });
+</script>
+
+<style>
+  .search-form {
+    margin-bottom: var(--space-4);
+  }
+  .search-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-paper-300);
+    font-weight: 700;
+  }
+  .search-form div {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .search-form input {
+    min-width: 0;
+    flex: 1;
+    border: 1px solid rgb(245 242 234 / 0.3);
+    background: var(--color-ink-900);
+    padding: 0.9rem 1rem;
+    color: var(--color-paper-100);
+    font: inherit;
+  }
+  .search-form button {
+    border: 0;
+    background: var(--color-lime-400);
+    padding: 0.8rem 1.2rem;
+    color: var(--color-ink-950);
+    font-weight: 800;
+  }
+  .search-status {
+    color: var(--color-paper-500);
+  }
+  .search-results {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0 0 var(--space-8);
+    list-style: none;
+  }
+  .search-results li {
+    border-top: 1px solid rgb(245 242 234 / 0.2);
+    padding-top: var(--space-4);
+  }
+  .search-results a {
+    color: var(--color-cyan-300);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .search-results p {
+    max-width: 60rem;
+    color: var(--color-paper-300);
+  }
+</style>

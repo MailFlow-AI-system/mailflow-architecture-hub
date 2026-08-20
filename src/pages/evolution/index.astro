@@ -1,0 +1,24 @@
+---
+import TopicView from '../../components/architecture/TopicView.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+const decisions = architectureRegistry.decisions.filter((item) =>
+  /evolution|first-distributed|progressive-placement|mvp-deployment|automation-full-mesh/u.test(
+    item.id,
+  ),
+);
+---
+
+<Layout
+  title="Architecture evolution"
+  description="From modular MVP to distributed MailFlow."
+  currentPath="/evolution/"
+  ><div class="content-wrap">
+    <TopicView
+      eyebrow="Strangler path"
+      title="Architecture evolution"
+      description="The MVP remains modular and operationally simple. Distribution begins with Audience, preserves contracts, and advances only through explicit extraction and placement gates."
+      {decisions}
+    />
+  </div></Layout
+>
