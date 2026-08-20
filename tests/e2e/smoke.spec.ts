@@ -31,6 +31,28 @@ test('decision catalog reaches exact baseline evidence and reverse diagram links
 test('explorer filters, selects, and persists state in the URL', async ({ page }) => {
   await page.goto('/explorer/diagram.context.general/');
   await expect(page.locator('.react-flow')).toBeVisible();
+  const firstNodeWidth = await page
+    .locator('.react-flow__node')
+    .first()
+    .evaluate((node) => Number.parseFloat(getComputedStyle(node).width));
+  expect(firstNodeWidth).toBeGreaterThanOrEqual(256);
+  await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);
+  const layoutSteps = await page.locator('.react-flow__node').evaluateAll((nodes) => {
+    const positions = nodes.map((node) => {
+      const match = node.getAttribute('style')?.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/u);
+      return { x: Number(match?.[1]), y: Number(match?.[2]) };
+    });
+    const minimumStep = (values: number[]) => {
+      const unique = [...new Set(values)].sort((left, right) => left - right);
+      return Math.min(...unique.slice(1).map((value, index) => value - unique[index]));
+    };
+    return {
+      column: minimumStep(positions.map(({ x }) => x)),
+      row: minimumStep(positions.map(({ y }) => y)),
+    };
+  });
+  expect(layoutSteps.column).toBeGreaterThanOrEqual(390);
+  expect(layoutSteps.row).toBeGreaterThanOrEqual(190);
   await page.getByLabel('Phase').selectOption('future');
   await expect(page).toHaveURL(/phase=future/u);
   await page.getByLabel('Service').selectOption({ index: 1 });
@@ -63,6 +85,10 @@ test('whole architecture explorer exposes complete and MVP canvas modes', async 
   await page.goto('/explorer/whole/');
   await expect(page.getByRole('heading', { name: 'Complete architecture canvas' })).toBeVisible();
   await expect(page.locator('.architecture-explorer--whole .react-flow')).toBeVisible();
+  const initialScale = await page
+    .locator('.architecture-explorer--whole .react-flow__viewport')
+    .evaluate((viewport) => new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a);
+  expect(initialScale).toBeGreaterThanOrEqual(0.55);
   const allNodeCount = await page
     .locator('.architecture-explorer--whole .react-flow__node')
     .count();

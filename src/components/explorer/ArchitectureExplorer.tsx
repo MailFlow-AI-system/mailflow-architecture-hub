@@ -128,7 +128,7 @@ export function ArchitectureExplorer({
       const muted = selectedId ? !adjacent.has(node.id) : false;
       return {
         id: node.id,
-        position: { x: column * 310, y: row * 150 },
+        position: { x: column * 390, y: row * 190 },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         data: { label: node.label },
@@ -145,7 +145,6 @@ export function ArchitectureExplorer({
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        label: edge.prohibited ? `PROHIBITED · ${edge.label}` : edge.label,
         type: 'smoothstep',
         ariaLabel: `${edge.label}. ${edge.type.replaceAll('_', ' ')}${edge.prohibited ? '. Prohibited.' : ''}`,
         style: {
@@ -154,7 +153,6 @@ export function ArchitectureExplorer({
           opacity:
             selectedId && !adjacent.has(edge.source) && !adjacent.has(edge.target) ? 0.12 : 0.82,
         },
-        labelStyle: { fill: '#d6d4cc', fontSize: 10 },
       })),
     [adjacent, filtered.edges, selectedId],
   );
@@ -291,7 +289,8 @@ export function ArchitectureExplorer({
               elementsSelectable
               onNodeClick={(_, node) => setSelectedId(node.id === selectedId ? undefined : node.id)}
               onPaneClick={() => setSelectedId(undefined)}
-              fitView
+              fitView={variant === 'focused'}
+              defaultViewport={variant === 'whole' ? { x: 48, y: 48, zoom: 0.62 } : undefined}
               minZoom={0.15}
               maxZoom={1.8}
               deleteKeyCode={null}
