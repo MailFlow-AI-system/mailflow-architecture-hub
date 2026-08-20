@@ -1,17 +1,147 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import baselineVersion from '../data/architecture/baselineVersion.json';
 
+const missionOutcomes = [
+  'Preserve every approved MailFlow architecture decision.',
+  'Make the architecture easier to understand visually.',
+  'Explain motivations, alternatives, evidence, and trade-offs.',
+  'Make decisions available for study, review, challenge, and change.',
+  'Keep decisions, services, diagrams, and documentation traceable.',
+  'Make silent divergence between approved and implemented architecture detectable.',
+  'Serve as technical portfolio and study material.',
+  'Record the evolution from modular MVP to future distributed architecture.',
+  'Allow decisions to change without rebuilding the application by hand.',
+  'Make drift between baseline, diagrams, and descriptive content visible.',
+];
+
+const repositoryRoutes = [
+  {
+    index: '01',
+    title: 'Explore',
+    description: 'Navigate the architecture through connected views, phases, and relationships.',
+    href: '/#purpose',
+  },
+  {
+    index: '02',
+    title: 'Decide',
+    description: 'Read the reasoning, status, trade-offs, and gates behind each decision.',
+    href: '/#outcomes',
+  },
+  {
+    index: '03',
+    title: 'Trace',
+    description: 'Follow stable identities from baseline sections to services and diagrams.',
+    href: '/#governance',
+  },
+  {
+    index: '04',
+    title: 'Evolve',
+    description: 'Update the source, projections, and evidence through a visible governance loop.',
+    href: '/#governance',
+  },
+];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<Layout
+  title="MailFlow Architecture"
+  description="The official visual and descriptive architecture repository for MailFlow."
+  currentPath="/"
+>
+  <section class="hero" id="purpose">
+    <div class="content-wrap hero__grid">
+      <div>
+        <p class="eyebrow">Official architecture repository / 001</p>
+        <h1>A living map for a system that keeps moving.</h1>
+        <p class="hero__lede">
+          MailFlow Architecture Hub is the visual and descriptive source of truth for the product’s
+          approved architecture. It turns one baseline into a navigable record of decisions,
+          boundaries, relationships, and change.
+        </p>
+      </div>
+      <aside class="hero__signal" aria-label="Architecture baseline import snapshot">
+        <span class="signal-label">Baseline signal / current import</span>
+        <p class="signal-title">Trace first. Build second.</p>
+        <p class="signal-meta">
+          <span><strong>{baselineVersion.lines.toLocaleString('en-US')}</strong> lines</span>
+          <span><strong>{baselineVersion.words.toLocaleString('en-US')}</strong> words</span>
+          <span><strong>{baselineVersion.lastUpdated}</strong> source date</span>
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--paper" id="outcomes" aria-labelledby="outcomes-title">
+    <div class="content-wrap">
+      <div class="section-heading">
+        <p class="section-label">Why this repository exists</p>
+        <div>
+          <h2 id="outcomes-title">Architecture should stay explainable.</h2>
+          <p>
+            The repository keeps approved architecture close to the evidence that shaped it, while
+            making future changes reviewable and visible.
+          </p>
+        </div>
+      </div>
+      <ol class="mission-grid">
+        {
+          missionOutcomes.map((outcome, index) => (
+            <li class="mission-item">
+              <span class="mission-item__number">{String(index + 1).padStart(2, '0')}</span>
+              <p>{outcome}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="repository-map-title">
+    <div class="content-wrap">
+      <div class="section-heading">
+        <p class="section-label">Repository map</p>
+        <div>
+          <h2 id="repository-map-title">Four ways in.</h2>
+          <p>
+            Each view will use the same structured architecture records. The interface can grow
+            without moving decision prose into visual components.
+          </p>
+        </div>
+      </div>
+      <div class="route-grid">
+        {
+          repositoryRoutes.map((route) => (
+            <a class="route-card" href={route.href}>
+              <span class="route-card__index">{route.index}</span>
+              <div>
+                <h3>{route.title}</h3>
+                <p>{route.description}</p>
+              </div>
+              <span class="route-card__arrow" aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="governance" aria-labelledby="governance-title">
+    <div class="content-wrap">
+      <div class="governance-note">
+        <div>
+          <p class="section-label">Governance by default</p>
+          <h2 id="governance-title">No silent architecture drift.</h2>
+          <p>
+            A change is complete only when its applicable baseline, descriptive content, diagrams,
+            related decisions, change record, and coverage checks move together.
+          </p>
+        </div>
+        <div class="governance-note__marker" aria-label="Traceability marker">
+          source<br />to<br />system
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

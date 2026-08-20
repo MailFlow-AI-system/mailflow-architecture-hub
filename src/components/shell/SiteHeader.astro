@@ -1,0 +1,37 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const links = [
+  { href: '/#purpose', label: 'Purpose' },
+  { href: '/#outcomes', label: 'Outcomes' },
+  { href: '/#governance', label: 'Governance' },
+];
+---
+
+<header class="site-header">
+  <div class="content-wrap site-header__inner">
+    <a class="wordmark" href="/" aria-label="MailFlow Architecture home">
+      <span class="wordmark__mark" aria-hidden="true">M·F</span>
+      <span>MailFlow / Architecture</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      {
+        links.map((link) => (
+          <a href={link.href} aria-current={currentPath === link.href ? 'page' : undefined}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+    <details class="mobile-nav">
+      <summary>Menu</summary>
+      <nav class="mobile-nav__links" aria-label="Mobile navigation">
+        {links.map((link) => <a href={link.href}>{link.label}</a>)}
+      </nav>
+    </details>
+  </div>
+</header>
