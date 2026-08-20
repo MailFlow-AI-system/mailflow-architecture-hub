@@ -17,6 +17,10 @@ pnpm-debug.log*
 .env
 .env.production
 
+# private client documents (keep the directory README trackable)
+docs/client/**
+!docs/client/README.md
+
 # macOS-specific files
 .DS_Store
 
