@@ -1,6 +1,9 @@
 .architecture-explorer {
   margin-bottom: var(--space-8);
 }
+.architecture-explorer--whole {
+  margin-bottom: 0;
+}
 .explorer-filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(10rem, 1fr));
@@ -55,6 +58,13 @@
 .explorer-canvas {
   position: relative;
   min-height: 44rem;
+}
+.architecture-explorer--whole .explorer-workspace,
+.architecture-explorer--whole .explorer-canvas {
+  min-height: min(78vh, 68rem);
+}
+.architecture-explorer--whole .explorer-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.24fr);
 }
 .explorer-inspector {
   border-left: 1px solid rgb(245 242 234 / 0.16);
@@ -149,6 +159,9 @@
     border-top: 1px solid rgb(245 242 234 / 0.16);
     border-left: 0;
   }
+  .architecture-explorer--whole .explorer-workspace {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 42rem) {
   .explorer-filters {
@@ -157,6 +170,10 @@
   .explorer-workspace,
   .explorer-canvas {
     min-height: 36rem;
+  }
+  .architecture-explorer--whole .explorer-workspace,
+  .architecture-explorer--whole .explorer-canvas {
+    min-height: 38rem;
   }
   .react-flow__minimap {
     display: none;

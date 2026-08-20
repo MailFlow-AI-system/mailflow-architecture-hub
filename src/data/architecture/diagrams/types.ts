@@ -21,6 +21,10 @@ export type ArchitectureDiagramNode = {
   decisionIds: string[];
   trustBoundaryIds?: string[];
   group?: string;
+  /** Focused views where this canonical node appears. */
+  sourceDiagramIds?: string[];
+  /** Original node IDs before whole-architecture aggregation. */
+  sourceNodeIds?: string[];
 };
 
 export type ArchitectureDiagramEdge = {
@@ -34,6 +38,12 @@ export type ArchitectureDiagramEdge = {
   trustBoundaryId?: string;
   confidentialData?: string[];
   prohibited?: boolean;
+  /** Focused views where this canonical relationship appears. */
+  sourceDiagramIds?: string[];
+  /** Original relationship IDs before whole-architecture aggregation. */
+  sourceEdgeIds?: string[];
+  /** Registry relationship IDs backing the source edges. */
+  relationshipIds?: string[];
 };
 
 export type ArchitectureDiagramDefinition = {

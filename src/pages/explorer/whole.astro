@@ -1,0 +1,134 @@
+---
+import ArchitectureExplorer, {
+  type ExplorerScopeOption,
+} from '../../components/explorer/ArchitectureExplorer';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureDiagrams, composeWholeArchitecture } from '../../data/architecture/diagrams';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+
+const wholeDiagram = composeWholeArchitecture(architectureDiagrams);
+const canonicalRelationshipIds = new Set<string>(
+  architectureRegistry.relationships.map((item) => item.id),
+);
+const representedRelationshipCount = wholeDiagram.edges.filter((edge) =>
+  (edge.relationshipIds ?? []).some((id) => canonicalRelationshipIds.has(id)),
+).length;
+const scopeOptions: readonly ExplorerScopeOption[] = [
+  { id: 'all', label: 'Complete architecture' },
+  { id: 'mvp', label: 'MVP only', phase: 'mvp' },
+];
+---
+
+<Layout
+  title="Complete architecture canvas"
+  description="A single pannable and zoomable canvas composed from every canonical MailFlow architecture view."
+  currentPath="/explorer/"
+>
+  <div class="content-wrap architecture-whole-page">
+    <PageHeading
+      eyebrow={`${architectureDiagrams.length} canonical views · whole-system workspace`}
+      title="Complete architecture canvas"
+      description="Explore the full MailFlow topology in one canvas. Switch between every canonical phase and the MVP-only boundary without losing links to focused source views, services, or decisions."
+      breadcrumbs={[{ label: 'Explorer', href: '/explorer/' }, { label: 'Complete architecture' }]}
+    />
+    <dl class="whole-architecture-stats" aria-label="Whole architecture canvas summary">
+      <div>
+        <dt>Focused views</dt>
+        <dd>{architectureDiagrams.length}</dd>
+      </div>
+      <div>
+        <dt>Normalized nodes</dt>
+        <dd data-whole-node-count>{wholeDiagram.nodes.length}</dd>
+      </div>
+      <div>
+        <dt>Unique connections</dt>
+        <dd data-whole-edge-count>{wholeDiagram.edges.length}</dd>
+      </div>
+      <div>
+        <dt>Registry relations represented</dt>
+        <dd>{representedRelationshipCount}/{architectureRegistry.relationships.length}</dd>
+      </div>
+    </dl>
+    <ArchitectureExplorer
+      client:only="react"
+      diagram={wholeDiagram}
+      scopeOptions={scopeOptions}
+      scopeParam="mode"
+      variant="whole"
+    />
+    <section class="whole-architecture-static record-panel" aria-labelledby="canvas-notes">
+      <h2 id="canvas-notes">Canvas notes</h2>
+      <p>
+        The interactive view aggregates canonical focused diagrams and deduplicates repeated service
+        nodes and equivalent typed connections. Provenance remains attached to each normalized node
+        and connection.
+      </p>
+      <p>
+        Without JavaScript, the focused views remain the authoritative static records. Use them to
+        inspect exact source ranges, relationship evidence, and decision links.
+      </p>
+      <ul class="record-links">
+        {
+          architectureDiagrams.map((diagram) => (
+            <li>
+              <a href={`/explorer/${diagram.id}/`}>{diagram.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .architecture-whole-page {
+    width: min(calc(100% - 2rem), 120rem);
+  }
+
+  .whole-architecture-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0 0 var(--space-4);
+    border: 1px solid rgb(245 242 234 / 0.15);
+    background: rgb(245 242 234 / 0.15);
+  }
+
+  .whole-architecture-stats div {
+    min-height: 6rem;
+    padding: var(--space-4);
+    background: rgb(17 26 32 / 0.9);
+  }
+
+  .whole-architecture-stats dt {
+    color: var(--color-paper-500);
+    font: 0.7rem var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .whole-architecture-stats dd {
+    margin: 0.45rem 0 0;
+    color: var(--color-lime-400);
+    font: 800 clamp(1.3rem, 2.5vw, 2.1rem) var(--font-display);
+  }
+
+  .whole-architecture-static {
+    margin: var(--space-6) 0 var(--space-8);
+  }
+
+  .whole-architecture-static p {
+    max-width: 68rem;
+  }
+
+  @media (max-width: 48rem) {
+    .architecture-whole-page {
+      width: min(calc(100% - 1.25rem), 120rem);
+    }
+
+    .whole-architecture-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

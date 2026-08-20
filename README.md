@@ -168,7 +168,7 @@ created separately and later stored under `docs/client/`. It must not be importe
 ## Listening
 
 The design keeps one active narrative authority and generates navigable projections around it. A
-single giant diagram was rejected because it obscures phases and ownership. Duplicated decision prose
+A single giant diagram as the only representation was rejected because it obscures phases and ownership. The complete canvas is a derived navigation layer; focused diagrams remain the legible views for detailed analysis. Duplicated decision prose
 inside UI components was rejected because it creates undetectable drift. Static Astro output with
 localized React hydration was selected because it keeps descriptive content durable while providing a
 focused interactive explorer. A Vercel adapter and ELK runtime dependency remain unnecessary until a

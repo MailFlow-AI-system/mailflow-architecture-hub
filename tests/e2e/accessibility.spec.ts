@@ -1,7 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-for (const route of ['/', '/decisions/', '/coverage/', '/explorer/diagram.context.general/']) {
+for (const route of [
+  '/',
+  '/decisions/',
+  '/coverage/',
+  '/explorer/diagram.context.general/',
+  '/explorer/whole/',
+]) {
   test(`${route} has no automated accessibility violations @a11y`, async ({ page }) => {
     await page.goto(route);
     if (route.startsWith('/explorer/')) await page.locator('.react-flow').waitFor();

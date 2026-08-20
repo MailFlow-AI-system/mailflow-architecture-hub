@@ -43,17 +43,52 @@ const kindColumn = {
   provider: 3,
 } as const;
 
+const wholeKindColumn = {
+  actor: 0,
+  security_boundary: 0,
+  service: 1,
+  module: 2,
+  queue: 3,
+  data_store: 4,
+  infrastructure: 5,
+  provider: 6,
+} as const;
+
+export type ExplorerScopeOption = {
+  id: string;
+  label: string;
+  phase?: ArchitecturePhase;
+};
+
+type ArchitectureExplorerProps = {
+  diagram: ArchitectureDiagramDefinition;
+  scopeOptions?: readonly ExplorerScopeOption[];
+  scopeParam?: string;
+  variant?: 'focused' | 'whole';
+};
+
 function initialParam(name: string): string | undefined {
   if (typeof window === 'undefined') return undefined;
   return new URL(window.location.href).searchParams.get(name) ?? undefined;
 }
 
-export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagramDefinition }) {
+export function ArchitectureExplorer({
+  diagram,
+  scopeOptions = [],
+  scopeParam = 'phase',
+  variant = 'focused',
+}: ArchitectureExplorerProps) {
   const [phase, setPhase] = useState<ArchitecturePhase | undefined>(() => {
     const value = initialParam('phase');
     return diagram.phases.includes(value as ArchitecturePhase)
       ? (value as ArchitecturePhase)
       : diagram.phases[0];
+  });
+  const [scope, setScope] = useState(() => {
+    const requested = initialParam(scopeParam);
+    return scopeOptions.some((option) => option.id === requested)
+      ? requested
+      : (scopeOptions[0]?.id ?? '');
   });
   const [relationTypes, setRelationTypes] = useState<RelationType[]>(() => {
     const requested = initialParam('types')?.split(',') ?? [];
@@ -62,9 +97,12 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
   const [serviceId, setServiceId] = useState(() => initialParam('service'));
   const [query, setQuery] = useState(() => initialParam('q') ?? '');
   const [selectedId, setSelectedId] = useState(() => initialParam('node'));
+  const activePhase = scopeOptions.length
+    ? scopeOptions.find((option) => option.id === scope)?.phase
+    : phase;
   const filtered = useMemo(
-    () => filterDiagram(diagram, { phase, relationTypes, serviceId, query }),
-    [diagram, phase, query, relationTypes, serviceId],
+    () => filterDiagram(diagram, { phase: activePhase, relationTypes, serviceId, query }),
+    [activePhase, diagram, query, relationTypes, serviceId],
   );
   const adjacent = useMemo(() => {
     if (!selectedId) return new Set<string>();
@@ -75,14 +113,16 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
         .flatMap((edge) => [edge.source, edge.target]),
     ]);
   }, [filtered.edges, selectedId]);
-  const selectedNode = diagram.nodes.find((node) => node.id === selectedId);
+  const selectedNode = filtered.nodes.find((node) => node.id === selectedId);
   const relationOptions = [...new Set(diagram.edges.map((edge) => edge.type))];
-  const services = [...new Set(diagram.nodes.flatMap((node) => node.serviceId ?? []))];
+  const services = [
+    ...new Set(diagram.nodes.flatMap((node) => (node.serviceId ? [node.serviceId] : []))),
+  ];
 
   const nodes = useMemo<Node[]>(() => {
     const columnCounts = new Map<number, number>();
     return filtered.nodes.map((node) => {
-      const column = kindColumn[node.kind];
+      const column = variant === 'whole' ? wholeKindColumn[node.kind] : kindColumn[node.kind];
       const row = columnCounts.get(column) ?? 0;
       columnCounts.set(column, row + 1);
       const muted = selectedId ? !adjacent.has(node.id) : false;
@@ -97,7 +137,7 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
         style: { opacity: muted ? 0.2 : 1 },
       };
     });
-  }, [adjacent, filtered.nodes, selectedId]);
+  }, [adjacent, filtered.nodes, selectedId, variant]);
 
   const edges = useMemo<Edge[]>(
     () =>
@@ -121,7 +161,12 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    phase ? url.searchParams.set('phase', phase) : url.searchParams.delete('phase');
+    if (scopeOptions.length) {
+      scope ? url.searchParams.set(scopeParam, scope) : url.searchParams.delete(scopeParam);
+      url.searchParams.delete('phase');
+    } else {
+      phase ? url.searchParams.set('phase', phase) : url.searchParams.delete('phase');
+    }
     relationTypes.length
       ? url.searchParams.set('types', relationTypes.join(','))
       : url.searchParams.delete('types');
@@ -129,7 +174,13 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
     query ? url.searchParams.set('q', query) : url.searchParams.delete('q');
     selectedId ? url.searchParams.set('node', selectedId) : url.searchParams.delete('node');
     history.replaceState(null, '', url);
-  }, [phase, query, relationTypes, selectedId, serviceId]);
+  }, [phase, query, relationTypes, scope, scopeOptions.length, scopeParam, selectedId, serviceId]);
+
+  useEffect(() => {
+    if (selectedId && !filtered.nodes.some((node) => node.id === selectedId)) {
+      setSelectedId(undefined);
+    }
+  }, [filtered.nodes, selectedId]);
 
   function toggleRelation(type: RelationType) {
     setRelationTypes((current) =>
@@ -138,21 +189,34 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
   }
 
   return (
-    <div className="architecture-explorer">
+    <div className={`architecture-explorer architecture-explorer--${variant}`}>
       <section className="explorer-filters" aria-label="Diagram filters">
-        <label>
-          Phase
-          <select
-            value={phase}
-            onChange={(event) => setPhase(event.target.value as ArchitecturePhase)}
-          >
-            {diagram.phases.map((item) => (
-              <option key={item} value={item}>
-                {item.replaceAll('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </label>
+        {scopeOptions.length ? (
+          <label>
+            Architecture scope
+            <select value={scope} onChange={(event) => setScope(event.target.value)}>
+              {scopeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label>
+            Phase
+            <select
+              value={phase}
+              onChange={(event) => setPhase(event.target.value as ArchitecturePhase)}
+            >
+              {diagram.phases.map((item) => (
+                <option key={item} value={item}>
+                  {item.replaceAll('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           Service
           <select
@@ -255,6 +319,18 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
               <p>{selectedNode.description}</p>
               {selectedNode.serviceId && (
                 <a href={`/services/${selectedNode.serviceId}/`}>Open service →</a>
+              )}
+              {selectedNode.sourceDiagramIds && selectedNode.sourceDiagramIds.length > 0 && (
+                <>
+                  <h3>Focused source views</h3>
+                  <ul>
+                    {selectedNode.sourceDiagramIds.map((id) => (
+                      <li key={id}>
+                        <a href={`/explorer/${id}/`}>{id}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               <h3>Source decisions</h3>
               <ul>

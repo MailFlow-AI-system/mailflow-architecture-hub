@@ -21,7 +21,10 @@ test('decision catalog reaches exact baseline evidence and reverse diagram links
   await expect(
     page.getByRole('heading', { name: 'Authoritative baseline evidence' }),
   ).toBeVisible();
-  await expect(page.locator('pre').first()).not.toBeEmpty();
+  const evidence = page.locator('.markdown-content').first();
+  await expect(evidence).not.toBeEmpty();
+  await expect(evidence).not.toContainText('###');
+  await expect(evidence.locator('p, h3, ul, ol, table, blockquote').first()).toBeVisible();
   await expect(page.getByText('Diagrams', { exact: true })).toBeVisible();
 });
 
@@ -54,6 +57,51 @@ test('explorer filters, selects, and persists state in the URL', async ({ page }
   await inspectorLink.click();
   await expect(page).toHaveURL('/services/service.mail/');
   await expect(page.getByRole('heading', { name: 'Mail' })).toBeVisible();
+});
+
+test('whole architecture explorer exposes complete and MVP canvas modes', async ({ page }) => {
+  await page.goto('/explorer/whole/');
+  await expect(page.getByRole('heading', { name: 'Complete architecture canvas' })).toBeVisible();
+  await expect(page.locator('.architecture-explorer--whole .react-flow')).toBeVisible();
+  const allNodeCount = await page
+    .locator('.architecture-explorer--whole .react-flow__node')
+    .count();
+  const allEdgeCount = await page
+    .locator('.architecture-explorer--whole .react-flow__edge')
+    .count();
+  await expect(page.locator('[data-whole-node-count]')).toHaveText(String(allNodeCount));
+  await expect(page.locator('[data-whole-edge-count]')).toHaveText(String(allEdgeCount));
+  expect(allNodeCount).toBeGreaterThan(100);
+  expect(allEdgeCount).toBeGreaterThan(200);
+
+  await page.getByLabel('Architecture scope').selectOption('mvp');
+  await expect(page).toHaveURL(/mode=mvp/u);
+  const mvpNodeCount = await page
+    .locator('.architecture-explorer--whole .react-flow__node')
+    .count();
+  const mvpEdgeCount = await page
+    .locator('.architecture-explorer--whole .react-flow__edge')
+    .count();
+  expect(mvpNodeCount).toBeGreaterThan(0);
+  expect(mvpEdgeCount).toBeGreaterThan(0);
+  expect(mvpNodeCount).toBeLessThan(allNodeCount);
+  expect(mvpEdgeCount).toBeLessThan(allEdgeCount);
+
+  await page.getByLabel('Architecture scope').selectOption('all');
+  await expect(page).toHaveURL(/mode=all/u);
+  await expect(page.locator('.architecture-explorer--whole .react-flow__node')).toHaveCount(
+    allNodeCount,
+  );
+});
+
+test('whole architecture canvas keeps scope controls usable on small screens', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/explorer/whole/');
+  await expect(page.getByLabel('Architecture scope')).toBeVisible();
+  await expect(page.locator('.architecture-explorer--whole .react-flow')).toBeVisible();
+  const canvas = await page.locator('.architecture-explorer--whole .explorer-canvas').boundingBox();
+  expect(canvas?.width).toBeGreaterThan(0);
+  await expect(page.locator('.architecture-explorer--whole .explorer-inspector')).toBeVisible();
 });
 
 test('production search resolves architecture records and preserves the query', async ({

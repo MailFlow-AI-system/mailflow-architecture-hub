@@ -1,8 +1,10 @@
 ---
 import EntityCard from '../../components/ui/EntityCard.astro';
 import PageHeading from '../../components/ui/PageHeading.astro';
-import { architectureDiagrams } from '../../data/architecture/diagrams';
+import { architectureDiagrams, composeWholeArchitecture } from '../../data/architecture/diagrams';
 import Layout from '../../layouts/Layout.astro';
+
+const wholeDiagram = composeWholeArchitecture(architectureDiagrams);
 ---
 
 <Layout
@@ -14,7 +16,14 @@ import Layout from '../../layouts/Layout.astro';
     <PageHeading
       eyebrow={`${architectureDiagrams.length} connected views`}
       title="Visual explorer"
-      description="Focused views replace one unreadable mega-canvas. Each node and relationship links back to stable decisions, services, phases, and trust boundaries."
+      description="Use the complete canvas for whole-system navigation, then move into focused views for legible detail. Every node and relationship remains linked to stable decisions, services, phases, and trust boundaries."
+    />
+    <EntityCard
+      href="/explorer/whole/"
+      eyebrow={`${wholeDiagram.nodes.length} normalized nodes · ${wholeDiagram.edges.length} unique connections`}
+      title="Complete architecture canvas"
+      summary="Open the full-system workspace to pan and zoom across every canonical service, boundary, provider, data store, and typed connection."
+      meta="MVP and complete architecture modes"
     />
     <div class="catalog-grid" data-pagefind-body>
       {
