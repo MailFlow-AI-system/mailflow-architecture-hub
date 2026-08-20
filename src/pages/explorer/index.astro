@@ -1,0 +1,33 @@
+---
+import EntityCard from '../../components/ui/EntityCard.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureDiagrams } from '../../data/architecture/diagrams';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Architecture explorer"
+  description="Connected, phase-aware MailFlow architecture views."
+  currentPath="/explorer/"
+>
+  <div class="content-wrap">
+    <PageHeading
+      eyebrow={`${architectureDiagrams.length} connected views`}
+      title="Visual explorer"
+      description="Focused views replace one unreadable mega-canvas. Each node and relationship links back to stable decisions, services, phases, and trust boundaries."
+    />
+    <div class="catalog-grid" data-pagefind-body>
+      {
+        architectureDiagrams.map((diagram) => (
+          <EntityCard
+            href={`/explorer/${diagram.id}/`}
+            eyebrow={`${diagram.phases.join(' → ')} · ${diagram.nodes.length} nodes`}
+            title={diagram.title}
+            summary={diagram.purpose}
+            meta={diagram.id}
+          />
+        ))
+      }
+    </div>
+  </div>
+</Layout>

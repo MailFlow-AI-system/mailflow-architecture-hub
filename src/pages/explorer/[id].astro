@@ -1,0 +1,101 @@
+---
+import ArchitectureExplorer from '../../components/explorer/ArchitectureExplorer';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import {
+  architectureDiagrams,
+  type ArchitectureDiagramDefinition,
+} from '../../data/architecture/diagrams';
+import Layout from '../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return architectureDiagrams.map((diagram) => ({
+    params: { id: diagram.id },
+    props: { diagram },
+  }));
+}
+interface Props {
+  diagram: ArchitectureDiagramDefinition;
+}
+const { diagram } = Astro.props;
+---
+
+<Layout title={diagram.title} description={diagram.purpose} currentPath="/explorer/">
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={diagram.id}
+      title={diagram.title}
+      description={diagram.purpose}
+      breadcrumbs={[{ label: 'Explorer', href: '/explorer/' }, { label: diagram.title }]}
+    />
+    <ArchitectureExplorer client:only="react" {diagram} />
+    <section class="record-panel static-outline">
+      <h2>Static architecture outline</h2>
+      <p>
+        This complete outline remains available without JavaScript. Open entity links for
+        authoritative evidence.
+      </p>
+      <div class="outline-grid">
+        <div>
+          <h3>Nodes</h3><ul>
+            {
+              diagram.nodes.map((node) => (
+                <li id={node.id}>
+                  <strong>{node.label}</strong> — {node.description}
+                  {node.serviceId && (
+                    <>
+                      {' '}
+                      · <a href={`/services/${node.serviceId}/`}>{node.serviceId}</a>
+                    </>
+                  )}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div>
+          <h3>Relationships</h3><ul>
+            {
+              diagram.edges.map((edge) => (
+                <li id={edge.id}>
+                  <strong>
+                    {edge.prohibited ? 'Prohibited: ' : ''}
+                    {edge.label}
+                  </strong>{' '}
+                  — {edge.source} → {edge.target} · {edge.type.replaceAll('_', ' ')}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+      <h3>Source decisions</h3><ul class="record-links">
+        {
+          diagram.decisionIds.map((id) => (
+            <li>
+              <a href={`/decisions/${id}/`}>{id}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</Layout>
+<style>
+  .outline-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+  .outline-grid li {
+    margin-bottom: 0.65rem;
+    color: var(--color-paper-300);
+  }
+  .outline-grid a {
+    color: var(--color-cyan-300);
+  }
+  @media (max-width: 50rem) {
+    .outline-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
