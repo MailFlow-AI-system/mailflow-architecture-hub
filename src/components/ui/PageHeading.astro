@@ -6,12 +6,13 @@ interface Props {
   title: string;
   description?: string;
   breadcrumbs?: { label: string; href?: string }[];
+  wideTitle?: boolean;
 }
 
-const { eyebrow, title, description, breadcrumbs } = Astro.props;
+const { eyebrow, title, description, breadcrumbs, wideTitle = false } = Astro.props;
 ---
 
-<div class="page-heading">
+<div class:list={['page-heading', { 'page-heading--wide-title': wideTitle }]}>
   {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
   {eyebrow && <p class="eyebrow">{eyebrow}</p>}
   <h1>{title}</h1>
@@ -37,6 +38,10 @@ const { eyebrow, title, description, breadcrumbs } = Astro.props;
     letter-spacing: var(--tracking-tight);
     line-height: 0.86;
     text-transform: uppercase;
+  }
+
+  .page-heading--wide-title h1 {
+    max-width: 22ch;
   }
 
   .page-heading__description {

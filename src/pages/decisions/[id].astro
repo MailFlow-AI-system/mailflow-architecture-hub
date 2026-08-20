@@ -31,6 +31,7 @@ const diagramIds = decisionToDiagramIds.get(decision.id) ?? [];
       eyebrow={decision.id}
       title={decision.title}
       description={decision.summary}
+      wideTitle
       breadcrumbs={[{ label: 'Decisions', href: '/decisions/' }, { label: decision.title }]}
     />
     <div class="record-layout">
