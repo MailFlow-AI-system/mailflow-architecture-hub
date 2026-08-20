@@ -1,0 +1,210 @@
+---
+import { parseMarkdownBlocks, type MarkdownBlock } from '../../domain/architecture/markdown';
+import MarkdownInline from './MarkdownInline.astro';
+
+interface Props {
+  content: string;
+  class?: string;
+}
+
+const { content, class: className } = Astro.props;
+const blocks = parseMarkdownBlocks(content);
+---
+
+<div class:list={['markdown-content', className]}>
+  {
+    blocks.map((block: MarkdownBlock) => (
+      <>
+        {block.type === 'heading' && (
+          <h3>
+            <MarkdownInline nodes={block.content} />
+          </h3>
+        )}
+        {block.type === 'paragraph' && (
+          <p>
+            <MarkdownInline nodes={block.content} />
+          </p>
+        )}
+        {block.type === 'blockquote' && (
+          <blockquote>
+            <MarkdownInline nodes={block.content} />
+          </blockquote>
+        )}
+        {block.type === 'unordered-list' && (
+          <ul>
+            {block.items.map((item) => (
+              <li>
+                <MarkdownInline nodes={item} />
+              </li>
+            ))}
+          </ul>
+        )}
+        {block.type === 'ordered-list' && (
+          <ol>
+            {block.items.map((item) => (
+              <li>
+                <MarkdownInline nodes={item} />
+              </li>
+            ))}
+          </ol>
+        )}
+        {block.type === 'table' && (
+          <div class="markdown-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {block.header.map((cell) => (
+                    <th scope="col">
+                      <MarkdownInline nodes={cell} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {block.rows.map((row) => (
+                  <tr>
+                    {row.map((cell) => (
+                      <td>
+                        <MarkdownInline nodes={cell} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {block.type === 'code-block' && (
+          <pre>
+            <code data-language={block.language || undefined}>{block.value}</code>
+          </pre>
+        )}
+        {block.type === 'thematic-break' && <hr />}
+      </>
+    ))
+  }
+</div>
+
+<style>
+  .markdown-content {
+    color: var(--color-paper-300);
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .markdown-content > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-content > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-content h3,
+  .markdown-content h4,
+  .markdown-content h5,
+  .markdown-content h6 {
+    margin: 1.35rem 0 0.5rem;
+    color: var(--color-paper-100);
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+    text-transform: uppercase;
+  }
+
+  .markdown-content h3 {
+    font-size: 1.16rem;
+  }
+  .markdown-content h4 {
+    font-size: 1.05rem;
+  }
+  .markdown-content h5,
+  .markdown-content h6 {
+    font-size: 0.94rem;
+  }
+
+  .markdown-content p,
+  .markdown-content blockquote,
+  .markdown-content ul,
+  .markdown-content ol {
+    margin: 0.75rem 0;
+  }
+
+  .markdown-content ul,
+  .markdown-content ol {
+    padding-left: 1.35rem;
+  }
+
+  .markdown-content li + li {
+    margin-top: 0.35rem;
+  }
+
+  .markdown-content blockquote {
+    border-left: 0.2rem solid var(--color-cyan-300);
+    color: var(--color-paper-200);
+    padding-left: 1rem;
+  }
+
+  .markdown-content code {
+    border-radius: 0.2rem;
+    background: rgb(4 9 12 / 0.72);
+    color: var(--color-lime-400);
+    font: 0.88em var(--font-mono);
+    padding: 0.12rem 0.28rem;
+  }
+
+  .markdown-content pre {
+    overflow-x: auto;
+    border-left: 0.2rem solid var(--color-cyan-300);
+    background: rgb(4 9 12 / 0.72);
+    padding: var(--space-4);
+  }
+
+  .markdown-content pre code {
+    display: block;
+    background: transparent;
+    padding: 0;
+    color: var(--color-paper-300);
+    font: 0.82rem/1.55 var(--font-mono);
+    white-space: pre;
+  }
+
+  .markdown-content a {
+    color: var(--color-cyan-300);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+  }
+
+  .markdown-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 30rem;
+    font-size: 0.9rem;
+  }
+
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid rgb(245 242 234 / 0.2);
+    padding: 0.55rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown-content th {
+    color: var(--color-paper-100);
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .markdown-content hr {
+    border: 0;
+    border-top: 1px solid rgb(245 242 234 / 0.2);
+    margin: 1.5rem 0;
+  }
+</style>

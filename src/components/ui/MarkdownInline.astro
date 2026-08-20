@@ -1,0 +1,34 @@
+---
+import type { MarkdownInline as MarkdownInlineNode } from '../../domain/architecture/markdown';
+import MarkdownInline from './MarkdownInline.astro';
+
+interface Props {
+  nodes: MarkdownInlineNode[];
+}
+
+const { nodes } = Astro.props;
+---
+
+{
+  nodes.map((node) => (
+    <>
+      {node.type === 'text' && node.value}
+      {node.type === 'code' && <code>{node.value}</code>}
+      {node.type === 'strong' && (
+        <strong>
+          <MarkdownInline nodes={node.content} />
+        </strong>
+      )}
+      {node.type === 'emphasis' && (
+        <em>
+          <MarkdownInline nodes={node.content} />
+        </em>
+      )}
+      {node.type === 'link' && (
+        <a href={node.href}>
+          <MarkdownInline nodes={node.label} />
+        </a>
+      )}
+    </>
+  ))
+}

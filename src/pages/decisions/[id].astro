@@ -1,6 +1,7 @@
 ---
 import StatusBadge from '../../components/ui/StatusBadge.astro';
 import PageHeading from '../../components/ui/PageHeading.astro';
+import MarkdownContent from '../../components/ui/MarkdownContent.astro';
 import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
 import { decisionToDiagramIds } from '../../data/architecture/traceability';
 import Layout from '../../layouts/Layout.astro';
@@ -44,7 +45,7 @@ const diagramIds = decisionToDiagramIds.get(decision.id) ?? [];
                     <strong>{source.source}</strong> · lines {source.range.startLine}–
                     {source.range.endLine} · SHA-256 {source.digest.value.slice(0, 12)}…
                   </p>
-                  <pre>{source.excerpt}</pre>
+                  <MarkdownContent content={source.excerpt} />
                 </>
               </div>
             ))
@@ -52,15 +53,19 @@ const diagramIds = decisionToDiagramIds.get(decision.id) ?? [];
         </section>
         <section class="record-panel">
           <h2>Decision context</h2>
-          {decision.narrative.contextProblem.items.map((item) => <p>{item}</p>)}
+          {
+            decision.narrative.contextProblem.items.map((item) => (
+              <MarkdownContent content={item} />
+            ))
+          }
           <h3>Trade-offs and alternatives</h3>
-          <p>{decision.narrative.tradeOffs.note ?? 'See the authoritative evidence above.'}</p>
-          <p>
-            {
-              decision.narrative.alternativesRejected.note ??
-                'See the authoritative evidence above.'
-            }
-          </p>
+          <MarkdownContent
+            content={decision.narrative.tradeOffs.note ?? 'See the authoritative evidence above.'}
+          />
+          <MarkdownContent
+            content={decision.narrative.alternativesRejected.note ??
+              'See the authoritative evidence above.'}
+          />
         </section>
         {
           decision.reassessmentTriggers.length > 0 && (
