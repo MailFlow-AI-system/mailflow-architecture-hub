@@ -1,5 +1,10 @@
 # Third-party notices
 
+The public architecture explorer uses:
+
+- `@xyflow/react` — MIT. The library is isolated behind MailFlow-owned diagram models and
+  components; its types are not canonical architecture contracts.
+
 The project uses the following direct development dependencies for validation and build tooling:
 
 - `@axe-core/playwright` — MPL-2.0. See the package license and notices distributed with the dependency.
@@ -8,5 +13,5 @@ The project uses the following direct development dependencies for validation an
 - `pagefind` — MIT. See the package license distributed with the dependency.
 - `prettier` and `prettier-plugin-astro` — MIT. See the package licenses distributed with the dependencies.
 
-This file records direct tooling choices. The lockfile remains the authoritative record of resolved
-transitive dependencies and their integrity hashes.
+The lockfile remains the authoritative record of resolved transitive dependencies and integrity
+hashes.
