@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { validateArchitectureRegistry } from '../../../domain/architecture';
 import { buildArchitectureCatalog } from './buildCatalog';
@@ -10,10 +11,7 @@ export { capabilityShard, coreShard, platformShard };
 export * from './types';
 
 export const baselineSourcePath = 'docs/architecture/architectureBaseline.md';
-export const baselineSourceText = readFileSync(
-  new URL('../../../../docs/architecture/architectureBaseline.md', import.meta.url),
-  'utf8',
-);
+export const baselineSourceText = readFileSync(resolve(process.cwd(), baselineSourcePath), 'utf8');
 
 export const architectureRegistry = buildArchitectureCatalog(
   baselineSourceText,
