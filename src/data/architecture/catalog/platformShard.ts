@@ -569,7 +569,7 @@ const stacks: StackSeed[] = [
     name: 'Managed KMS',
     summary:
       'Required provider boundary for wrapping credential data keys; exact provider, region, SDK, and policy are deferred.',
-    phase: 'future',
+    phase: 'mvp',
     status: 'deferred',
     sourceRanges: [
       { startLine: 1916, endLine: 1938 },

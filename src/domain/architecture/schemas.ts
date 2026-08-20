@@ -36,6 +36,9 @@ const trustBoundaryIds = z.array(TrustBoundaryIdSchema).default([]);
 export const DocumentationStatusSchema = z.enum(['documented', 'not_documented']);
 export type DocumentationStatus = z.infer<typeof DocumentationStatusSchema>;
 
+export const CoverageReviewStatusSchema = z.enum(['machine_classified', 'human_reviewed']);
+export type CoverageReviewStatus = z.infer<typeof CoverageReviewStatusSchema>;
+
 export const NarrativeTextSchema = z.object({
   status: DocumentationStatusSchema,
   items: z.array(nonEmptyText).default([]),
@@ -197,6 +200,7 @@ export const ServiceSchema = z.object({
   decisionIds,
   diagramIds,
   stackIds,
+  stackStatus: DocumentationStatusSchema.default('documented'),
   trustBoundaryIds,
   confidentiality: ConfidentialityClassSchema.default('tenant_confidential'),
 });
@@ -207,12 +211,14 @@ export const DiagramSchema = z.object({
   title: nonEmptyText,
   purpose: nonEmptyText,
   phase: ArchitecturePhaseSchema,
+  phases: z.array(ArchitecturePhaseSchema).default([]),
   pagePath: nonEmptyText,
   sourceAnchors: z.array(SourceAnchorSchema).min(1),
   decisionIds,
   serviceIds,
   relationshipIds: z.array(RelationshipIdSchema).default([]),
   trustBoundaryIds,
+  nodeIds: z.array(StableIdSchema).default([]),
   staticOutline: z.array(nonEmptyText).default([]),
 });
 export type Diagram = z.infer<typeof DiagramSchema>;
@@ -223,6 +229,9 @@ export const RelationshipSchema = z.object({
   phase: ArchitecturePhaseSchema,
   source: EntityRefSchema,
   target: EntityRefSchema,
+  diagramId: DiagramIdSchema.optional(),
+  visualSourceNodeId: StableIdSchema.optional(),
+  visualTargetNodeId: StableIdSchema.optional(),
   label: nonEmptyText.optional(),
   sourceAnchors: z.array(SourceAnchorSchema).min(1),
   decisionIds,
@@ -300,21 +309,37 @@ export const BaselineBlockSchema = z.object({
 });
 export type BaselineBlock = z.infer<typeof BaselineBlockSchema>;
 
-export const CoverageRecordSchema = z.object({
-  sectionId: BaselineSectionIdSchema,
-  blockId: BaselineBlockIdSchema.optional(),
-  classification: CoverageClassificationSchema,
-  decisionIds,
-  serviceIds,
-  diagramIds,
-  stackIds,
-  gateIds,
-  relationshipIds: z.array(RelationshipIdSchema).default([]),
-  phase: ArchitecturePhaseSchema.optional(),
-  status: DecisionStatusSchema.optional(),
-  sourceDigest: SourceDigestSchema,
-  primaryReferences: z.array(urlSchema).default([]),
-});
+export const CoverageRecordSchema = z
+  .object({
+    sectionId: BaselineSectionIdSchema,
+    blockId: BaselineBlockIdSchema.optional(),
+    classification: CoverageClassificationSchema,
+    decisionIds,
+    serviceIds,
+    diagramIds,
+    stackIds,
+    gateIds,
+    relationshipIds: z.array(RelationshipIdSchema).default([]),
+    phase: ArchitecturePhaseSchema.optional(),
+    status: DecisionStatusSchema.optional(),
+    sourceDigest: SourceDigestSchema,
+    primaryReferences: z.array(urlSchema).default([]),
+    pageRoutes: z.array(nonEmptyText).default([]),
+    reviewStatus: CoverageReviewStatusSchema.default('machine_classified'),
+    reviewedBy: nonEmptyText.optional(),
+    reviewedAt: z.iso.date().optional(),
+    reviewNotes: z.array(nonEmptyText).default([]),
+    baselineChecksum: SourceDigestSchema.optional(),
+  })
+  .superRefine((record, context) => {
+    if (record.reviewStatus === 'human_reviewed' && (!record.reviewedBy || !record.reviewedAt)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reviewStatus'],
+        message: 'human-reviewed coverage requires reviewer identity and review date',
+      });
+    }
+  });
 export type CoverageRecord = z.infer<typeof CoverageRecordSchema>;
 
 export const ArchitectureRegistrySchema = z.object({

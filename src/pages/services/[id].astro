@@ -14,8 +14,18 @@ export function getStaticPaths() {
 interface Props {
   service: Service;
 }
-const { service } = Astro.props;
+const { service } = Astro.props as Props;
 const diagramIds = serviceToDiagramIds.get(service.id) ?? [];
+const narrativeRows = [
+  ['Stack motivation', service.stackMotivation],
+  ['Stack trade-offs', service.stackTradeOffs],
+  ['Stack alternatives', service.stackAlternatives],
+  ['Extraction triggers', service.extractionTriggers],
+  ['Migration triggers', service.migrationTriggers],
+  ['Security', service.security],
+  ['Authentication', service.authentication],
+  ['Authorization', service.authorization],
+] as const;
 ---
 
 <Layout title={service.name} description={service.responsibility} currentPath="/services/">
@@ -67,15 +77,111 @@ const diagramIds = serviceToDiagramIds.get(service.id) ?? [];
           }
         </section>
         <section class="record-panel">
-          <h2>Contracts and processes</h2><p>
-            API, worker, scheduler, events, and dependencies are documented only when explicitly
-            projected. The baseline excerpts and linked decisions remain authoritative.
+          <h2>Contracts and processes</h2>
+          <h3>API and command contracts</h3>
+          {
+            service.apiContracts.length ? (
+              <ul>
+                {service.apiContracts.map((contract) => (
+                  <li>
+                    <strong>{contract.name}</strong> · {contract.kind.replaceAll('_', ' ')} ·{' '}
+                    {contract.direction}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No explicit contract is classified for this service.</p>
+            )
+          }
+          <h3>Events published</h3>
+          {
+            service.eventsPublished.length ? (
+              <ul>
+                {service.eventsPublished.map((event) => (
+                  <li>{event.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No published event is explicitly classified for this service.</p>
+            )
+          }
+          <h3>Events consumed</h3>
+          {
+            service.eventsConsumed.length ? (
+              <ul>
+                {service.eventsConsumed.map((event) => (
+                  <li>{event.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No consumed event is explicitly classified for this service.</p>
+            )
+          }
+          <h3>Dependencies</h3>
+          {
+            service.dependencies.length ? (
+              <ul>
+                {service.dependencies.map((dependency) => (
+                  <li>
+                    <strong>{dependency.target}</strong> · {dependency.phase} ·{' '}
+                    {dependency.reason.items.join('; ')}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No dependency is explicitly classified for this service.</p>
+            )
+          }
+          <h3>Process roles</h3>
+          {
+            service.processRoles.length ? (
+              <ul>
+                {service.processRoles.map((process) => (
+                  <li>
+                    <strong>{process.role}</strong> · {process.responsibilities.join('; ')}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No API, worker, or scheduler role is explicitly classified for this service.</p>
+            )
+          }
+        </section>
+        <section class="record-panel">
+          <h2>Placement and lifecycle</h2>
+          <p>
+            <strong>{service.placement.status.replaceAll('_', ' ')}</strong> · phases{' '}
+            {service.placement.phases.join(', ') || 'not classified'}
           </p>
+          <p>Locations: {service.placement.locations.join(', ') || 'not documented'}</p>
+          <ul>{service.placement.conditions.map((condition) => <li>{condition}</li>)}</ul>
+        </section>
+        <section class="record-panel">
+          <h2>Decision-backed analysis</h2>
+          {
+            narrativeRows.map(([label, narrative]) => (
+              <section>
+                <h3>{label}</h3>
+                {narrative.status === 'documented' ? (
+                  <ul>
+                    {narrative.items.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{narrative.note}</p>
+                )}
+              </section>
+            ))
+          }
         </section>
       </article>
       <aside class="record-aside">
         <dl>
-          <dt>Phase</dt><dd>{service.phase}</dd><dt>Stacks</dt><dd>
+          <dt>Phase</dt><dd>{service.phase}</dd><dt>Owner</dt><dd>
+            <strong>{service.owner.id}</strong><p>{service.owner.responsibilities.join('; ')}</p>
+          </dd><dt>Stacks</dt><dd>
+            <p>{service.stackStatus.replaceAll('_', ' ')}</p>
             <ul class="record-links">
               {
                 service.stackIds.map((id) => (

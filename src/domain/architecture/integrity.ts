@@ -161,11 +161,20 @@ export function validateArchitectureRegistry(input: unknown): IntegrityReport {
     if (service.owner.kind === 'service' && !has('service', service.owner.id)) {
       addReferenceError(errors, `services.${index}.owner.id`, 'service', service.owner.id);
     }
+    if (service.owner.kind !== 'service' || service.owner.id !== service.id) {
+      errors.push(
+        error(
+          'missing_reference',
+          `services.${index}.owner`,
+          `service "${service.id}" must own its bounded-context projection explicitly`,
+        ),
+      );
+    }
     requireRefs(`services.${index}.decisionIds`, 'decision', service.decisionIds);
     requireRefs(`services.${index}.diagramIds`, 'diagram', service.diagramIds);
     requireRefs(`services.${index}.stackIds`, 'stack', service.stackIds);
     requireRefs(`services.${index}.trustBoundaryIds`, 'trust_boundary', service.trustBoundaryIds);
-    if (service.stackIds.length === 0) {
+    if (service.stackStatus === 'documented' && service.stackIds.length === 0) {
       errors.push(
         error(
           'missing_stack',
@@ -181,9 +190,34 @@ export function validateArchitectureRegistry(input: unknown): IntegrityReport {
     requireRefs(`diagrams.${index}.serviceIds`, 'service', diagram.serviceIds);
     requireRefs(`diagrams.${index}.relationshipIds`, 'relationship', diagram.relationshipIds);
     requireRefs(`diagrams.${index}.trustBoundaryIds`, 'trust_boundary', diagram.trustBoundaryIds);
+    for (const [decisionIndex, decisionId] of diagram.decisionIds.entries()) {
+      const decision = registry.decisions.find((item) => item.id === decisionId);
+      if (decision && !decision.diagramIds.includes(diagram.id)) {
+        errors.push(
+          error(
+            'invalid_relationship',
+            `diagrams.${index}.decisionIds.${decisionIndex}`,
+            `diagram "${diagram.id}" is not reciprocally linked by decision "${decisionId}"`,
+          ),
+        );
+      }
+    }
+    for (const [serviceIndex, serviceId] of diagram.serviceIds.entries()) {
+      const service = registry.services.find((item) => item.id === serviceId);
+      if (service && !service.diagramIds.includes(diagram.id)) {
+        errors.push(
+          error(
+            'invalid_relationship',
+            `diagrams.${index}.serviceIds.${serviceIndex}`,
+            `diagram "${diagram.id}" is not reciprocally linked by service "${serviceId}"`,
+          ),
+        );
+      }
+    }
     for (const [relationshipIndex, relationshipId] of diagram.relationshipIds.entries()) {
       const relationship = registry.relationships.find((item) => item.id === relationshipId);
-      if (relationship && relationship.phase !== diagram.phase) {
+      const declaredPhases = new Set([diagram.phase, ...diagram.phases]);
+      if (relationship && !declaredPhases.has(relationship.phase)) {
         errors.push(
           error(
             'phase_contradiction',
@@ -198,7 +232,10 @@ export function validateArchitectureRegistry(input: unknown): IntegrityReport {
   registry.relationships.forEach((relationship, index) => {
     if (
       relationship.source.kind === relationship.target.kind &&
-      relationship.source.id === relationship.target.id
+      relationship.source.id === relationship.target.id &&
+      (!relationship.visualSourceNodeId ||
+        !relationship.visualTargetNodeId ||
+        relationship.visualSourceNodeId === relationship.visualTargetNodeId)
     ) {
       errors.push(
         error(
@@ -225,6 +262,45 @@ export function validateArchitectureRegistry(input: unknown): IntegrityReport {
       );
     }
     requireRefs(`relationships.${index}.decisionIds`, 'decision', relationship.decisionIds);
+    if (relationship.diagramId) {
+      requireRefs(`relationships.${index}.diagramId`, 'diagram', [relationship.diagramId]);
+      const diagram = registry.diagrams.find((item) => item.id === relationship.diagramId);
+      if (diagram) {
+        if (!diagram.relationshipIds.includes(relationship.id)) {
+          errors.push(
+            error(
+              'invalid_relationship',
+              `relationships.${index}.diagramId`,
+              `relationship "${relationship.id}" is not reciprocally linked by diagram "${diagram.id}"`,
+            ),
+          );
+        }
+        if (
+          relationship.visualSourceNodeId &&
+          !diagram.nodeIds.includes(relationship.visualSourceNodeId)
+        ) {
+          errors.push(
+            error(
+              'invalid_relationship',
+              `relationships.${index}.visualSourceNodeId`,
+              `source node "${relationship.visualSourceNodeId}" does not exist in diagram "${diagram.id}"`,
+            ),
+          );
+        }
+        if (
+          relationship.visualTargetNodeId &&
+          !diagram.nodeIds.includes(relationship.visualTargetNodeId)
+        ) {
+          errors.push(
+            error(
+              'invalid_relationship',
+              `relationships.${index}.visualTargetNodeId`,
+              `target node "${relationship.visualTargetNodeId}" does not exist in diagram "${diagram.id}"`,
+            ),
+          );
+        }
+      }
+    }
     if (relationship.trustBoundaryId && !has('trust_boundary', relationship.trustBoundaryId)) {
       addReferenceError(
         errors,

@@ -741,7 +741,6 @@ const synchronousAndDurable: ArchitectureDiagramDefinition = {
       phases: ['first_distributed'],
       description:
         'Uses a fresh workload token and automation assertion for a synchronous owner call; durable commands carry stable evidence instead.',
-      serviceId: 'service.automation-runtime',
       stackIds: ['stack.jwks-tokens', 'stack.rabbitmq-acl'],
       decisionIds: [
         'decision.auth.durable-command-no-expiring-tokens',
@@ -896,7 +895,7 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
   title: 'Per-service RabbitMQ credentials and ACLs',
   purpose:
     'Show environment-isolated broker transport with separate service identities, virtual-host and route permissions, and local domain authorization after delivery.',
-  phases: ['first_distributed'],
+  phases: ['first_distributed', 'future'],
   sourceRanges: [
     { startLine: 320, endLine: 327 },
     { startLine: 501, endLine: 513 },
@@ -960,7 +959,7 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
       id: 'node.security.broker.workflow-credential',
       label: 'Workflow broker credential',
       kind: 'security_boundary',
-      phases: ['first_distributed'],
+      phases: ['future'],
       description: 'Workflow receives only its own least-privilege broker identity.',
       serviceId: 'service.workflow',
       decisionIds: ['decision.messaging.environment-isolation'],
@@ -970,7 +969,7 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
       id: 'node.security.broker.runtime-credential',
       label: 'Runtime broker credential',
       kind: 'security_boundary',
-      phases: ['first_distributed'],
+      phases: ['future'],
       description: 'Automation Runtime receives only its own least-privilege broker identity.',
       serviceId: 'service.automation-runtime',
       decisionIds: ['decision.messaging.environment-isolation'],
@@ -1017,7 +1016,7 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
       target: 'node.security.broker.rabbitmq',
       label: 'TLS connection and service-specific configure/write/read ACL',
       type: 'authentication',
-      phases: ['first_distributed'],
+      phases: ['future'],
       decisionIds: ['decision.messaging.environment-isolation'],
       trustBoundaryId: 'trust.broker-transport',
       confidentialData: ['broker credential'],
@@ -1028,7 +1027,7 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
       target: 'node.security.broker.rabbitmq',
       label: 'TLS connection and service-specific configure/write/read ACL',
       type: 'authentication',
-      phases: ['first_distributed'],
+      phases: ['future'],
       decisionIds: ['decision.messaging.environment-isolation'],
       trustBoundaryId: 'trust.broker-transport',
       confidentialData: ['broker credential'],

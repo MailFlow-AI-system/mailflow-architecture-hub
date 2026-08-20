@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { validateArchitectureRegistry } from '../../../domain/architecture';
+import { architectureDiagrams } from '../diagrams';
+import baselineVersion from '../baselineVersion.json';
+import { assertBaselineFingerprint } from './baselineFingerprint';
 import { buildArchitectureCatalog } from './buildCatalog';
 import { capabilityShard } from './capabilityShard';
 import { coreShard } from './coreShard';
@@ -13,10 +16,13 @@ export * from './types';
 export const baselineSourcePath = 'docs/architecture/architectureBaseline.md';
 export const baselineSourceText = readFileSync(resolve(process.cwd(), baselineSourcePath), 'utf8');
 
+assertBaselineFingerprint(baselineSourceText, baselineSourcePath, baselineVersion);
+
 export const architectureRegistry = buildArchitectureCatalog(
   baselineSourceText,
   [coreShard, capabilityShard, platformShard],
   baselineSourcePath,
+  architectureDiagrams,
 );
 
 const integrity = validateArchitectureRegistry(architectureRegistry);

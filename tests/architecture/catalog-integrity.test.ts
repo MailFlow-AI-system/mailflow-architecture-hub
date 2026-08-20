@@ -6,6 +6,7 @@ import { buildArchitectureCatalog } from '../../src/data/architecture/catalog/bu
 import { capabilityShard } from '../../src/data/architecture/catalog/capabilityShard';
 import { coreShard } from '../../src/data/architecture/catalog/coreShard';
 import { platformShard } from '../../src/data/architecture/catalog/platformShard';
+import { architectureDiagrams } from '../../src/data/architecture/diagrams';
 import { validateArchitectureRegistry } from '../../src/domain/architecture';
 
 const baselinePath = new URL('../../docs/architecture/architectureBaseline.md', import.meta.url);
@@ -13,11 +14,12 @@ const baselinePath = new URL('../../docs/architecture/architectureBaseline.md', 
 describe('complete architecture catalog', () => {
   test('maps the complete baseline into a referentially valid registry', async () => {
     const sourceText = await readFile(baselinePath, 'utf8');
-    const registry = buildArchitectureCatalog(sourceText, [
-      coreShard,
-      capabilityShard,
-      platformShard,
-    ]);
+    const registry = buildArchitectureCatalog(
+      sourceText,
+      [coreShard, capabilityShard, platformShard],
+      'docs/architecture/architectureBaseline.md',
+      architectureDiagrams,
+    );
     const report = validateArchitectureRegistry(registry);
 
     expect(registry.decisions.length).toBeGreaterThanOrEqual(120);
@@ -25,8 +27,17 @@ describe('complete architecture catalog', () => {
     expect(registry.baselineSections).toHaveLength(101);
     expect(registry.baselineBlocks).toHaveLength(1856);
     expect(registry.coverage).toHaveLength(1957);
-    expect(registry.coverage.every((record) => record.decisionIds.length > 0)).toBe(true);
+    expect(registry.diagrams).toHaveLength(architectureDiagrams.length);
+    expect(registry.relationships.length).toBeGreaterThanOrEqual(250);
+    expect(registry.coverage.every((record) => record.pageRoutes.length > 0)).toBe(true);
+    expect(registry.coverage.some((record) => record.decisionIds.length === 0)).toBe(true);
+    expect(registry.decisions.some((decision) => decision.diagramIds.length > 0)).toBe(true);
     expect(report.errors).toEqual([]);
     expect(report.valid).toBe(true);
+    expect(
+      registry.services.every(
+        (service) => service.owner.kind === 'service' && service.owner.id === service.id,
+      ),
+    ).toBe(true);
   });
 });

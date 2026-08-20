@@ -13,19 +13,19 @@ import {
   type ArchitectureRegistry,
   type BaselineBlockKind,
   type Decision,
+  type NarrativeText,
 } from '../../../domain/architecture';
 import { parseBaselineText } from '../../../domain/architecture/baseline';
+import {
+  compileSemanticAnnotations,
+  type SemanticAnnotationInput,
+} from '../../../domain/architecture/baseline/semantic';
+import type { ArchitectureDiagramDefinition } from '../diagrams';
+import { integrateArchitectureDiagrams } from './integrateDiagrams';
 import type { ArchitectureShard, DecisionSeed, LineRangeSeed } from './types';
 
 function overlaps(left: LineRangeSeed, right: LineRangeSeed): boolean {
   return left.startLine <= right.endLine && right.startLine <= left.endLine;
-}
-
-function distance(left: LineRangeSeed, right: LineRangeSeed): number {
-  if (overlaps(left, right)) return 0;
-  return left.endLine < right.startLine
-    ? right.startLine - left.endLine
-    : left.startLine - right.endLine;
 }
 
 function sourceExcerpt(sourceText: string, range: LineRangeSeed): string {
@@ -47,6 +47,15 @@ function notDocumented(note: string) {
   return { status: 'not_documented' as const, items: [], note };
 }
 
+function documentedEvidence(
+  evidence: readonly string[],
+  pattern: RegExp,
+  note: string,
+): NarrativeText {
+  const items = evidence.filter((item) => pattern.test(item));
+  return items.length > 0 ? { status: 'documented', items } : notDocumented(note);
+}
+
 function decisionFromSeed(
   seed: DecisionSeed,
   sourceText: string,
@@ -54,6 +63,15 @@ function decisionFromSeed(
   reciprocalGateIds: string[],
 ): Decision {
   const evidence = seed.sourceRanges.map((range) => sourceExcerpt(sourceText, range).trim());
+  const alternatives = /alternative|fallback|instead|versus|rejected|deferred|do not|avoid/iu;
+  const benefits = /benefit|advantage|enable|allow|reduce|preserve|simplif|keep/iu;
+  const tradeOffs = /trade-off|tradeoff|cost|complex|constraint|limit|disadvantage/iu;
+  const risks = /risk|threat|failure|abuse|loss|exposure|unavailable|unknown/iu;
+  const operations =
+    /operation|retry|monitor|deploy|runbook|alert|SLO|backup|recover|rotat|worker|scheduler/iu;
+  const context = /context|problem|need|because|requirement|must|constraint|goal|risk/iu;
+  const motivation =
+    /because|reason|motivat|chosen|prefer|so that|to (?:ensure|avoid|enable|preserve|reduce)|benefit|why/iu;
   return DecisionSchema.parse({
     id: DecisionIdSchema.parse(seed.id),
     title: seed.title,
@@ -62,25 +80,55 @@ function decisionFromSeed(
     summary: seed.summary,
     pagePath: `/decisions/${seed.id}/`,
     narrative: {
-      contextProblem: { status: 'documented', items: evidence },
-      motivation: notDocumented(
-        'Use the linked baseline evidence; no separate projection was asserted.',
+      contextProblem: documentedEvidence(
+        evidence,
+        context,
+        'No explicit context or problem statement is classified in this decision range.',
       ),
-      alternativesConsidered: notDocumented(
-        'Alternatives are shown only when explicitly present in the linked baseline evidence.',
+      motivation: documentedEvidence(
+        evidence,
+        motivation,
+        'No explicit motivation statement is classified in this decision range.',
       ),
-      alternativesRejected: notDocumented(
-        'Rejected alternatives are not inferred from the selected technology.',
+      alternativesConsidered: documentedEvidence(
+        evidence,
+        alternatives,
+        'No explicit alternative is classified in this decision range.',
       ),
-      benefits: notDocumented('Benefits remain in the authoritative baseline evidence.'),
-      tradeOffs: notDocumented('Trade-offs remain in the authoritative baseline evidence.'),
-      risks: notDocumented('Risks remain in the authoritative baseline evidence.'),
-      operationalConsequences: notDocumented(
-        'Operational consequences remain in the authoritative baseline evidence.',
+      alternativesRejected: documentedEvidence(
+        evidence,
+        /rejected|do not|avoid|not selected|instead/iu,
+        'No explicitly rejected alternative is classified in this decision range.',
       ),
-      mvpImpact: notDocumented('MVP impact is not duplicated when the source is phase-specific.'),
-      futureImpact: notDocumented(
-        'Future impact is not duplicated when the source is phase-specific.',
+      benefits: documentedEvidence(
+        evidence,
+        benefits,
+        'No separate benefit statement is classified in this decision range.',
+      ),
+      tradeOffs: documentedEvidence(
+        evidence,
+        tradeOffs,
+        'No explicit trade-off statement is classified in this decision range.',
+      ),
+      risks: documentedEvidence(
+        evidence,
+        risks,
+        'No explicit risk statement is classified in this decision range.',
+      ),
+      operationalConsequences: documentedEvidence(
+        evidence,
+        operations,
+        'No explicit operational consequence is classified in this decision range.',
+      ),
+      mvpImpact: documentedEvidence(
+        evidence,
+        /\bMVP\b|initial(?:ly| release| phase)?|first release|phase 1/iu,
+        'No explicit MVP impact is classified in this decision range.',
+      ),
+      futureImpact: documentedEvidence(
+        evidence,
+        /future|later|extract|migration|evolution|distributed/iu,
+        'No explicit future impact is classified in this decision range.',
       ),
       evidence: { status: 'documented', items: evidence },
       references: seed.primaryReferences?.length
@@ -153,6 +201,7 @@ export function buildArchitectureCatalog(
   sourceText: string,
   shards: readonly ArchitectureShard[],
   sourcePath = 'docs/architecture/architectureBaseline.md',
+  diagramDefinitions: readonly ArchitectureDiagramDefinition[] = [],
 ): ArchitectureRegistry {
   assertSeedIntegrity(shards);
   const parsed = parseBaselineText(sourceText, { sourcePath });
@@ -187,8 +236,6 @@ export function buildArchitectureCatalog(
       reassessmentTriggers: seed.reassessmentTriggers ?? [],
     }),
   );
-  const defaultStackId =
-    stacks.find((stack) => stack.id === 'stack.runtime.typescript-node24')?.id ?? stacks[0]?.id;
   const services = serviceSeeds.map((seed) => {
     const linkedStackIds = [
       ...new Set([
@@ -200,7 +247,6 @@ export function buildArchitectureCatalog(
           .flatMap((decision) => decision.stackIds ?? []),
       ]),
     ];
-    if (linkedStackIds.length === 0 && defaultStackId) linkedStackIds.push(defaultStackId);
     return ServiceSchema.parse({
       id: seed.id,
       name: seed.name,
@@ -208,8 +254,8 @@ export function buildArchitectureCatalog(
       phase: seed.phase,
       pagePath: `/services/${seed.id}/`,
       owner: {
-        kind: 'application',
-        id: 'application.mailflow',
+        kind: 'service',
+        id: seed.id,
         responsibilities: [seed.summary],
       },
       dataOwned: [],
@@ -241,6 +287,7 @@ export function buildArchitectureCatalog(
       decisionIds: seed.decisionIds,
       diagramIds: [],
       stackIds: linkedStackIds,
+      stackStatus: linkedStackIds.length > 0 ? 'documented' : 'not_documented',
       trustBoundaryIds: trustBoundarySeeds
         .filter((boundary) => boundary.decisionIds.some((id) => seed.decisionIds.includes(id)))
         .map((boundary) => boundary.id),
@@ -276,20 +323,88 @@ export function buildArchitectureCatalog(
       ),
     }),
   );
-  const decisionForRange = (range: LineRangeSeed): DecisionSeed[] => {
-    const intersecting = seeds.filter((seed) =>
+  const annotationForRange = (range: LineRangeSeed): SemanticAnnotationInput => {
+    const linkedDecisions = seeds.filter((seed) =>
       seed.sourceRanges.some((sourceRange) => overlaps(sourceRange, range)),
     );
-    if (intersecting.length) return intersecting;
-    const closestDistance = Math.min(
-      ...seeds.flatMap((seed) =>
-        seed.sourceRanges.map((sourceRange) => distance(sourceRange, range)),
-      ),
-    );
-    return seeds.filter((seed) =>
-      seed.sourceRanges.some((sourceRange) => distance(sourceRange, range) === closestDistance),
-    );
+    const linkedDecisionIds = linkedDecisions.map((seed) => seed.id);
+    const serviceIds = [
+      ...new Set([
+        ...serviceSeeds
+          .filter((seed) => seed.sourceRanges.some((sourceRange) => overlaps(sourceRange, range)))
+          .map((seed) => seed.id),
+        ...linkedDecisions.flatMap((seed) => seed.serviceIds ?? []),
+      ]),
+    ];
+    const stackIds = [
+      ...new Set([
+        ...stackSeeds
+          .filter((seed) => seed.sourceRanges.some((sourceRange) => overlaps(sourceRange, range)))
+          .map((seed) => seed.id),
+        ...linkedDecisions.flatMap((seed) => seed.stackIds ?? []),
+      ]),
+    ];
+    const gateIds = [
+      ...new Set([
+        ...gateSeeds
+          .filter((seed) => seed.sourceRanges.some((sourceRange) => overlaps(sourceRange, range)))
+          .map((seed) => seed.id),
+        ...linkedDecisions.flatMap((seed) => seed.gateIds ?? []),
+      ]),
+    ];
+    const diagramIds = diagramDefinitions
+      .filter(
+        (diagram) =>
+          diagram.sourceRanges.some((sourceRange) => overlaps(sourceRange, range)) ||
+          diagram.decisionIds.some((id) => linkedDecisionIds.includes(id)),
+      )
+      .map((diagram) => diagram.id);
+    const hasProjection =
+      linkedDecisionIds.length +
+        serviceIds.length +
+        stackIds.length +
+        gateIds.length +
+        diagramIds.length >
+      0;
+    return {
+      classification: hasProjection ? 'classified' : 'not_applicable',
+      phase: linkedDecisions[0]?.phase,
+      status: linkedDecisions[0]?.status,
+      decisionIds: linkedDecisionIds,
+      serviceIds,
+      stackIds,
+      gateIds,
+      diagramIds,
+    };
   };
+
+  const semanticCompilation = compileSemanticAnnotations(parsed, {
+    rules: [
+      ...parsed.sections.map((section, index) => ({
+        id: `rule.catalog.section-${index + 1}`,
+        kind: 'override' as const,
+        target: { kind: 'section' as const, sectionId: section.id },
+        annotation: annotationForRange(section.lineRange),
+      })),
+      ...parsed.blocks.map((block, index) => ({
+        id: `rule.catalog.block-${index + 1}`,
+        kind: 'override' as const,
+        target: { kind: 'block' as const, blockId: block.id },
+        annotation: annotationForRange(block.lineRange),
+      })),
+    ],
+    catalog: {
+      decisionIds: seeds.map((seed) => seed.id),
+      serviceIds: serviceSeeds.map((seed) => seed.id),
+      stackIds: stackSeeds.map((seed) => seed.id),
+      gateIds: gateSeeds.map((seed) => seed.id),
+      diagramIds: diagramDefinitions.map((diagram) => diagram.id),
+    },
+  });
+  const semanticSections = new Map(
+    semanticCompilation.sections.map((section) => [section.sectionId, section]),
+  );
+  const semanticBlocks = new Map(semanticCompilation.blocks.map((block) => [block.blockId, block]));
 
   const documentSection = BaselineSectionSchema.parse({
     id: 'baseline.document',
@@ -310,7 +425,7 @@ export function buildArchitectureCatalog(
         order: index + 2,
         ...(section.parentId ? { parentId: section.parentId } : {}),
         sourceRange: section.lineRange,
-        classification: 'classified',
+        classification: semanticSections.get(section.id)?.classification ?? 'not_classified',
       }),
     ),
   ];
@@ -327,47 +442,99 @@ export function buildArchitectureCatalog(
       kind: blockKind(block.kind),
       order: index + 1,
       sourceAnchor: block.sourceAnchor,
-      classification: 'classified',
+      classification: semanticBlocks.get(block.id)?.classification ?? 'not_classified',
     }),
   );
-  const sectionCoverage = baselineSections.map((section) => {
-    const linkedSeeds = decisionForRange(section.sourceRange);
+  const routesFor = (record: {
+    decisionIds: readonly string[];
+    serviceIds: readonly string[];
+    diagramIds: readonly string[];
+    stackIds: readonly string[];
+    gateIds: readonly string[];
+  }) => [
+    '/coverage/',
+    ...record.decisionIds.map((id) => `/decisions/${id}/`),
+    ...record.serviceIds.map((id) => `/services/${id}/`),
+    ...record.diagramIds.map((id) => `/explorer/${id}/`),
+    ...record.stackIds.map((id) => `/stacks/${id}/`),
+    ...(record.gateIds.length ? ['/gates/'] : []),
+  ];
+  const documentAnnotation = annotationForRange(documentSection.sourceRange);
+  const documentCoverage = CoverageRecordSchema.parse({
+    sectionId: documentSection.id,
+    ...documentAnnotation,
+    sourceDigest: anchor(sourceText, sourcePath, documentSection.sourceRange, documentSection.title)
+      .digest,
+    relationshipIds: [],
+    primaryReferences: [],
+    pageRoutes: routesFor({
+      decisionIds: documentAnnotation.decisionIds ?? [],
+      serviceIds: documentAnnotation.serviceIds ?? [],
+      diagramIds: documentAnnotation.diagramIds ?? [],
+      stackIds: documentAnnotation.stackIds ?? [],
+      gateIds: documentAnnotation.gateIds ?? [],
+    }),
+    reviewStatus: 'machine_classified',
+    baselineChecksum: { algorithm: 'sha256', value: parsed.version.checksum },
+  });
+  const sectionCoverage = parsed.sections.map((section) => {
+    const semantic = semanticSections.get(section.id);
+    if (!semantic) throw new Error(`missing compiled semantic section: ${section.id}`);
     return CoverageRecordSchema.parse({
       sectionId: section.id,
-      classification: 'classified',
-      decisionIds: linkedSeeds.map((seed) => seed.id),
-      serviceIds: [...new Set(linkedSeeds.flatMap((seed) => seed.serviceIds ?? []))],
-      diagramIds: [],
-      stackIds: [...new Set(linkedSeeds.flatMap((seed) => seed.stackIds ?? []))],
-      gateIds: [...new Set(linkedSeeds.flatMap((seed) => seed.gateIds ?? []))],
+      classification: semantic.classification,
+      decisionIds: semantic.decisionIds,
+      serviceIds: semantic.serviceIds,
+      diagramIds: semantic.diagramIds,
+      stackIds: semantic.stackIds,
+      gateIds: semantic.gateIds,
       relationshipIds: [],
-      phase: linkedSeeds[0]?.phase,
-      status: linkedSeeds[0]?.status,
-      sourceDigest: anchor(sourceText, sourcePath, section.sourceRange, section.title).digest,
-      primaryReferences: [...new Set(linkedSeeds.flatMap((seed) => seed.primaryReferences ?? []))],
+      phase: semantic.phase,
+      status: semantic.status,
+      sourceDigest: semantic.sourceAnchor.digest,
+      primaryReferences: [
+        ...new Set(
+          semantic.decisionIds.flatMap(
+            (id) => seeds.find((seed) => seed.id === id)?.primaryReferences ?? [],
+          ),
+        ),
+      ],
+      pageRoutes: routesFor(semantic),
+      reviewStatus: 'machine_classified',
+      baselineChecksum: { algorithm: 'sha256', value: parsed.version.checksum },
     });
   });
   const blockCoverage = baselineBlocks.map((block) => {
-    const linkedSeeds = decisionForRange(block.sourceAnchor.range);
+    const semantic = semanticBlocks.get(block.id);
+    if (!semantic) throw new Error(`missing compiled semantic block: ${block.id}`);
     return CoverageRecordSchema.parse({
       sectionId: block.sectionId,
       blockId: block.id,
-      classification: 'classified',
-      decisionIds: linkedSeeds.map((seed) => seed.id),
-      serviceIds: [...new Set(linkedSeeds.flatMap((seed) => seed.serviceIds ?? []))],
-      diagramIds: [],
-      stackIds: [...new Set(linkedSeeds.flatMap((seed) => seed.stackIds ?? []))],
-      gateIds: [...new Set(linkedSeeds.flatMap((seed) => seed.gateIds ?? []))],
+      classification: semantic.classification,
+      decisionIds: semantic.decisionIds,
+      serviceIds: semantic.serviceIds,
+      diagramIds: semantic.diagramIds,
+      stackIds: semantic.stackIds,
+      gateIds: semantic.gateIds,
       relationshipIds: [],
-      phase: linkedSeeds[0]?.phase,
-      status: linkedSeeds[0]?.status,
-      sourceDigest: block.sourceAnchor.digest,
-      primaryReferences: [...new Set(linkedSeeds.flatMap((seed) => seed.primaryReferences ?? []))],
+      phase: semantic.phase,
+      status: semantic.status,
+      sourceDigest: semantic.sourceAnchor.digest,
+      primaryReferences: [
+        ...new Set(
+          semantic.decisionIds.flatMap(
+            (id) => seeds.find((seed) => seed.id === id)?.primaryReferences ?? [],
+          ),
+        ),
+      ],
+      pageRoutes: routesFor(semantic),
+      reviewStatus: 'machine_classified',
+      baselineChecksum: { algorithm: 'sha256', value: parsed.version.checksum },
     });
   });
-  const coverage = [...sectionCoverage, ...blockCoverage];
+  const coverage = [documentCoverage, ...sectionCoverage, ...blockCoverage];
 
-  return ArchitectureRegistrySchema.parse({
+  const baseRegistry = ArchitectureRegistrySchema.parse({
     decisions,
     services,
     diagrams: [],
@@ -379,4 +546,8 @@ export function buildArchitectureCatalog(
     baselineBlocks,
     coverage,
   });
+
+  return diagramDefinitions.length > 0
+    ? integrateArchitectureDiagrams(baseRegistry, diagramDefinitions, sourceText, sourcePath)
+    : baseRegistry;
 }

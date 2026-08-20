@@ -312,7 +312,7 @@ const coreShard = {
       id: 'decision.auth.gateway-ingress-validation',
       title: 'Single session validation at authenticated ingress',
       status: 'confirmed',
-      phase: 'first_distributed',
+      phase: 'mvp',
       summary:
         'The opaque session is validated once at ingress: in-process inside Core during MVP and through the Identity boundary after extraction; downstream services validate assertions locally.',
       sourceRanges: [{ startLine: 231, endLine: 247 }],
@@ -407,7 +407,7 @@ const coreShard = {
       id: 'decision.auth.connection-ownership-by-capability',
       title: 'Provider connection ownership by capability',
       status: 'confirmed',
-      phase: 'future',
+      phase: 'mvp',
       summary:
         'Each capability owner controls its connections, provider credentials, authorization, quota, idempotency, reconciliation, webhook handling, and audit semantics.',
       sourceRanges: [{ startLine: 300, endLine: 356 }],

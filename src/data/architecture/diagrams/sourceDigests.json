@@ -1,0 +1,593 @@
+{
+  "schemaVersion": 1,
+  "baselineChecksum": "4dfc6a5ea4fc217d8f6de83e033ad0d2375244aef1bd37d263520d8a479575fc",
+  "diagrams": {
+    "diagram.context.general": [
+      {
+        "range": {
+          "startLine": 37,
+          "endLine": 92
+        },
+        "digest": "52eb86613441635f6d9a06ba8977d852e5025ff3787175c78facf9973eebd235"
+      },
+      {
+        "range": {
+          "startLine": 94,
+          "endLine": 110
+        },
+        "digest": "1bd436a30e9a3bed0a1f94b1978906509a33e6dab01296416d11730b92a1d2c1"
+      }
+    ],
+    "diagram.topology.mvp": [
+      {
+        "range": {
+          "startLine": 39,
+          "endLine": 50
+        },
+        "digest": "b01e8dfaa145c6675e67269abe9ef558b2b1407d781a653013a57cd74b1a7504"
+      },
+      {
+        "range": {
+          "startLine": 172,
+          "endLine": 190
+        },
+        "digest": "4774e96eace2aecf1c940115124697db380320b4193cc83fb4f34ddde45200b7"
+      },
+      {
+        "range": {
+          "startLine": 356,
+          "endLine": 479
+        },
+        "digest": "819b9208b5492d02f40341fdb1683421c894a084f3f7b1905a7194abde25523f"
+      },
+      {
+        "range": {
+          "startLine": 481,
+          "endLine": 499
+        },
+        "digest": "c99655f4fd14db1d90cce17672c28bba178f279bc336c5fd6fa7fe2c1e1cf274"
+      },
+      {
+        "range": {
+          "startLine": 2035,
+          "endLine": 2045
+        },
+        "digest": "c7da988f13d9dcad94640883ad0bcc89a2f92bfdc655d4cfe7de39b4e7a95827"
+      }
+    ],
+    "diagram.evolution.strangler": [
+      {
+        "range": {
+          "startLine": 39,
+          "endLine": 73
+        },
+        "digest": "99ef6d1c7d7a2e1e033fc2c3b02820c6109df99c9136dd1b7c327250d761c656"
+      }
+    ],
+    "diagram.topology.first-distributed": [
+      {
+        "range": {
+          "startLine": 52,
+          "endLine": 64
+        },
+        "digest": "8b0c880760cb377886af684a03f1d89e5e6d519efb2e45eda6fafd6d3be77d8b"
+      },
+      {
+        "range": {
+          "startLine": 231,
+          "endLine": 327
+        },
+        "digest": "59cf9c853801de0e186942971d968e6678e6c4000ffea41a6a0e5891fc2b2090"
+      },
+      {
+        "range": {
+          "startLine": 501,
+          "endLine": 513
+        },
+        "digest": "78bebc9cd5fe122123e3dd34e78900982b7e974a4fa9a9edfcf5172451ad39f1"
+      },
+      {
+        "range": {
+          "startLine": 2078,
+          "endLine": 2143
+        },
+        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+      }
+    ],
+    "diagram.topology.future": [
+      {
+        "range": {
+          "startLine": 1650,
+          "endLine": 1679
+        },
+        "digest": "5a63d62e466144a46c7c6dbabebbed8999fca40da4dff781f96316d823281ec5"
+      },
+      {
+        "range": {
+          "startLine": 2078,
+          "endLine": 2143
+        },
+        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+      },
+      {
+        "range": {
+          "startLine": 2163,
+          "endLine": 2329
+        },
+        "digest": "62e9a8f3519dade4a487b062eaeacfbb1c07f41532c66c1dbfb825aac07a0fed"
+      }
+    ],
+    "diagram.boundaries.ownership": [
+      {
+        "range": {
+          "startLine": 75,
+          "endLine": 92
+        },
+        "digest": "9c1729bb4732ed8384f92e5ddbdaa46ed1e06d931c553706dda562538cdac9fd"
+      }
+    ],
+    "diagram.data.tenancy": [
+      {
+        "range": {
+          "startLine": 168,
+          "endLine": 190
+        },
+        "digest": "3952c96daf62f7e97c311bda054bcf43c42da4141e9e8dcab37579d460cba6b0"
+      },
+      {
+        "range": {
+          "startLine": 595,
+          "endLine": 623
+        },
+        "digest": "55767748f020e703e411187cb6d7a54a63f6982e092a6523380bf881f1e0d93a"
+      },
+      {
+        "range": {
+          "startLine": 799,
+          "endLine": 817
+        },
+        "digest": "210a67379bc5284788b0393a25e642b5dde9d74299a543d7ff4815c61bafad64"
+      }
+    ],
+    "diagram.identity.workspace": [
+      {
+        "range": {
+          "startLine": 168,
+          "endLine": 214
+        },
+        "digest": "b6d495fe49f0914fb984a635c34ee8d3d5dded99dc76e89ca18e37f13257d60d"
+      },
+      {
+        "range": {
+          "startLine": 218,
+          "endLine": 299
+        },
+        "digest": "1b042388919efdcd0a4c5dd9205ba385e5c19860760f8172e23c6986db4e35dd"
+      }
+    ],
+    "diagram.infrastructure.providers": [
+      {
+        "range": {
+          "startLine": 1850,
+          "endLine": 2034
+        },
+        "digest": "2205db664bb4b5526e2ada940c4bf2af9f5a8e2a8505b238953a50dd5c7d225f"
+      },
+      {
+        "range": {
+          "startLine": 2035,
+          "endLine": 2077
+        },
+        "digest": "2264bed091b2e25836161fe1b03a621ee43a9bbe1f9cc9c687778c1854ee312e"
+      },
+      {
+        "range": {
+          "startLine": 2078,
+          "endLine": 2143
+        },
+        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+      }
+    ],
+    "diagram.operations.environments": [
+      {
+        "range": {
+          "startLine": 501,
+          "endLine": 513
+        },
+        "digest": "78bebc9cd5fe122123e3dd34e78900982b7e974a4fa9a9edfcf5172451ad39f1"
+      },
+      {
+        "range": {
+          "startLine": 1860,
+          "endLine": 1915
+        },
+        "digest": "2caa74abcd5e139abe0771dfce689aa618e30403a0a7f013d282758ff249c179"
+      },
+      {
+        "range": {
+          "startLine": 2000,
+          "endLine": 2034
+        },
+        "digest": "0d248bb84b1c98bbd5581adb7db21489def7abaa87679fff487689763a60d3e9"
+      },
+      {
+        "range": {
+          "startLine": 2450,
+          "endLine": 2517
+        },
+        "digest": "95f6d66fcc6217b30de1a2a4701237d6ece741a5955437debb9701495148d3e8"
+      }
+    ],
+    "diagram.lifecycle.phases": [
+      {
+        "range": {
+          "startLine": 595,
+          "endLine": 630
+        },
+        "digest": "44e4d1d5ac1f77eac16860c1dbcc610845cb86bedc82231114f74c73927d78ba"
+      },
+      {
+        "range": {
+          "startLine": 631,
+          "endLine": 656
+        },
+        "digest": "b73ffdb4bd3fb995af82dbe5a451bc6a841b3d7deea434803fe433bea4916713"
+      },
+      {
+        "range": {
+          "startLine": 658,
+          "endLine": 705
+        },
+        "digest": "e1c779bb23beae54fdd7878fe5ce29f9ad852edbd0bc41bd4656ba28cce1c97f"
+      }
+    ],
+    "diagram.security.browser-auth.mvp": [
+      {
+        "range": {
+          "startLine": 218,
+          "endLine": 230
+        },
+        "digest": "9943b0a142377b5d619ecade88c4cff4bd2b5a7fa0fa58e9366dc21edd06d022"
+      }
+    ],
+    "diagram.security.browser-ingress.first-distributed": [
+      {
+        "range": {
+          "startLine": 231,
+          "endLine": 247
+        },
+        "digest": "25caa039f03eab198cd90c01c9bb2955fe59840a4cb27fcd6eab9fa0ce9a9a66"
+      },
+      {
+        "range": {
+          "startLine": 268,
+          "endLine": 274
+        },
+        "digest": "1b1c643014690bd1d9652799a715063e315d6b935a736da647b2a64c518e0fe2"
+      }
+    ],
+    "diagram.security.workload-delegation.first-distributed": [
+      {
+        "range": {
+          "startLine": 258,
+          "endLine": 274
+        },
+        "digest": "ce32d07805ea4f0da3fa744bea1d42cdc8d68073a280cf48725f145b0e33ae70"
+      }
+    ],
+    "diagram.security.jwks-local-validation.first-distributed": [
+      {
+        "range": {
+          "startLine": 278,
+          "endLine": 299
+        },
+        "digest": "e9b99a17e8c376130f8cdeef1f6b303e8584c0e2719cebcb31ebbbc7acb174f8"
+      }
+    ],
+    "diagram.security.sync-vs-durable.first-distributed": [
+      {
+        "range": {
+          "startLine": 284,
+          "endLine": 327
+        },
+        "digest": "5c9022dea4baae2dc99684c2f5a4d86196187356bfa9097dde402b4e3dcc04f8"
+      },
+      {
+        "range": {
+          "startLine": 481,
+          "endLine": 513
+        },
+        "digest": "37bc8f284e8089bcfeb308011ddf954077ab6b1e2dc8b7492ddf03dae52457df"
+      }
+    ],
+    "diagram.security.broker-credentials.first-distributed": [
+      {
+        "range": {
+          "startLine": 320,
+          "endLine": 327
+        },
+        "digest": "177c62f768fb203113cb3b1754c7f55fd2d90e222978d55e98ff96e49e9f2c88"
+      },
+      {
+        "range": {
+          "startLine": 501,
+          "endLine": 513
+        },
+        "digest": "78bebc9cd5fe122123e3dd34e78900982b7e974a4fa9a9edfcf5172451ad39f1"
+      }
+    ],
+    "diagram.security.outbox-inbox-reconciliation.first-distributed": [
+      {
+        "range": {
+          "startLine": 481,
+          "endLine": 513
+        },
+        "digest": "37bc8f284e8089bcfeb308011ddf954077ab6b1e2dc8b7492ddf03dae52457df"
+      },
+      {
+        "range": {
+          "startLine": 555,
+          "endLine": 593
+        },
+        "digest": "8dde999b8cec6a01024daa94cffb7ea30fc6277eaa7849c3cadf1a2a45b9afec"
+      }
+    ],
+    "diagram.security.trust-boundaries.first-distributed": [
+      {
+        "range": {
+          "startLine": 218,
+          "endLine": 356
+        },
+        "digest": "b93f4bffad9bfafe04f6b25dc5c6f2ec3c9ed3c4143d843b9933aba56b3c9d2a"
+      },
+      {
+        "range": {
+          "startLine": 320,
+          "endLine": 327
+        },
+        "digest": "177c62f768fb203113cb3b1754c7f55fd2d90e222978d55e98ff96e49e9f2c88"
+      }
+    ],
+    "diagram.security.tenant-credentials": [
+      {
+        "range": {
+          "startLine": 1860,
+          "endLine": 1938
+        },
+        "digest": "b1befac0373c6d051527d243f2988ff6d93ac101bdd6790256293e67a95621af"
+      }
+    ],
+    "diagram.capability.mail-provider-ownership": [
+      {
+        "range": {
+          "startLine": 75,
+          "endLine": 93
+        },
+        "digest": "c93e59e514be562e9c91ecdd9dbc56bc32c95e90acb78219bfb6f31feeb7d325"
+      },
+      {
+        "range": {
+          "startLine": 356,
+          "endLine": 425
+        },
+        "digest": "af0ec8f297a78547a9b08fdb3a49cba0999553e876f68dd3f109c88f8f9ae866"
+      },
+      {
+        "range": {
+          "startLine": 2274,
+          "endLine": 2329
+        },
+        "digest": "00a9bc190e9d5a7575986e85aa56de813066bdc0804ee354ff1946e7608744b8"
+      }
+    ],
+    "diagram.capability.mail-inbox-composer": [
+      {
+        "range": {
+          "startLine": 391,
+          "endLine": 450
+        },
+        "digest": "21c9dd5a4060725eec67ac6bbae01347076c7aa2d457b9cef1f6c8b7e75d9e3d"
+      },
+      {
+        "range": {
+          "startLine": 425,
+          "endLine": 450
+        },
+        "digest": "617e0f3f4fd1c01d4e04423f997a27c833f25ebe7e75401ee1d7aa391dff6fc4"
+      },
+      {
+        "range": {
+          "startLine": 481,
+          "endLine": 500
+        },
+        "digest": "4570dff3f4bc3b5947e9d357e5d9b1cc87cc837406d4ad7274eafcd10d00fadf"
+      }
+    ],
+    "diagram.capability.attachments-security": [
+      {
+        "range": {
+          "startLine": 452,
+          "endLine": 480
+        },
+        "digest": "ee10f0b80662c544797e37c062204978a40ef32869fd1ae578f76c618ac34879"
+      },
+      {
+        "range": {
+          "startLine": 481,
+          "endLine": 493
+        },
+        "digest": "67a0a4990f064942b5f897f8be366a15aa2a7b76d220bdba8cd28d35a28816e5"
+      },
+      {
+        "range": {
+          "startLine": 1852,
+          "endLine": 1858
+        },
+        "digest": "b41cd90cbf1ff86807debf6f2ea6b0ee0de210d35b3662806b650ee72647854a"
+      }
+    ],
+    "diagram.capability.audience-campaign-snapshot": [
+      {
+        "range": {
+          "startLine": 2078,
+          "endLine": 2137
+        },
+        "digest": "c1de33b5d2e2dd16a2af21c9835ff288bc82745719e3193e6dda306544eabfda"
+      },
+      {
+        "range": {
+          "startLine": 2222,
+          "endLine": 2273
+        },
+        "digest": "98e2059b682115ebdb556ea89048f6d752b5b585874a8009ccb9b72bd0f76dbe"
+      }
+    ],
+    "diagram.capability.campaign-mail-contracts": [
+      {
+        "range": {
+          "startLine": 75,
+          "endLine": 93
+        },
+        "digest": "c93e59e514be562e9c91ecdd9dbc56bc32c95e90acb78219bfb6f31feeb7d325"
+      },
+      {
+        "range": {
+          "startLine": 142,
+          "endLine": 151
+        },
+        "digest": "a3403d86a7deb477e395eb05688c4323b6652a9c2f6cfceb20bd47eb1ab70722"
+      },
+      {
+        "range": {
+          "startLine": 356,
+          "endLine": 425
+        },
+        "digest": "af0ec8f297a78547a9b08fdb3a49cba0999553e876f68dd3f109c88f8f9ae866"
+      },
+      {
+        "range": {
+          "startLine": 2274,
+          "endLine": 2329
+        },
+        "digest": "00a9bc190e9d5a7575986e85aa56de813066bdc0804ee354ff1946e7608744b8"
+      }
+    ],
+    "diagram.capability.content-email-pipeline": [
+      {
+        "range": {
+          "startLine": 1025,
+          "endLine": 1126
+        },
+        "digest": "9f8fd1886fd54f18915952d6b2a47ab64a0291381273c8969a10e9df89a874f6"
+      },
+      {
+        "range": {
+          "startLine": 1039,
+          "endLine": 1081
+        },
+        "digest": "5f15e2260dab7ffb7c7eb77fb6b864235e66bfda7765be0d91a2fd5c09d8a2ca"
+      },
+      {
+        "range": {
+          "startLine": 1082,
+          "endLine": 1126
+        },
+        "digest": "31a0aead03a707552032a1f08e78a961bb2ac7c9c44e8233d3a24dd9309ca3b0"
+      }
+    ],
+    "diagram.capability.workflow-control-plane": [
+      {
+        "range": {
+          "startLine": 1127,
+          "endLine": 1321
+        },
+        "digest": "e8fa6c18e8e0ff47bc54e5244add5cd8561d726c0f5b86eeb0a469e605264f33"
+      },
+      {
+        "range": {
+          "startLine": 300,
+          "endLine": 348
+        },
+        "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
+      }
+    ],
+    "diagram.capability.automation-runtime": [
+      {
+        "range": {
+          "startLine": 1322,
+          "endLine": 1730
+        },
+        "digest": "c78ea20918a9a4e99e0d8e4ea10742a48e3c8138aa9dc9a7785976ba5ae6d769"
+      },
+      {
+        "range": {
+          "startLine": 2163,
+          "endLine": 2170
+        },
+        "digest": "44eeacbf3950bf6c7b4795c898d9cba414743717c234004d21a33fd1f6778102"
+      },
+      {
+        "range": {
+          "startLine": 300,
+          "endLine": 348
+        },
+        "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
+      }
+    ],
+    "diagram.capability.ai-rag": [
+      {
+        "range": {
+          "startLine": 658,
+          "endLine": 760
+        },
+        "digest": "84f5a6bad2368d35323df9b4656007fbe46365d24be46c8fe958253325b4ee16"
+      },
+      {
+        "range": {
+          "startLine": 760,
+          "endLine": 880
+        },
+        "digest": "858f7a852b623c7a346b2e761d3c163d611a5c7ba480e6a9c30576847d8bab74"
+      }
+    ],
+    "diagram.capability.analytics-pipeline": [
+      {
+        "range": {
+          "startLine": 881,
+          "endLine": 1024
+        },
+        "digest": "b061508692329201bc9ea2654f42fb60974969f1f55dbe6fc6602367001e5be1"
+      },
+      {
+        "range": {
+          "startLine": 142,
+          "endLine": 151
+        },
+        "digest": "a3403d86a7deb477e395eb05688c4323b6652a9c2f6cfceb20bd47eb1ab70722"
+      }
+    ],
+    "diagram.capability.billing-entitlements": [
+      {
+        "range": {
+          "startLine": 1766,
+          "endLine": 1828
+        },
+        "digest": "976969453c64345aaadf127755cf401bd17b18da8b5208e5ee5bb0cee0e03c2b"
+      },
+      {
+        "range": {
+          "startLine": 300,
+          "endLine": 348
+        },
+        "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
+      },
+      {
+        "range": {
+          "startLine": 2222,
+          "endLine": 2273
+        },
+        "digest": "98e2059b682115ebdb556ea89048f6d752b5b585874a8009ccb9b72bd0f76dbe"
+      }
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import {
   ArchitectureRegistrySchema,
+  CoverageRecordSchema,
   DecisionSchema,
   SourceAnchorSchema,
   SourceRangeSchema,
@@ -372,5 +373,19 @@ describe('architecture kernel', () => {
     expect(validateArchitectureRegistry(registry()).valid).toBe(true);
     expect(baseService.security.status).toBe('not_documented');
     expect(baseService.eventsPublished).toEqual([]);
+  });
+
+  test('requires reviewer identity and date before coverage becomes human-reviewed', () => {
+    expect(() =>
+      CoverageRecordSchema.parse({ ...baseCoverage, reviewStatus: 'human_reviewed' }),
+    ).toThrow('human-reviewed coverage requires reviewer identity and review date');
+    expect(
+      CoverageRecordSchema.parse({
+        ...baseCoverage,
+        reviewStatus: 'human_reviewed',
+        reviewedBy: 'MailFlow architecture owner',
+        reviewedAt: '2026-08-20',
+      }).reviewStatus,
+    ).toBe('human_reviewed');
   });
 });
