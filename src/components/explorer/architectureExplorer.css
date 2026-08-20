@@ -114,6 +114,14 @@
   fill: #f5f2ea;
   border-color: rgb(245 242 234 / 0.16);
 }
+.react-flow__minimap {
+  border: 1px solid rgb(245 242 234 / 0.18);
+  background: #0b1419 !important;
+}
+.react-flow__edge-textbg {
+  fill: #0d171c;
+  fill-opacity: 0.92;
+}
 .react-flow__attribution {
   background: rgb(4 9 12 / 0.75) !important;
   color: #8f9ba3 !important;
@@ -149,6 +157,9 @@
   .explorer-workspace,
   .explorer-canvas {
     min-height: 36rem;
+  }
+  .react-flow__minimap {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -70,7 +70,7 @@ const { diagram } = Astro.props;
       </div>
       <h3>Source decisions</h3><ul class="record-links">
         {
-          diagram.decisionIds.map((id) => (
+          [...new Set(diagram.decisionIds)].map((id) => (
             <li>
               <a href={`/decisions/${id}/`}>{id}</a>
             </li>

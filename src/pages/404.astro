@@ -1,0 +1,54 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Architecture route not found"
+  description="The requested MailFlow architecture record does not exist."
+>
+  <div class="content-wrap missing-route">
+    <p class="eyebrow">404 / unresolved reference</p>
+    <h1>This route is outside the map.</h1>
+    <p>
+      The requested architecture record does not exist in the current baseline projection. Return to
+      a verified entry point.
+    </p>
+    <nav aria-label="404 recovery">
+      <a href="/">Architecture home</a>
+      <a href="/explorer/">Visual explorer</a>
+      <a href="/search/">Search records</a>
+    </nav>
+  </div>
+</Layout>
+
+<style>
+  .missing-route {
+    min-height: 70vh;
+    padding-block: var(--space-8);
+  }
+  h1 {
+    max-width: 12ch;
+    margin: 0;
+    color: var(--color-paper-100);
+    font: 800 clamp(3rem, 9vw, 7rem) / 0.86 var(--font-display);
+    letter-spacing: var(--tracking-tight);
+    text-transform: uppercase;
+  }
+  .missing-route > p:not(.eyebrow) {
+    max-width: 40rem;
+    color: var(--color-paper-300);
+    font-size: var(--text-lg);
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: var(--space-5);
+  }
+  nav a {
+    border: 1px solid var(--color-cyan-300);
+    padding: 0.75rem 1rem;
+    color: var(--color-cyan-300);
+    text-decoration: none;
+  }
+</style>

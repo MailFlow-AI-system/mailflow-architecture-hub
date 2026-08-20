@@ -33,13 +33,13 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
-  const form = document.querySelector<HTMLFormElement>('[data-search-form]');
-  const input = form?.querySelector<HTMLInputElement>('input[name="q"]');
-  const status = document.querySelector<HTMLElement>('[data-search-status]');
-  const results = document.querySelector<HTMLOListElement>('[data-search-results]');
+<script is:inline>
+  const form = document.querySelector('[data-search-form]');
+  const input = form?.querySelector('input[name="q"]');
+  const status = document.querySelector('[data-search-status]');
+  const results = document.querySelector('[data-search-results]');
 
-  async function search(query: string) {
+  async function search(query) {
     if (!status || !results) return;
     results.replaceChildren();
     if (!query.trim()) {
@@ -48,18 +48,9 @@ import Layout from '../layouts/Layout.astro';
     }
     status.textContent = `Searching for “${query}”…`;
     try {
-      const pagefindPath = '/pagefind/pagefind.js';
-      const pagefind = await import(/* @vite-ignore */ pagefindPath);
+      const pagefind = await import('/pagefind/pagefind.js');
       const response = await pagefind.search(query);
-      const entries = await Promise.all(
-        response.results
-          .slice(0, 30)
-          .map(
-            (item: {
-              data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }>;
-            }) => item.data(),
-          ),
-      );
+      const entries = await Promise.all(response.results.slice(0, 30).map((item) => item.data()));
       for (const entry of entries) {
         const item = document.createElement('li');
         const link = document.createElement('a');

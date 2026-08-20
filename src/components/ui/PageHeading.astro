@@ -45,4 +45,11 @@ const { eyebrow, title, description, breadcrumbs } = Astro.props;
     color: var(--color-paper-300);
     font-size: var(--text-lg);
   }
+
+  @media (max-width: 42rem) {
+    .page-heading h1 {
+      max-width: 100%;
+      font-size: clamp(1.9rem, 9vw, 3.75rem);
+    }
+  }
 </style>

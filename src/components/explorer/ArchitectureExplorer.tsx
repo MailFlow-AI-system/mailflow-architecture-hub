@@ -191,7 +191,19 @@ export function ArchitectureExplorer({ diagram }: { diagram: ArchitectureDiagram
         </fieldset>
       </section>
       <div className="explorer-workspace">
-        <section className="explorer-canvas" aria-label={`${diagram.title} interactive diagram`}>
+        <section
+          className="explorer-canvas"
+          aria-label={`${diagram.title} interactive diagram`}
+          onKeyDownCapture={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const target = event.target as HTMLElement;
+            const node = target.closest<HTMLElement>('.react-flow__node');
+            const nodeId = node?.dataset.id;
+            if (!nodeId) return;
+            event.preventDefault();
+            setSelectedId(nodeId === selectedId ? undefined : nodeId);
+          }}
+        >
           {nodes.length === 0 ? (
             <div className="explorer-empty">
               <strong>No elements match these filters.</strong>
