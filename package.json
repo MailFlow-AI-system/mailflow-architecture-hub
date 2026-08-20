@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "test": "bun test tests --path-ignore-patterns=tests/e2e/**",
     "test:unit": "bun test tests --path-ignore-patterns=tests/e2e/**",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @a11y",
     "test:a11y": "playwright test --grep @a11y",
     "validate:privacy": "bun scripts/validateDist.ts dist",
     "validate:routes": "bun scripts/validateRoutes.ts dist",
