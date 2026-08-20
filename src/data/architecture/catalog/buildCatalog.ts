@@ -330,7 +330,24 @@ export function buildArchitectureCatalog(
       classification: 'classified',
     }),
   );
-  const coverage = baselineBlocks.map((block) => {
+  const sectionCoverage = baselineSections.map((section) => {
+    const linkedSeeds = decisionForRange(section.sourceRange);
+    return CoverageRecordSchema.parse({
+      sectionId: section.id,
+      classification: 'classified',
+      decisionIds: linkedSeeds.map((seed) => seed.id),
+      serviceIds: [...new Set(linkedSeeds.flatMap((seed) => seed.serviceIds ?? []))],
+      diagramIds: [],
+      stackIds: [...new Set(linkedSeeds.flatMap((seed) => seed.stackIds ?? []))],
+      gateIds: [...new Set(linkedSeeds.flatMap((seed) => seed.gateIds ?? []))],
+      relationshipIds: [],
+      phase: linkedSeeds[0]?.phase,
+      status: linkedSeeds[0]?.status,
+      sourceDigest: anchor(sourceText, sourcePath, section.sourceRange, section.title).digest,
+      primaryReferences: [...new Set(linkedSeeds.flatMap((seed) => seed.primaryReferences ?? []))],
+    });
+  });
+  const blockCoverage = baselineBlocks.map((block) => {
     const linkedSeeds = decisionForRange(block.sourceAnchor.range);
     return CoverageRecordSchema.parse({
       sectionId: block.sectionId,
@@ -348,6 +365,7 @@ export function buildArchitectureCatalog(
       primaryReferences: [...new Set(linkedSeeds.flatMap((seed) => seed.primaryReferences ?? []))],
     });
   });
+  const coverage = [...sectionCoverage, ...blockCoverage];
 
   return ArchitectureRegistrySchema.parse({
     decisions,
