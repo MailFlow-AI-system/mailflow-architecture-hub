@@ -2,6 +2,8 @@
 import PageHeading from '../../components/ui/PageHeading.astro';
 import baselineVersion from '../../data/architecture/baselineVersion.json';
 import { architectureRegistry } from '../../data/architecture/catalog';
+import { architectureDiagrams } from '../../data/architecture/diagrams';
+import { coverageWithDiagrams } from '../../data/architecture/traceability';
 import Layout from '../../layouts/Layout.astro';
 
 const classified = architectureRegistry.coverage.filter(
@@ -11,6 +13,9 @@ const coveragePercent = ((classified / architectureRegistry.coverage.length) * 1
 const statuses = Object.entries(
   Object.groupBy(architectureRegistry.decisions, (item) => item.status),
 );
+const diagramMappedRecords = coverageWithDiagrams.filter(
+  (item) => item.diagramIds.length > 0,
+).length;
 ---
 
 <Layout
@@ -38,7 +43,7 @@ const statuses = Object.entries(
       <article class="record-panel">
         <p class="eyebrow">Catalog</p><h2>{architectureRegistry.decisions.length} decisions</h2><p>
           {architectureRegistry.services.length} services · {architectureRegistry.stacks.length} stacks
-          · {architectureRegistry.gates.length} gates
+          · {architectureRegistry.gates.length} gates · {architectureDiagrams.length} diagrams
         </p>
       </article>
     </div>
@@ -52,6 +57,12 @@ const statuses = Object.entries(
           ))
         }
       </ul>
+    </section>
+    <section class="record-panel">
+      <h2>Diagram traceability</h2><p>
+        {diagramMappedRecords} coverage records link through source decisions to one or more focused diagrams.
+        Narrative-only and reference blocks remain classified even when they do not belong on a canvas.
+      </p>
     </section>
     <section class="record-panel">
       <h2>Current source fingerprint</h2><p><code>{baselineVersion.checksum.value}</code></p><p>

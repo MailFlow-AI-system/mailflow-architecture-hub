@@ -2,6 +2,7 @@
 import StatusBadge from '../../components/ui/StatusBadge.astro';
 import PageHeading from '../../components/ui/PageHeading.astro';
 import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
+import { decisionToDiagramIds } from '../../data/architecture/traceability';
 import Layout from '../../layouts/Layout.astro';
 import type { Decision } from '../../domain/architecture';
 
@@ -20,6 +21,7 @@ const anchors = decision.sourceAnchors.map((source) => ({
   ...source,
   excerpt: excerptForRange(source.range.startLine, source.range.endLine),
 }));
+const diagramIds = decisionToDiagramIds.get(decision.id) ?? [];
 ---
 
 <Layout title={decision.title} description={decision.summary} currentPath="/decisions/">
@@ -124,6 +126,17 @@ const anchors = decision.sourceAnchors.map((source) => ({
                 decision.validationGateIds.map((id) => (
                   <li>
                     <a href={`/gates/#${id}`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd>
+          <dt>Diagrams</dt><dd>
+            <ul class="record-links">
+              {
+                diagramIds.map((id) => (
+                  <li>
+                    <a href={`/explorer/${id}/`}>{id}</a>
                   </li>
                 ))
               }
