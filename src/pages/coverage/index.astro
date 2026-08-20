@@ -1,15 +1,19 @@
 ---
 import PageHeading from '../../components/ui/PageHeading.astro';
 import baselineVersion from '../../data/architecture/baselineVersion.json';
+import coverageManifest from '../../../docs/architecture/coverageManifest.json';
 import { architectureRegistry } from '../../data/architecture/catalog';
 import { architectureDiagrams } from '../../data/architecture/diagrams';
 import { coverageWithDiagrams } from '../../data/architecture/traceability';
 import Layout from '../../layouts/Layout.astro';
 
-const classified = architectureRegistry.coverage.filter(
-  (item) => item.classification === 'classified',
+const resolved = architectureRegistry.coverage.filter(
+  (item) => item.classification !== 'not_classified',
 ).length;
-const coveragePercent = ((classified / architectureRegistry.coverage.length) * 100).toFixed(1);
+const contextOnly = architectureRegistry.coverage.filter(
+  (item) => item.classification === 'not_applicable',
+).length;
+const coveragePercent = ((resolved / architectureRegistry.coverage.length) * 100).toFixed(1);
 const statuses = Object.entries(
   Object.groupBy(architectureRegistry.decisions, (item) => item.status),
 );
@@ -32,7 +36,8 @@ const diagramMappedRecords = coverageWithDiagrams.filter(
     <div class="catalog-grid">
       <article class="record-panel">
         <p class="eyebrow">Coverage</p><h2>{coveragePercent}%</h2><p>
-          {classified} / {architectureRegistry.coverage.length} section and block records classified.
+          {resolved} / {architectureRegistry.coverage.length} records resolved; {contextOnly} are explicit
+          context-only records.
         </p>
       </article>
       <article class="record-panel">
@@ -62,6 +67,27 @@ const diagramMappedRecords = coverageWithDiagrams.filter(
       <h2>Diagram traceability</h2><p>
         {diagramMappedRecords} coverage records link through source decisions to one or more focused diagrams.
         Narrative-only and reference blocks remain classified even when they do not belong on a canvas.
+      </p>
+    </section>
+    <section class="record-panel">
+      <h2>Manifest review and drift</h2>
+      <p>
+        {coverageManifest.summary.machineClassified} records are machine-classified and{' '}
+        {coverageManifest.summary.humanReviewed} are marked human-reviewed. Classification is not a substitute
+        for human approval.
+      </p>
+      <p>
+        Baseline delta from the previous recorded checksum: {coverageManifest.delta.added} added,{
+          ' '
+        }
+        {coverageManifest.delta.changed} changed, {coverageManifest.delta.removed} removed. Previous checksum:
+        {coverageManifest.previousBaselineChecksum ?? 'initial snapshot'}.
+      </p>
+      <p>
+        {coverageManifest.delta.unresolvedRecordKeys.length} delta records await review. Manifest checksum:{
+          ' '
+        }
+        <code>{coverageManifest.manifest.checksum}</code>.
       </p>
     </section>
     <section class="record-panel">

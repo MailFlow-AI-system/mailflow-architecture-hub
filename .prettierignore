@@ -4,5 +4,6 @@ graphify-out/
 node_modules/
 bun.lock
 docs/architecture/architectureBaseline.md
+docs/architecture/coverageManifest.json
 docs/client/
 public/favicon.ico

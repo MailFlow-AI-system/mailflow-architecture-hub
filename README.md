@@ -52,6 +52,7 @@ bun run build
 bun run preview
 bun run test:e2e
 bun run test:a11y
+bun run coverage:check
 bun run validate
 ```
 
@@ -62,6 +63,7 @@ accessibility gates run separately and in CI.
 ## Content architecture
 
 - `docs/architecture/architectureBaseline.md` — active narrative authority.
+- `docs/architecture/coverageManifest.json` — generated, reviewable coverage snapshot and baseline delta.
 - `src/data/architecture/catalog/` — decision, service, stack, gate, trust, and coverage seeds.
 - `src/data/architecture/diagrams/` — presentation-independent nodes, typed relations, and views.
 - `src/domain/architecture/` — Zod schemas, stable IDs, parsing, compilation, and integrity rules.
@@ -114,14 +116,27 @@ material reasoning; they do not replace the baseline or structured projection.
 ```bash
 bun test tests/architecture/catalog-integrity.test.ts
 bun test tests/architecture/diagram-integrity.test.ts
+bun run diagram-sources:check
+bun run coverage:check
 bun run build
 bun run validate:routes
 bun run validate:privacy
 ```
 
 The audit detects unclassified baseline content, duplicate/conflicting IDs, missing pages, dangling
-service/stack/gate/trust references, services without stacks, unlinked gates, missing edge endpoints,
-phase contradictions, broken routes, and accidental publication of private client material.
+service/stack/gate/trust references, undocumented service stacks, unlinked gates, stale diagram
+anchors, missing edge endpoints, phase contradictions, broken routes, and accidental publication of
+private client material. Context-only source material is explicitly `not_applicable`, never silently
+treated as a decision. Coverage records begin as `machine_classified`; human review must be marked
+explicitly and is never inferred from a green build. Each manifest record includes its repository
+path, heading path, exact range, digest, entity links, routes, and review state.
+
+After an approved baseline update, update its recorded fingerprint, review every affected diagram,
+then run `bun run diagram-sources:update` and `bun run coverage:update`. Changed and added source
+records are reset to a required machine-review state. Record the reviewer and date, rerun
+`bun run coverage:update`, and commit the regenerated manifests only after the change checklist is
+complete. CI fails on unresolved baseline deltas or drift in the checked-in manifest, baseline
+checksum, persisted diagram provenance, structured catalog, diagrams, or page routes.
 
 An architecture change is complete only when the applicable baseline, descriptive content, affected
 diagrams, related decisions, ADR/changelog, and coverage tests are all updated.

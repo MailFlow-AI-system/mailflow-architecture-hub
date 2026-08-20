@@ -21,11 +21,11 @@ Each baseline coverage entry contains at least:
 | `status`            | `confirmed`, `confirmed_with_validation_gate`, `deferred`, or `superseded`              |
 | `gateIds`           | Re-evaluation or validation gates, when applicable                                      |
 | `primaryReferences` | Evidence links present in the baseline, without invented sources                        |
-| `relationIds`       | Related decisions and typed relationships                                               |
+| `relationshipIds`   | Related typed visual and architectural relationships                                    |
 | `phase`             | The architectural phase in which the record applies                                     |
 | `review`            | Reviewer, review date, and unresolved notes                                             |
 
-The manifest also records its own baseline SHA-256, byte/line/word counts, import timestamp, schema version, and previous-manifest reference. A source digest is tied to a section or block rather than only to the whole file so a small baseline change produces a useful delta.
+The manifest also records its own checksum, the baseline SHA-256, byte/line/word counts, import timestamp, schema version, and previous-manifest reference. A source digest is tied to a section or block rather than only to the whole file so a small baseline change produces a useful delta. Context-only material is explicitly classified as `not_applicable`; it is not silently promoted into a decision.
 
 ## Required validation
 
@@ -61,7 +61,7 @@ coverage.before / after
 coverage.unresolved_delta
 ```
 
-If the checksum changes, the synchronizer classifies each added, removed, or changed block. A changed block marks linked records for review even when the final wording appears equivalent. Removed records are retained in history with an explicit removal/supersession reason; they are not silently deleted.
+If the checksum changes, the synchronizer classifies each added, removed, or changed block. A changed block marks linked records for review even when the final wording appears equivalent, and the validation gate remains red until reviewer identity and date are recorded. Removed records remain in the delta history; their removal or supersession reason must be resolved through the architecture change checklist rather than silently discarded.
 
 If only a projection changes, the unchanged baseline checksum is recorded and the change is classified as content, diagram layout, route, or validation maintenance. This prevents a projection correction from appearing to be a new architectural decision.
 
