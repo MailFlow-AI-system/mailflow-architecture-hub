@@ -4,6 +4,8 @@ The public architecture explorer uses:
 
 - `@xyflow/react` — MIT. The library is isolated behind MailFlow-owned diagram models and
   components; its types are not canonical architecture contracts.
+- `@fontsource-variable/ubuntu-sans` — Ubuntu Font License 1.0. The static build includes only the
+  Latin normal variable-weight WOFF2 asset required by the interface.
 
 The project uses the following direct development dependencies for validation and build tooling:
 
