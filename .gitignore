@@ -3,6 +3,10 @@ dist/
 # generated types
 .astro/
 
+# local Graphify index and machine-local hook
+graphify-out/
+.codex/hooks.json
+
 # dependencies
 node_modules/
 
