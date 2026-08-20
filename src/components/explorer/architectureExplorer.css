@@ -59,6 +59,51 @@
   position: relative;
   min-height: 44rem;
 }
+.explorer-canvas--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  border: 0;
+  background: #071014;
+}
+.explorer-fullscreen-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 12;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(245 242 234 / 0.38);
+  border-radius: 0.35rem;
+  background: rgb(17 26 32 / 0.94);
+  color: var(--color-paper-100);
+  cursor: pointer;
+  box-shadow: 0 0.6rem 1.5rem rgb(0 0 0 / 0.32);
+}
+.explorer-fullscreen-toggle:hover {
+  border-color: var(--color-lime-400);
+  color: var(--color-lime-400);
+}
+.explorer-fullscreen-toggle:focus-visible {
+  outline: 0.18rem solid var(--color-lime-400);
+  outline-offset: 0.18rem;
+}
+.explorer-fullscreen-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
 .architecture-explorer--whole .explorer-workspace,
 .architecture-explorer--whole .explorer-canvas {
   min-height: min(78vh, 68rem);

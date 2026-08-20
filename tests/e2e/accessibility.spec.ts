@@ -24,3 +24,20 @@ test('explorer respects reduced motion and remains keyboard reachable @a11y', as
   await expect(firstNode).toBeFocused();
   await expect(firstNode).toHaveCSS('transition-duration', '0s');
 });
+
+test('fullscreen canvas traps focus, supports Escape, and remains accessible @a11y', async ({
+  page,
+}) => {
+  await page.goto('/explorer/diagram.context.general/');
+  const expandButton = page.getByRole('button', { name: 'Expand architecture canvas' });
+  await expandButton.click();
+
+  const closeButton = page.getByRole('button', { name: 'Close fullscreen canvas' });
+  await expect(closeButton).toBeFocused();
+  const results = await new AxeBuilder({ page }).include('.explorer-canvas--fullscreen').analyze();
+  expect(results.violations).toEqual([]);
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.explorer-canvas--fullscreen')).toHaveCount(0);
+  await expect(expandButton).toBeFocused();
+});

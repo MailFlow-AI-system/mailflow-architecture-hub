@@ -130,6 +130,31 @@ test('whole architecture canvas keeps scope controls usable on small screens', a
   await expect(page.locator('.architecture-explorer--whole .explorer-inspector')).toBeVisible();
 });
 
+test('focused and whole canvases enter and exit a viewport-filling mode', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  for (const route of ['/explorer/diagram.context.general/', '/explorer/whole/']) {
+    await page.goto(route);
+    await page.locator('.react-flow').waitFor();
+
+    const expandButton = page.getByRole('button', { name: 'Expand architecture canvas' });
+    await expandButton.click();
+
+    const canvas = page.locator('.explorer-canvas--fullscreen');
+    await expect(canvas).toBeVisible();
+    const fullscreenBox = await canvas.boundingBox();
+    expect(fullscreenBox).toMatchObject({ x: 0, y: 0, width: 1280, height: 800 });
+    await expect(page.locator('.explorer-filters')).toHaveAttribute('aria-hidden', 'true');
+
+    const closeButton = page.getByRole('button', { name: 'Close fullscreen canvas' });
+    await expect(closeButton).toBeFocused();
+    await closeButton.click();
+
+    await expect(canvas).toHaveCount(0);
+    await expect(expandButton).toBeFocused();
+  }
+});
+
 test('production search resolves architecture records and preserves the query', async ({
   page,
 }) => {

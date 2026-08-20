@@ -8,7 +8,7 @@ import {
   type Edge,
   type Node,
 } from '@xyflow/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import './architectureExplorer.css';
 
@@ -97,6 +97,10 @@ export function ArchitectureExplorer({
   const [serviceId, setServiceId] = useState(() => initialParam('service'));
   const [query, setQuery] = useState(() => initialParam('q') ?? '');
   const [selectedId, setSelectedId] = useState(() => initialParam('node'));
+  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
+  const canvasRef = useRef<HTMLElement>(null);
+  const expandButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const activePhase = scopeOptions.length
     ? scopeOptions.find((option) => option.id === scope)?.phase
     : phase;
@@ -180,6 +184,50 @@ export function ArchitectureExplorer({
     }
   }, [filtered.nodes, selectedId]);
 
+  useEffect(() => {
+    if (!isCanvasFullscreen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousRootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsCanvasFullscreen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = [
+        ...(canvasRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ) ?? []),
+      ].filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousRootOverflow;
+      requestAnimationFrame(() => expandButtonRef.current?.focus());
+    };
+  }, [isCanvasFullscreen]);
+
   function toggleRelation(type: RelationType) {
     setRelationTypes((current) =>
       current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
@@ -187,8 +235,14 @@ export function ArchitectureExplorer({
   }
 
   return (
-    <div className={`architecture-explorer architecture-explorer--${variant}`}>
-      <section className="explorer-filters" aria-label="Diagram filters">
+    <div
+      className={`architecture-explorer architecture-explorer--${variant}${isCanvasFullscreen ? ' architecture-explorer--fullscreen' : ''}`}
+    >
+      <section
+        className="explorer-filters"
+        aria-label="Diagram filters"
+        aria-hidden={isCanvasFullscreen || undefined}
+      >
         {scopeOptions.length ? (
           <label>
             Architecture scope
@@ -254,8 +308,10 @@ export function ArchitectureExplorer({
       </section>
       <div className="explorer-workspace">
         <section
-          className="explorer-canvas"
-          aria-label={`${diagram.title} interactive diagram`}
+          ref={canvasRef}
+          className={`explorer-canvas${isCanvasFullscreen ? ' explorer-canvas--fullscreen' : ''}`}
+          role={isCanvasFullscreen ? 'dialog' : undefined}
+          aria-label={`${diagram.title} interactive diagram${isCanvasFullscreen ? ' fullscreen' : ''}`}
           onKeyDownCapture={(event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             const target = event.target as HTMLElement;
@@ -266,6 +322,33 @@ export function ArchitectureExplorer({
             setSelectedId(nodeId === selectedId ? undefined : nodeId);
           }}
         >
+          {isCanvasFullscreen ? (
+            <button
+              ref={closeButtonRef}
+              className="explorer-fullscreen-toggle"
+              type="button"
+              aria-label="Close fullscreen canvas"
+              title="Close fullscreen canvas"
+              onClick={() => setIsCanvasFullscreen(false)}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              ref={expandButtonRef}
+              className="explorer-fullscreen-toggle"
+              type="button"
+              aria-label="Expand architecture canvas"
+              title="Expand architecture canvas"
+              onClick={() => setIsCanvasFullscreen(true)}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+              </svg>
+            </button>
+          )}
           {nodes.length === 0 ? (
             <div className="explorer-empty">
               <strong>No elements match these filters.</strong>
@@ -310,7 +393,11 @@ export function ArchitectureExplorer({
             </ReactFlow>
           )}
         </section>
-        <aside className="explorer-inspector" aria-live="polite">
+        <aside
+          className="explorer-inspector"
+          aria-live="polite"
+          aria-hidden={isCanvasFullscreen || undefined}
+        >
           {selectedNode ? (
             <>
               <p className="explorer-kicker">{selectedNode.kind.replaceAll('_', ' ')}</p>
