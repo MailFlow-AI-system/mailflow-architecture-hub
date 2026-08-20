@@ -1,0 +1,45 @@
+---
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Validation gates"
+  description="Evidence required before conditional architecture choices change state."
+  currentPath="/gates/"
+>
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={`${architectureRegistry.gates.length} explicit gates`}
+      title="Decision gates"
+      description="A gate validates an adapter or operational choice. It never silently changes ownership, tenancy, trust, or service boundaries."
+    />
+    {
+      architectureRegistry.gates.map((gate) => (
+        <article class="record-panel" id={gate.id}>
+          <>
+            <p class="eyebrow">
+              {gate.id} · {gate.phase}
+            </p>
+            <h2>{gate.title}</h2>
+            <p>{gate.criterion}</p>
+            <ul class="record-links">
+              {gate.decisionIds.map((id) => (
+                <li>
+                  <a href={`/decisions/${id}/`}>{id}</a>
+                </li>
+              ))}
+            </ul>
+            <details>
+              <summary>Show baseline evidence</summary>
+              {gate.sourceAnchors.map((source) => (
+                <pre>{excerptForRange(source.range.startLine, source.range.endLine)}</pre>
+              ))}
+            </details>
+          </>
+        </article>
+      ))
+    }
+  </div>
+</Layout>

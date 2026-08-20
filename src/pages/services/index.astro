@@ -1,0 +1,33 @@
+---
+import EntityCard from '../../components/ui/EntityCard.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Services and bounded contexts"
+  description="Ownership, contracts, data, stacks, and extraction phases."
+  currentPath="/services/"
+>
+  <div class="content-wrap">
+    <PageHeading
+      eyebrow={`${architectureRegistry.services.length} bounded contexts`}
+      title="Service ownership"
+      description="Each service view preserves what it owns, what it must not access, its phase, stacks, trust boundaries, and source decisions."
+    />
+    <div class="catalog-grid" data-pagefind-body>
+      {
+        architectureRegistry.services.map((service) => (
+          <EntityCard
+            href={service.pagePath}
+            eyebrow={`${service.phase} · ${service.stackIds.length} stacks`}
+            title={service.name}
+            summary={service.responsibility}
+            meta={service.id}
+          />
+        ))
+      }
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,32 @@
+---
+import EntityCard from '../../components/ui/EntityCard.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Technology decisions"
+  description="Selected, gated, and deferred MailFlow technologies."
+  currentPath="/stacks/"
+>
+  <div class="content-wrap">
+    <PageHeading
+      eyebrow={`${architectureRegistry.stacks.length} technology records`}
+      title="Stacks"
+      description="Technology is documented with responsibility, status, phase, source, related decisions, and re-evaluation gates."
+    /><div class="catalog-grid" data-pagefind-body>
+      {
+        architectureRegistry.stacks.map((stack) => (
+          <EntityCard
+            href={stack.pagePath}
+            eyebrow={`${stack.status.replaceAll('_', ' ')} · ${stack.phase}`}
+            title={stack.name}
+            summary={stack.responsibility}
+            meta={stack.id}
+          />
+        ))
+      }
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,40 @@
+---
+interface Props {
+  status: string;
+}
+
+const { status } = Astro.props;
+const label = status.replaceAll('_', ' ');
+---
+
+<span class:list={['status-badge', `status-badge--${status}`]}>{label}</span>
+
+<style>
+  .status-badge {
+    display: inline-flex;
+    border: 1px solid rgb(245 242 234 / 0.24);
+    border-radius: 999px;
+    padding: 0.24rem 0.55rem;
+    color: var(--color-paper-300);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .status-badge--confirmed {
+    border-color: rgb(217 255 105 / 0.55);
+    color: var(--color-lime-400);
+  }
+
+  .status-badge--confirmed_with_validation_gate {
+    border-color: rgb(145 227 214 / 0.55);
+    color: var(--color-cyan-300);
+  }
+
+  .status-badge--deferred,
+  .status-badge--superseded {
+    border-color: rgb(255 151 105 / 0.55);
+    color: var(--color-ember-300);
+  }
+</style>

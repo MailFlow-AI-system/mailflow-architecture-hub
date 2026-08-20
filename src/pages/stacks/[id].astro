@@ -1,0 +1,66 @@
+---
+import StatusBadge from '../../components/ui/StatusBadge.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+import type { Stack } from '../../domain/architecture';
+
+export function getStaticPaths() {
+  return architectureRegistry.stacks.map((stack) => ({
+    params: { id: stack.id },
+    props: { stack },
+  }));
+}
+interface Props {
+  stack: Stack;
+}
+const { stack } = Astro.props;
+---
+
+<Layout title={stack.name} description={stack.responsibility} currentPath="/stacks/"
+  ><div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={stack.id}
+      title={stack.name}
+      description={stack.responsibility}
+      breadcrumbs={[{ label: 'Stacks', href: '/stacks/' }, { label: stack.name }]}
+    /><div class="record-layout">
+      <article>
+        <section class="record-panel">
+          <h2>Baseline evidence</h2>{
+            stack.sourceAnchors.map((source) => (
+              <pre>{excerptForRange(source.range.startLine, source.range.endLine)}</pre>
+            ))
+          }
+        </section>{
+          stack.reassessmentTriggers.length > 0 && (
+            <section class="record-panel">
+              <>
+                <h2>Reassessment triggers</h2>
+                <ul>
+                  {stack.reassessmentTriggers.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </>
+            </section>
+          )
+        }
+      </article><aside class="record-aside">
+        <StatusBadge status={stack.status} /><dl>
+          <dt>Phase</dt><dd>{stack.phase}</dd><dt>Decisions</dt><dd>
+            <ul class="record-links">
+              {
+                stack.decisionIds.map((id) => (
+                  <li>
+                    <a href={`/decisions/${id}/`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd><dt>Gates</dt><dd>{stack.validationGateIds.join(', ') || 'No blocking gate'}</dd>
+        </dl>
+      </aside>
+    </div>
+  </div></Layout
+>

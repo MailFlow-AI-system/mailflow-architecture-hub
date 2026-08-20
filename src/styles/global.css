@@ -69,6 +69,92 @@ summary:focus-visible {
   margin-inline: auto;
 }
 
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1px;
+  margin: 0 0 var(--space-8);
+  background: rgb(245 242 234 / 0.14);
+}
+
+.record-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  gap: var(--space-7);
+  padding-bottom: var(--space-8);
+}
+
+.record-panel {
+  border-top: 1px solid rgb(245 242 234 / 0.2);
+  padding: var(--space-5) 0;
+}
+
+.record-panel h2,
+.record-panel h3 {
+  color: var(--color-paper-100);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.record-panel pre {
+  overflow-x: auto;
+  border-left: 0.2rem solid var(--color-cyan-300);
+  background: rgb(4 9 12 / 0.72);
+  padding: var(--space-4);
+  color: var(--color-paper-300);
+  font: 0.82rem/1.55 var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.record-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0;
+  list-style: none;
+}
+
+.record-links a {
+  display: inline-flex;
+  border: 1px solid rgb(145 227 214 / 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--color-cyan-300);
+  font: 0.72rem var(--font-mono);
+  text-decoration: none;
+}
+
+.record-aside {
+  align-self: start;
+  border: 1px solid rgb(217 255 105 / 0.35);
+  background: rgb(17 26 32 / 0.68);
+  padding: var(--space-5);
+}
+
+.record-aside dl {
+  margin: 0;
+}
+
+.record-aside dt {
+  margin-top: var(--space-4);
+  color: var(--color-paper-500);
+  font: 0.7rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.record-aside dd {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--color-paper-100);
+}
+
+@media (max-width: 52rem) {
+  .record-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .site-header {
   border-bottom: 1px solid rgb(245 242 234 / 0.16);
 }

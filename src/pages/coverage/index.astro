@@ -1,0 +1,73 @@
+---
+import PageHeading from '../../components/ui/PageHeading.astro';
+import baselineVersion from '../../data/architecture/baselineVersion.json';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+
+const classified = architectureRegistry.coverage.filter(
+  (item) => item.classification === 'classified',
+).length;
+const coveragePercent = ((classified / architectureRegistry.coverage.length) * 100).toFixed(1);
+const statuses = Object.entries(
+  Object.groupBy(architectureRegistry.decisions, (item) => item.status),
+);
+---
+
+<Layout
+  title="Baseline coverage"
+  description="Verifiable incorporation and drift status for the architecture baseline."
+  currentPath="/coverage/"
+>
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow="Automated drift gate"
+      title="Baseline coverage"
+      description="Every parsed section and structural block has a source digest and a classified projection. A changed baseline produces changed digests before the derived views can be considered current."
+    />
+    <div class="catalog-grid">
+      <article class="record-panel">
+        <p class="eyebrow">Coverage</p><h2>{coveragePercent}%</h2><p>
+          {classified} / {architectureRegistry.coverage.length} section and block records classified.
+        </p>
+      </article>
+      <article class="record-panel">
+        <p class="eyebrow">Baseline</p><h2>{baselineVersion.lines} lines</h2><p>
+          {baselineVersion.words} words · {baselineVersion.bytes} bytes
+        </p>
+      </article>
+      <article class="record-panel">
+        <p class="eyebrow">Catalog</p><h2>{architectureRegistry.decisions.length} decisions</h2><p>
+          {architectureRegistry.services.length} services · {architectureRegistry.stacks.length} stacks
+          · {architectureRegistry.gates.length} gates
+        </p>
+      </article>
+    </div>
+    <section class="record-panel">
+      <h2>Decision state</h2><ul>
+        {
+          statuses.map(([status, entries]) => (
+            <li>
+              <strong>{status.replaceAll('_', ' ')}</strong>: {entries?.length ?? 0}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+    <section class="record-panel">
+      <h2>Current source fingerprint</h2><p><code>{baselineVersion.checksum.value}</code></p><p>
+        Source: <code>{baselineVersion.source}</code>. Last recorded: {baselineVersion.lastUpdated}.
+      </p>
+    </section>
+    <section class="record-panel">
+      <h2>What the gate detects</h2><ul>
+        <li>Unclassified sections or blocks.</li><li>
+          Missing pages and broken entity references.
+        </li><li>Duplicate or conflicting stable IDs.</li><li>
+          Services without stack or ownership.
+        </li><li>Gates without reciprocal decisions.</li><li>
+          Diagram nodes and edges without source decisions.
+        </li><li>Phase contradictions and stale source digests.</li>
+      </ul>
+    </section>
+  </div>
+</Layout>

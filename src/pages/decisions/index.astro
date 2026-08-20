@@ -1,0 +1,37 @@
+---
+import EntityCard from '../../components/ui/EntityCard.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+
+const decisions = [...architectureRegistry.decisions].sort((left, right) =>
+  left.title.localeCompare(right.title),
+);
+---
+
+<Layout
+  title="Decision catalog"
+  description="Every classified MailFlow architecture decision."
+  currentPath="/decisions/"
+>
+  <div class="content-wrap">
+    <PageHeading
+      eyebrow={`${decisions.length} stable records`}
+      title="Decision catalog"
+      description="Confirmed, gated, deferred, and superseded choices projected from the active baseline. Every record retains exact source anchors."
+    />
+    <div class="catalog-grid" data-pagefind-body>
+      {
+        decisions.map((decision) => (
+          <EntityCard
+            href={decision.pagePath}
+            eyebrow={`${decision.status.replaceAll('_', ' ')} · ${decision.phase}`}
+            title={decision.title}
+            summary={decision.summary}
+            meta={decision.id}
+          />
+        ))
+      }
+    </div>
+  </div>
+</Layout>

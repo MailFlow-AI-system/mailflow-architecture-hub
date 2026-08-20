@@ -1,0 +1,71 @@
+---
+interface Props {
+  href: string;
+  eyebrow: string;
+  title: string;
+  summary: string;
+  meta?: string;
+}
+
+const { href, eyebrow, title, summary, meta } = Astro.props;
+---
+
+<article class="entity-card">
+  <p>{eyebrow}</p>
+  <h2><a href={href}>{title}</a></h2>
+  <div class="entity-card__body">{summary}</div>
+  {meta && <small>{meta}</small>}
+  <a class="entity-card__action" href={href} aria-label={`Open ${title}`}>Open record →</a>
+</article>
+
+<style>
+  .entity-card {
+    display: grid;
+    min-height: 16rem;
+    align-content: start;
+    gap: var(--space-3);
+    border-top: 2px solid var(--color-lime-400);
+    background: linear-gradient(145deg, rgb(37 52 60 / 0.68), rgb(17 26 32 / 0.5));
+    padding: var(--space-5);
+  }
+
+  p,
+  small {
+    margin: 0;
+    color: var(--color-paper-500);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--color-paper-100);
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  h2 a,
+  .entity-card__action {
+    text-decoration: none;
+  }
+
+  h2 a:hover,
+  .entity-card__action:hover {
+    color: var(--color-lime-400);
+  }
+
+  .entity-card__body {
+    color: var(--color-paper-300);
+  }
+
+  .entity-card__action {
+    margin-top: auto;
+    color: var(--color-cyan-300);
+    font-size: var(--text-sm);
+    font-weight: 750;
+  }
+</style>

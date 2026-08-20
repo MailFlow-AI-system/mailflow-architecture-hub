@@ -1,0 +1,103 @@
+---
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+import type { Service } from '../../domain/architecture';
+
+export function getStaticPaths() {
+  return architectureRegistry.services.map((service) => ({
+    params: { id: service.id },
+    props: { service },
+  }));
+}
+interface Props {
+  service: Service;
+}
+const { service } = Astro.props;
+---
+
+<Layout title={service.name} description={service.responsibility} currentPath="/services/">
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={service.id}
+      title={service.name}
+      description={service.responsibility}
+      breadcrumbs={[{ label: 'Services', href: '/services/' }, { label: service.name }]}
+    />
+    <div class="record-layout">
+      <article>
+        <section class="record-panel">
+          <h2>Authority and source</h2>{
+            service.sourceAnchors.map((source) => (
+              <div>
+                <>
+                  <p>
+                    Lines {source.range.startLine}–{source.range.endLine} ·{' '}
+                    {source.digest.value.slice(0, 12)}…
+                  </p>
+                  <pre>{excerptForRange(source.range.startLine, source.range.endLine)}</pre>
+                </>
+              </div>
+            ))
+          }
+        </section>
+        <section class="record-panel">
+          <h2>Owned data</h2>{
+            service.dataOwned.length ? (
+              <ul>
+                {service.dataOwned.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Use linked decisions and baseline evidence; no extra ownership was inferred.</p>
+            )
+          }<h3>Forbidden access</h3>{
+            service.dataForbidden.length ? (
+              <ul>
+                {service.dataForbidden.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No additional projection beyond linked trust boundaries.</p>
+            )
+          }
+        </section>
+        <section class="record-panel">
+          <h2>Contracts and processes</h2><p>
+            API, worker, scheduler, events, and dependencies are documented only when explicitly
+            projected. The baseline excerpts and linked decisions remain authoritative.
+          </p>
+        </section>
+      </article>
+      <aside class="record-aside">
+        <dl>
+          <dt>Phase</dt><dd>{service.phase}</dd><dt>Stacks</dt><dd>
+            <ul class="record-links">
+              {
+                service.stackIds.map((id) => (
+                  <li>
+                    <a href={`/stacks/${id}/`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd><dt>Decisions</dt><dd>
+            <ul class="record-links">
+              {
+                service.decisionIds.map((id) => (
+                  <li>
+                    <a href={`/decisions/${id}/`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd><dt>Trust boundaries</dt><dd>
+            {service.trustBoundaryIds.join(', ') || 'See linked decisions'}
+          </dd>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,61 @@
+---
+import EntityCard from '../../components/ui/EntityCard.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import Layout from '../../layouts/Layout.astro';
+const areas = [
+  {
+    href: '/explorer/',
+    eyebrow: 'Connected views',
+    title: 'Visual explorer',
+    summary: 'Move between phase-specific topologies, flows, boundaries, and decision evidence.',
+  },
+  {
+    href: '/evolution/',
+    eyebrow: 'MVP → distributed',
+    title: 'Evolution timeline',
+    summary:
+      'Follow the modular MVP, Audience extraction, Identity extraction, and future placement gates.',
+  },
+  {
+    href: '/services/',
+    eyebrow: 'Bounded contexts',
+    title: 'Service ownership',
+    summary:
+      'Understand responsibility, owned data, forbidden access, contracts, stacks, and phase.',
+  },
+  {
+    href: '/decisions/',
+    eyebrow: 'Stable records',
+    title: 'Decision catalog',
+    summary:
+      'Review what was decided, its state, source evidence, trade-offs, and re-evaluation links.',
+  },
+  {
+    href: '/gates/',
+    eyebrow: 'Evidence before change',
+    title: 'Validation gates',
+    summary: 'Inspect blocking spikes, fallbacks, and objective re-evaluation triggers.',
+  },
+  {
+    href: '/coverage/',
+    eyebrow: 'No silent drift',
+    title: 'Coverage audit',
+    summary: 'Verify that every baseline section and block remains classified and linked.',
+  },
+];
+---
+
+<Layout
+  title="Architecture overview"
+  description="The maintained map of MailFlow architecture."
+  currentPath="/architecture/"
+  ><div class="content-wrap">
+    <PageHeading
+      eyebrow="Official architecture repository"
+      title="Architecture overview"
+      description="The narrative baseline is active authority. Typed catalogs, diagrams, pages, and tests are traceable projections designed to reveal drift."
+    /><div class="catalog-grid">
+      {areas.map((item) => <EntityCard {...item} meta="source-of-truth view" />)}
+    </div>
+  </div></Layout
+>

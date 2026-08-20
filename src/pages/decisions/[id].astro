@@ -1,0 +1,136 @@
+---
+import StatusBadge from '../../components/ui/StatusBadge.astro';
+import PageHeading from '../../components/ui/PageHeading.astro';
+import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
+import Layout from '../../layouts/Layout.astro';
+import type { Decision } from '../../domain/architecture';
+
+export function getStaticPaths() {
+  return architectureRegistry.decisions.map((decision) => ({
+    params: { id: decision.id },
+    props: { decision },
+  }));
+}
+
+interface Props {
+  decision: Decision;
+}
+const { decision } = Astro.props;
+const anchors = decision.sourceAnchors.map((source) => ({
+  ...source,
+  excerpt: excerptForRange(source.range.startLine, source.range.endLine),
+}));
+---
+
+<Layout title={decision.title} description={decision.summary} currentPath="/decisions/">
+  <div class="content-wrap" data-pagefind-body>
+    <PageHeading
+      eyebrow={decision.id}
+      title={decision.title}
+      description={decision.summary}
+      breadcrumbs={[{ label: 'Decisions', href: '/decisions/' }, { label: decision.title }]}
+    />
+    <div class="record-layout">
+      <article>
+        <section class="record-panel">
+          <h2>Authoritative baseline evidence</h2>
+          {
+            anchors.map((source) => (
+              <div>
+                <>
+                  <p>
+                    <strong>{source.source}</strong> · lines {source.range.startLine}–
+                    {source.range.endLine} · SHA-256 {source.digest.value.slice(0, 12)}…
+                  </p>
+                  <pre>{source.excerpt}</pre>
+                </>
+              </div>
+            ))
+          }
+        </section>
+        <section class="record-panel">
+          <h2>Decision context</h2>
+          {decision.narrative.contextProblem.items.map((item) => <p>{item}</p>)}
+          <h3>Trade-offs and alternatives</h3>
+          <p>{decision.narrative.tradeOffs.note ?? 'See the authoritative evidence above.'}</p>
+          <p>
+            {
+              decision.narrative.alternativesRejected.note ??
+                'See the authoritative evidence above.'
+            }
+          </p>
+        </section>
+        {
+          decision.reassessmentTriggers.length > 0 && (
+            <section class="record-panel">
+              <>
+                <h2>Reassessment triggers</h2>
+                <ul>
+                  {decision.reassessmentTriggers.map((trigger) => (
+                    <li>{trigger}</li>
+                  ))}
+                </ul>
+              </>
+            </section>
+          )
+        }
+        {
+          decision.primaryReferences.length > 0 && (
+            <section class="record-panel">
+              <>
+                <h2>Primary references</h2>
+                <ul>
+                  {decision.primaryReferences.map((reference) => (
+                    <li>
+                      <a href={reference}>{reference}</a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            </section>
+          )
+        }
+      </article>
+      <aside class="record-aside" aria-label="Decision metadata">
+        <StatusBadge status={decision.status} />
+        <dl>
+          <dt>Stable ID</dt><dd>{decision.id}</dd>
+          <dt>Phase</dt><dd>{decision.phase}</dd>
+          <dt>Services</dt><dd>
+            <ul class="record-links">
+              {
+                decision.serviceIds.map((id) => (
+                  <li>
+                    <a href={`/services/${id}/`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd>
+          <dt>Stacks</dt><dd>
+            <ul class="record-links">
+              {
+                decision.stackIds.map((id) => (
+                  <li>
+                    <a href={`/stacks/${id}/`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd>
+          <dt>Validation gates</dt><dd>
+            <ul class="record-links">
+              {
+                decision.validationGateIds.map((id) => (
+                  <li>
+                    <a href={`/gates/#${id}`}>{id}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </dd>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</Layout>
