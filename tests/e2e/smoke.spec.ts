@@ -78,7 +78,11 @@ test('explorer filters, selects, and persists state in the URL', async ({ page }
   await expect(inspectorLink).toBeVisible();
   await inspectorLink.click();
   await expect(page).toHaveURL('/services/service.mail/');
-  await expect(page.getByRole('heading', { name: 'Mail' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mail', exact: true })).toBeVisible();
+  const evidence = page.locator('.record-panel .markdown-content').first();
+  await expect(evidence).not.toBeEmpty();
+  await expect(evidence.locator('p, h3, ul, ol, table, blockquote').first()).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('###');
 });
 
 test('whole architecture explorer exposes complete and MVP canvas modes', async ({ page }) => {

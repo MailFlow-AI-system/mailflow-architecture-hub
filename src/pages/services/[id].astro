@@ -1,5 +1,6 @@
 ---
 import PageHeading from '../../components/ui/PageHeading.astro';
+import MarkdownContent from '../../components/ui/MarkdownContent.astro';
 import { architectureRegistry, excerptForRange } from '../../data/architecture/catalog';
 import { serviceToDiagramIds } from '../../data/architecture/traceability';
 import Layout from '../../layouts/Layout.astro';
@@ -47,7 +48,9 @@ const narrativeRows = [
                     Lines {source.range.startLine}–{source.range.endLine} ·{' '}
                     {source.digest.value.slice(0, 12)}…
                   </p>
-                  <pre>{excerptForRange(source.range.startLine, source.range.endLine)}</pre>
+                  <MarkdownContent
+                    content={excerptForRange(source.range.startLine, source.range.endLine)}
+                  />
                 </>
               </div>
             ))
@@ -163,11 +166,7 @@ const narrativeRows = [
               <section>
                 <h3>{label}</h3>
                 {narrative.status === 'documented' ? (
-                  <ul>
-                    {narrative.items.map((item) => (
-                      <li>{item}</li>
-                    ))}
-                  </ul>
+                  narrative.items.map((item) => <MarkdownContent content={item} />)
                 ) : (
                   <p>{narrative.note}</p>
                 )}
