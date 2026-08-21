@@ -36,6 +36,23 @@ test('explorer filters, selects, and persists state in the URL', async ({ page }
     .first()
     .evaluate((node) => Number.parseFloat(getComputedStyle(node).width));
   expect(firstNodeWidth).toBeGreaterThanOrEqual(256);
+  await expect(page.locator('.react-flow__edge-text')).toHaveCount(0);
+  const layoutSteps = await page.locator('.react-flow__node').evaluateAll((nodes) => {
+    const positions = nodes.map((node) => {
+      const match = node.getAttribute('style')?.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/u);
+      return { x: Number(match?.[1]), y: Number(match?.[2]) };
+    });
+    const minimumStep = (values: number[]) => {
+      const unique = [...new Set(values)].sort((left, right) => left - right);
+      return Math.min(...unique.slice(1).map((value, index) => value - unique[index]));
+    };
+    return {
+      column: minimumStep(positions.map(({ x }) => x)),
+      row: minimumStep(positions.map(({ y }) => y)),
+    };
+  });
+  expect(layoutSteps.column).toBeGreaterThanOrEqual(390);
+  expect(layoutSteps.row).toBeGreaterThanOrEqual(190);
   await page.getByLabel('Phase').selectOption('future');
   await expect(page).toHaveURL(/phase=future/u);
   await page.getByLabel('Service').selectOption({ index: 1 });
@@ -68,32 +85,30 @@ test('whole architecture explorer exposes complete and MVP canvas modes', async 
   await page.goto('/explorer/whole/');
   await expect(page.getByRole('heading', { name: 'Complete architecture canvas' })).toBeVisible();
   await expect(page.locator('.architecture-explorer--whole .react-flow')).toBeVisible();
-  await expect(page.locator('.architecture-domain-node').first()).toBeVisible();
-  await expect(page).toHaveURL(/mode=mvp/u);
-  const mvpNodeCount = await page
+  const initialScale = await page
+    .locator('.architecture-explorer--whole .react-flow__viewport')
+    .evaluate((viewport) => new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a);
+  expect(initialScale).toBeGreaterThanOrEqual(0.55);
+  const allNodeCount = await page
     .locator('.architecture-explorer--whole .react-flow__node')
     .count();
-  const mvpEdgeCount = await page
+  const allEdgeCount = await page
     .locator('.architecture-explorer--whole .react-flow__edge')
     .count();
-  expect(mvpNodeCount).toBeGreaterThan(0);
-  expect(mvpEdgeCount).toBeGreaterThan(0);
-  expect(mvpNodeCount).toBeLessThan(
-    Number(await page.locator('[data-whole-node-count]').textContent()),
-  );
-  expect(mvpEdgeCount).toBeLessThan(
-    Number(await page.locator('[data-whole-edge-count]').textContent()),
-  );
-  await expect(page.locator('.architecture-domain-node')).not.toHaveCount(0);
+  await expect(page.locator('[data-whole-node-count]')).toHaveText(String(allNodeCount));
+  await expect(page.locator('[data-whole-edge-count]')).toHaveText(String(allEdgeCount));
+  expect(allNodeCount).toBeGreaterThan(100);
+  expect(allEdgeCount).toBeGreaterThan(200);
 
   await page.getByLabel('Architecture scope').selectOption('mvp');
   await expect(page).toHaveURL(/mode=mvp/u);
   const mvpCanvas = page.locator('.architecture-explorer--whole');
-  await mvpCanvas
-    .getByRole('button', { name: /mail delivery/i })
-    .first()
-    .click();
-  await expect(page).toHaveURL(/domain=mail-delivery/u);
+  const mvpNodeCount = await mvpCanvas.locator('.react-flow__node').count();
+  const mvpEdgeCount = await mvpCanvas.locator('.react-flow__edge').count();
+  expect(mvpNodeCount).toBeGreaterThan(0);
+  expect(mvpEdgeCount).toBeGreaterThan(0);
+  expect(mvpNodeCount).toBeLessThan(allNodeCount);
+  expect(mvpEdgeCount).toBeLessThan(allEdgeCount);
   await expect(mvpCanvas.getByText('Core API', { exact: true })).toBeVisible();
   await expect(mvpCanvas.getByText('pg-boss worker queue', { exact: true })).toBeVisible();
   await expect(mvpCanvas.getByText('Billing', { exact: true })).toHaveCount(0);
@@ -114,27 +129,11 @@ test('whole architecture explorer exposes complete and MVP canvas modes', async 
 
   await page.getByLabel('Architecture scope').selectOption('all');
   await expect(page).toHaveURL(/mode=all/u);
-  await expect(page.locator('.architecture-explorer--whole .react-flow__node')).not.toHaveCount(0);
-  await expect(page.locator('.architecture-domain-node')).not.toHaveCount(0);
+  await expect(page.locator('.architecture-explorer--whole .react-flow__node')).toHaveCount(
+    allNodeCount,
+  );
   await expect(serviceFilter.locator('option[value="service.billing"]')).toHaveCount(1);
   await expect(page.getByRole('checkbox', { name: /^async command$/iu })).toBeVisible();
-
-  const domain = page.getByRole('button', { name: /mail delivery/i }).first();
-  await domain.click();
-  await expect(page).not.toHaveURL(/domain=mail-delivery/u);
-  await domain.click();
-  await expect(page).toHaveURL(/domain=mail-delivery/u);
-  await expect(page.locator('.architecture-entity-node')).not.toHaveCount(0);
-  await expect(page.locator('.react-flow__edge-text')).not.toHaveCount(0);
-});
-
-test('dedicated explorer diagrams remain flat and expose contextual labels', async ({ page }) => {
-  await page.goto('/explorer/diagram.context.general/');
-  await expect(page.locator('.react-flow')).toBeVisible();
-  await expect(page.locator('.architecture-domain-node')).toHaveCount(0);
-  await page.locator('.react-flow__node', { hasText: 'Mail' }).click();
-  await expect(page.locator('.react-flow__edge-text')).not.toHaveCount(0);
-  await expect(page.locator('.architecture-legend')).toBeVisible();
 });
 
 test('whole architecture canvas keeps scope controls usable on small screens', async ({ page }) => {

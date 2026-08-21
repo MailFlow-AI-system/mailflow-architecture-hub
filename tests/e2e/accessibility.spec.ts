@@ -25,17 +25,6 @@ test('explorer respects reduced motion and remains keyboard reachable @a11y', as
   await expect(firstNode).toHaveCSS('transition-duration', '0s');
 });
 
-test('whole semantic domains remain keyboard reachable @a11y', async ({ page }) => {
-  await page.goto('/explorer/whole/');
-  const domain = page.getByRole('button', { name: /mail delivery/i }).first();
-  await domain.focus();
-  await expect(domain).toBeFocused();
-  await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/domain=mail-delivery/u);
-  await expect(page.locator('.architecture-entity-node')).not.toHaveCount(0);
-  await expect(page.locator('.architecture-legend')).toBeVisible();
-});
-
 test('fullscreen canvas traps focus, supports Escape, and remains accessible @a11y', async ({
   page,
 }) => {

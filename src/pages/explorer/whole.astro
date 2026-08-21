@@ -15,8 +15,8 @@ const representedRelationshipCount = wholeDiagram.edges.filter((edge) =>
   (edge.relationshipIds ?? []).some((id) => canonicalRelationshipIds.has(id)),
 ).length;
 const scopeOptions: readonly ExplorerScopeOption[] = [
-  { id: 'mvp', label: 'MVP only', phase: 'mvp' },
   { id: 'all', label: 'Complete architecture' },
+  { id: 'mvp', label: 'MVP only', phase: 'mvp' },
 ];
 ---
 
@@ -29,7 +29,7 @@ const scopeOptions: readonly ExplorerScopeOption[] = [
     <PageHeading
       eyebrow={`${architectureDiagrams.length} canonical views · whole-system workspace`}
       title="Complete architecture canvas"
-      description="Start with the MVP boundary, then expand semantic domains to explore the full MailFlow topology without losing links to focused source views, services, or decisions."
+      description="Explore the full MailFlow topology in one canvas. Switch between every canonical phase and the MVP-only boundary without losing links to focused source views, services, or decisions."
       breadcrumbs={[{ label: 'Explorer', href: '/explorer/' }, { label: 'Complete architecture' }]}
     />
     <dl class="whole-architecture-stats" aria-label="Whole architecture canvas summary">
@@ -61,9 +61,8 @@ const scopeOptions: readonly ExplorerScopeOption[] = [
       <h2 id="canvas-notes">Canvas notes</h2>
       <p>
         The interactive view aggregates canonical focused diagrams and deduplicates repeated service
-        nodes and equivalent typed connections. The rendered map uses semantic domain clusters, so
-        visible node and edge counts differ from the canonical totals above. Provenance remains
-        attached to each normalized node and connection.
+        nodes and equivalent typed connections. Provenance remains attached to each normalized node
+        and connection.
       </p>
       <p>
         Without JavaScript, the focused views remain the authoritative static records. Use them to
