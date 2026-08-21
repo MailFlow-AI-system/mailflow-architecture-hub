@@ -1,5 +1,6 @@
 .architecture-explorer {
   margin-bottom: var(--space-8);
+  font-family: var(--font-explorer);
 }
 .architecture-explorer--whole {
   margin-bottom: 0;
@@ -16,7 +17,7 @@
 .explorer-filters > label,
 .explorer-filters legend {
   color: var(--color-paper-500);
-  font: 0.7rem var(--font-mono);
+  font: 0.8125rem var(--font-explorer);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -29,6 +30,7 @@
   background: var(--color-ink-950);
   padding: 0.65rem;
   color: var(--color-paper-100);
+  font: 1rem var(--font-explorer);
 }
 .explorer-filters fieldset {
   grid-column: 1 / -1;
@@ -41,7 +43,7 @@
 }
 .explorer-filters fieldset label {
   color: var(--color-paper-300);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   text-transform: capitalize;
 }
 .explorer-filters fieldset input {
@@ -116,6 +118,8 @@
   background: rgb(17 26 32 / 0.9);
   padding: var(--space-5);
   overflow-wrap: anywhere;
+  font-size: 1rem;
+  line-height: 1.45;
 }
 .explorer-inspector h2,
 .explorer-inspector h3 {
@@ -133,6 +137,23 @@
   font: 0.7rem var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.explorer-status {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  margin: 0;
+  border: 1px solid rgb(245 242 234 / 0.2);
+  background: rgb(7 16 20 / 0.9);
+  padding: 0.6rem 0.8rem;
+  color: var(--color-paper-200);
+  font-size: 0.9375rem;
+}
+
+.explorer-status--error {
+  color: var(--color-ember-300);
 }
 .architecture-node {
   display: grid !important;
@@ -225,7 +246,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .architecture-node {
+  .architecture-node,
+  .react-flow__node {
     transition: none !important;
   }
 }

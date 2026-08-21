@@ -2,74 +2,85 @@ import {
   Background,
   BackgroundVariant,
   Controls,
+  MarkerType,
   MiniMap,
   Position,
   ReactFlow,
   type Edge,
   type Node,
+  type ReactFlowInstance,
 } from '@xyflow/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import './architectureExplorer.css';
+import './architectureNodes.css';
 
 import type { ArchitecturePhase, RelationType } from '../../domain/architecture';
-import type { ArchitectureDiagramDefinition } from '../../data/architecture/diagrams';
+import type {
+  ArchitectureDiagramDefinition,
+  ArchitectureDiagramNode,
+} from '../../data/architecture/diagrams';
 import { filterDiagram } from './filterDiagram';
+import { ArchitectureLegend, relationColors } from './ArchitectureLegend';
+import { useArchitectureLayout } from './layout/useArchitectureLayout';
+import {
+  architectureDomainNodeTypes,
+  type ArchitectureDomainNodeData,
+} from './nodes/ArchitectureDomainNode';
+import {
+  architectureEntityNodeTypes,
+  type ArchitectureEntityNodeData,
+} from './nodes/ArchitectureEntityNode';
+import { projectFocusedDiagram } from './presentation/projectFocusedDiagram';
+import {
+  projectWholeDiagram,
+  type WholeDiagramProjection,
+  type WholeProjectionEdge,
+} from './presentation/projectWholeDiagram';
+import {
+  architectureDomains,
+  classifyArchitectureNode,
+} from './presentation/wholeArchitectureTaxonomy';
+import type { ArchitectureDomain } from './presentation/types';
+import type { ArchitectureLayoutGraph } from './layout/layoutArchitecture';
 
-const relationColors: Record<RelationType, string> = {
-  sync_rest: '#91e3d6',
-  event: '#d9ff69',
-  async_command: '#ff9769',
-  job: '#c5a6ff',
-  data: '#8bb8ff',
-  authentication: '#ffe48d',
-  authorization: '#ffb4cf',
-  infrastructure: '#8f9ba3',
-  provider_call: '#ff826e',
-  ownership: '#f5f2ea',
-  dependency: '#b6c1c7',
-  phase_transition: '#d9ff69',
-  trust_boundary: '#ffcf70',
-};
-
-const kindColumn = {
-  actor: 0,
-  security_boundary: 0,
-  module: 1,
-  service: 1,
-  queue: 2,
-  data_store: 2,
-  infrastructure: 3,
-  provider: 3,
-} as const;
-
-const wholeKindColumn = {
-  actor: 0,
-  security_boundary: 0,
-  service: 1,
-  module: 2,
-  queue: 3,
-  data_store: 4,
-  infrastructure: 5,
-  provider: 6,
-} as const;
-
-export type ExplorerScopeOption = {
-  id: string;
-  label: string;
-  phase?: ArchitecturePhase;
-};
-
+export type ExplorerScopeOption = { id: string; label: string; phase?: ArchitecturePhase };
 type ArchitectureExplorerProps = {
   diagram: ArchitectureDiagramDefinition;
   scopeOptions?: readonly ExplorerScopeOption[];
   scopeParam?: string;
   variant?: 'focused' | 'whole';
 };
+type ExplorerNodeData = ArchitectureDomainNodeData | ArchitectureEntityNodeData;
+type ExplorerNode = Node<ExplorerNodeData>;
 
+const nodeTypes = { ...architectureDomainNodeTypes, ...architectureEntityNodeTypes };
 function initialParam(name: string): string | undefined {
   if (typeof window === 'undefined') return undefined;
   return new URL(window.location.href).searchParams.get(name) ?? undefined;
+}
+
+function domainFromId(value: string | undefined): ArchitectureDomain | undefined {
+  return architectureDomains.includes(value as ArchitectureDomain)
+    ? (value as ArchitectureDomain)
+    : undefined;
+}
+
+function nodeMatches(node: ArchitectureDiagramNode, query: string): boolean {
+  const normalized = query.trim().toLocaleLowerCase('en');
+  if (!normalized) return false;
+  return [node.id, node.label, node.description, node.serviceId ?? ''].some((value) =>
+    value.toLocaleLowerCase('en').includes(normalized),
+  );
+}
+
+function edgeLabel(
+  edge: { label: string; type: RelationType; count: number },
+  contextual: boolean,
+) {
+  const relation = edge.type.replaceAll('_', ' ');
+  if (!contextual && edge.count === 1) return undefined;
+  return `${edge.count > 1 ? `${edge.count} × ` : ''}${edge.label} · ${relation}`;
 }
 
 export function ArchitectureExplorer({
@@ -90,14 +101,19 @@ export function ArchitectureExplorer({
       ? requested
       : (scopeOptions[0]?.id ?? '');
   });
-  const [relationTypes, setRelationTypes] = useState<RelationType[]>(() => {
-    const requested = initialParam('types')?.split(',') ?? [];
-    return requested.filter((type): type is RelationType => type in relationColors);
-  });
+  const [relationTypes, setRelationTypes] = useState<RelationType[]>(() =>
+    (initialParam('types')?.split(',') ?? []).filter(
+      (type): type is RelationType => type in relationColors,
+    ),
+  );
   const [serviceId, setServiceId] = useState(() => initialParam('service'));
   const [query, setQuery] = useState(() => initialParam('q') ?? '');
   const [selectedId, setSelectedId] = useState(() => initialParam('node'));
+  const [expandedDomain, setExpandedDomain] = useState<ArchitectureDomain | undefined>(() =>
+    domainFromId(initialParam('domain')),
+  );
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
+  const [flowInstance, setFlowInstance] = useState<ReactFlowInstance<ExplorerNode> | null>(null);
   const canvasRef = useRef<HTMLElement>(null);
   const expandButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -112,16 +128,77 @@ export function ArchitectureExplorer({
     () => filterDiagram(diagram, { phase: activePhase, relationTypes, serviceId, query }),
     [activePhase, diagram, query, relationTypes, serviceId],
   );
-  const adjacent = useMemo(() => {
+  const directQueryMatches = useMemo(
+    () => phaseProjection.nodes.filter((node) => nodeMatches(node, query)),
+    [phaseProjection.nodes, query],
+  );
+  const baseWholeProjection = useMemo(
+    () => (variant === 'whole' ? projectWholeDiagram(filtered) : undefined),
+    [filtered, variant],
+  );
+  const availableDomains = useMemo(
+    () =>
+      new Set(
+        baseWholeProjection?.nodes
+          .filter((node) => node.kind === 'domain')
+          .map((node) => node.domain),
+      ),
+    [baseWholeProjection],
+  );
+  const validExpandedDomain =
+    variant === 'whole' && expandedDomain && availableDomains.has(expandedDomain)
+      ? expandedDomain
+      : undefined;
+  const projection = useMemo<WholeDiagramProjection>(() => {
+    if (variant === 'whole')
+      return projectWholeDiagram(filtered, { expandedDomain: validExpandedDomain });
+    const focused = projectFocusedDiagram(filtered);
+    return {
+      nodes: focused.nodes.map((node) => {
+        const classification = classifyArchitectureNode(node);
+        return {
+          id: node.id,
+          kind: 'entity' as const,
+          label: node.label,
+          domain: classification.domain,
+          layer: classification.layer,
+          canonicalNodeId: node.id,
+          node,
+          phases: [...node.phases],
+        };
+      }),
+      edges: focused.edges.map((edge): WholeProjectionEdge => ({
+        id: edge.id,
+        kind: 'canonical',
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+        type: edge.type,
+        relationType: edge.type,
+        prohibited: Boolean(edge.prohibited),
+        count: 1,
+        canonicalEdgeIds: [edge.id],
+        sourceEdgeIds: edge.sourceEdgeIds,
+        sourceDiagramIds: edge.sourceDiagramIds,
+        relationshipIds: edge.relationshipIds,
+        phases: [...edge.phases],
+      })),
+    };
+  }, [filtered, validExpandedDomain, variant]);
+  const renderedNodes = projection.nodes;
+  const renderedNodeIds = useMemo(
+    () => new Set(renderedNodes.map((node) => node.id)),
+    [renderedNodes],
+  );
+  const renderedAdjacent = useMemo(() => {
     if (!selectedId) return new Set<string>();
     return new Set([
       selectedId,
-      ...filtered.edges
+      ...projection.edges
         .filter((edge) => edge.source === selectedId || edge.target === selectedId)
         .flatMap((edge) => [edge.source, edge.target]),
     ]);
-  }, [filtered.edges, selectedId]);
-  const selectedNode = filtered.nodes.find((node) => node.id === selectedId);
+  }, [projection.edges, selectedId]);
   const relationOptions = useMemo(
     () => [...new Set(phaseProjection.edges.map((edge) => edge.type))],
     [phaseProjection.edges],
@@ -132,90 +209,177 @@ export function ArchitectureExplorer({
     ],
     [phaseProjection.nodes],
   );
-
-  const nodes = useMemo<Node[]>(() => {
-    const columnCounts = new Map<number, number>();
-    return filtered.nodes.map((node) => {
-      const column = variant === 'whole' ? wholeKindColumn[node.kind] : kindColumn[node.kind];
-      const row = columnCounts.get(column) ?? 0;
-      columnCounts.set(column, row + 1);
-      const muted = selectedId ? !adjacent.has(node.id) : false;
-      return {
-        id: node.id,
-        position: { x: column * 390, y: row * 190 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-        data: { label: node.label },
-        className: `architecture-node architecture-node--${node.kind}`,
-        ariaLabel: `${node.label}. ${node.description}`,
-        style: { opacity: muted ? 0.2 : 1 },
-      };
-    });
-  }, [adjacent, filtered.nodes, selectedId, variant]);
-
-  const edges = useMemo<Edge[]>(
-    () =>
-      filtered.edges.map((edge) => ({
+  const layoutGraph = useMemo<ArchitectureLayoutGraph<ExplorerNodeData>>(
+    () => ({
+      nodes: renderedNodes.map((node) =>
+        node.kind === 'domain'
+          ? {
+              id: node.id,
+              width: 336,
+              height: node.expanded ? 160 : 128,
+              data: {
+                domain: node.domain,
+                layer: node.layer,
+                title: node.label,
+                nodeCount: node.canonicalNodeCount,
+                connectionCount: node.internalEdgeCount + node.externalEdgeCount,
+                expanded: node.expanded,
+                muted: selectedId ? !renderedAdjacent.has(node.id) : false,
+              },
+            }
+          : {
+              id: node.id,
+              width: 272,
+              height: 88,
+              parentId: variant === 'whole' ? `domain.${node.domain}` : undefined,
+              data: {
+                label: node.label,
+                kind: node.node.kind,
+                domain: node.domain,
+                layer: node.layer,
+                description: node.node.description,
+                serviceId: node.node.serviceId,
+                muted: selectedId ? !renderedAdjacent.has(node.id) : false,
+              },
+            },
+      ),
+      edges: projection.edges.map((edge) => ({
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        type: 'smoothstep',
-        ariaLabel: `${edge.label}. ${edge.type.replaceAll('_', ' ')}${edge.prohibited ? '. Prohibited.' : ''}`,
-        style: {
-          stroke: edge.prohibited ? '#ff826e' : relationColors[edge.type],
-          strokeDasharray: edge.prohibited ? '7 5' : edge.type === 'event' ? '3 4' : undefined,
-          opacity:
-            selectedId && !adjacent.has(edge.source) && !adjacent.has(edge.target) ? 0.12 : 0.82,
-        },
       })),
-    [adjacent, filtered.edges, selectedId],
+    }),
+    [projection.edges, renderedAdjacent, renderedNodes, selectedId, variant],
   );
+  const layoutOptions = useMemo(() => ({ padding: 28, nodeSpacing: 32, layerSpacing: 64 }), []);
+  const layoutState = useArchitectureLayout(layoutGraph, layoutOptions);
+  const positionedNodes = useMemo<ExplorerNode[]>(() => {
+    if (!layoutState.layout) return [];
+    return layoutState.layout.nodes.map((node) => ({
+      id: node.id,
+      type: node.data && 'nodeCount' in node.data ? 'architectureDomain' : 'architectureEntity',
+      position: node.position,
+      parentId: node.parentId,
+      extent: node.parentId ? 'parent' : undefined,
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
+      width: node.width,
+      height: node.height,
+      data: node.data as ExplorerNodeData,
+      ariaLabel:
+        node.data && 'nodeCount' in node.data
+          ? `${node.data.title ?? node.data.domain}. Architecture domain.`
+          : `${node.data?.label ?? node.id}. Architecture entity.`,
+    }));
+  }, [layoutState.layout]);
+  const positionedNodeMap = useMemo(
+    () => new Map(positionedNodes.map((node) => [node.id, node])),
+    [positionedNodes],
+  );
+  const edges = useMemo<Edge[]>(
+    () =>
+      projection.edges
+        .filter((edge) => positionedNodeMap.has(edge.source) && positionedNodeMap.has(edge.target))
+        .map((edge) => {
+          const contextual = Boolean(
+            selectedId && (renderedAdjacent.has(edge.source) || renderedAdjacent.has(edge.target)),
+          );
+          return {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            type: 'smoothstep',
+            label: edgeLabel(edge, edge.kind === 'boundary' || contextual),
+            ariaLabel: `${edge.label}. ${edge.type.replaceAll('_', ' ')}${edge.prohibited ? '. Prohibited.' : ''}`,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: edge.prohibited ? '#ff826e' : relationColors[edge.type],
+            },
+            style: {
+              stroke: edge.prohibited ? '#ff826e' : relationColors[edge.type],
+              strokeDasharray: edge.prohibited ? '7 5' : edge.type === 'event' ? '3 4' : undefined,
+              opacity:
+                selectedId &&
+                !renderedAdjacent.has(edge.source) &&
+                !renderedAdjacent.has(edge.target)
+                  ? 0.12
+                  : 0.82,
+            },
+          };
+        }),
+    [positionedNodeMap, projection.edges, renderedAdjacent, selectedId],
+  );
+  const selectedProjectionNode = renderedNodes.find((node) => node.id === selectedId);
+  const selectedCanonicalNode =
+    selectedProjectionNode?.kind === 'entity'
+      ? selectedProjectionNode.node
+      : filtered.nodes.find((node) => node.id === selectedId);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (scopeOptions.length) {
-      scope ? url.searchParams.set(scopeParam, scope) : url.searchParams.delete(scopeParam);
-      url.searchParams.delete('phase');
-    } else {
-      phase ? url.searchParams.set('phase', phase) : url.searchParams.delete('phase');
-    }
-    relationTypes.length
-      ? url.searchParams.set('types', relationTypes.join(','))
-      : url.searchParams.delete('types');
-    serviceId ? url.searchParams.set('service', serviceId) : url.searchParams.delete('service');
-    query ? url.searchParams.set('q', query) : url.searchParams.delete('q');
-    selectedId ? url.searchParams.set('node', selectedId) : url.searchParams.delete('node');
-    history.replaceState(null, '', url);
-  }, [phase, query, relationTypes, scope, scopeOptions.length, scopeParam, selectedId, serviceId]);
-
+    if (expandedDomain && !availableDomains.has(expandedDomain)) setExpandedDomain(undefined);
+  }, [availableDomains, expandedDomain]);
   useEffect(() => {
-    if (selectedId && !filtered.nodes.some((node) => node.id === selectedId)) {
-      setSelectedId(undefined);
-    }
-  }, [filtered.nodes, selectedId]);
-
+    if (variant !== 'whole' || directQueryMatches.length !== 1 || !query.trim()) return;
+    const match = directQueryMatches[0];
+    setExpandedDomain(classifyArchitectureNode(match).domain);
+    setSelectedId(match.id);
+  }, [directQueryMatches, query, variant]);
   useEffect(() => {
-    if (serviceId && !services.includes(serviceId)) {
-      setServiceId(undefined);
-    }
+    if (variant !== 'whole' || !selectedId || expandedDomain) return;
+    const selectedCanonical = phaseProjection.nodes.find((node) => node.id === selectedId);
+    if (selectedCanonical) setExpandedDomain(classifyArchitectureNode(selectedCanonical).domain);
+  }, [expandedDomain, phaseProjection.nodes, selectedId, variant]);
+  useEffect(() => {
+    if (!selectedId || renderedNodeIds.has(selectedId)) return;
+    if (variant === 'whole' && filtered.nodes.some((node) => node.id === selectedId)) return;
+    setSelectedId(undefined);
+  }, [filtered.nodes, renderedNodeIds, selectedId, variant]);
+  useEffect(() => {
+    if (serviceId && !services.includes(serviceId)) setServiceId(undefined);
   }, [serviceId, services]);
-
   useEffect(() => {
     setRelationTypes((current) => {
       const available = current.filter((type) => relationOptions.includes(type));
       return available.length === current.length ? current : available;
     });
   }, [relationOptions]);
-
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (scopeOptions.length) {
+      scope ? url.searchParams.set(scopeParam, scope) : url.searchParams.delete(scopeParam);
+      url.searchParams.delete('phase');
+    } else phase ? url.searchParams.set('phase', phase) : url.searchParams.delete('phase');
+    relationTypes.length
+      ? url.searchParams.set('types', relationTypes.join(','))
+      : url.searchParams.delete('types');
+    serviceId ? url.searchParams.set('service', serviceId) : url.searchParams.delete('service');
+    query ? url.searchParams.set('q', query) : url.searchParams.delete('q');
+    selectedId ? url.searchParams.set('node', selectedId) : url.searchParams.delete('node');
+    validExpandedDomain
+      ? url.searchParams.set('domain', validExpandedDomain)
+      : url.searchParams.delete('domain');
+    history.replaceState(null, '', url);
+  }, [
+    phase,
+    query,
+    relationTypes,
+    scope,
+    scopeOptions.length,
+    scopeParam,
+    selectedId,
+    serviceId,
+    validExpandedDomain,
+  ]);
+  useEffect(() => {
+    if (layoutState.layout && flowInstance) flowInstance.fitView({ padding: 0.14, duration: 0 });
+  }, [flowInstance, layoutState.layout]);
   useEffect(() => {
     if (!isCanvasFullscreen) return;
-
     const previousBodyOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -223,7 +387,6 @@ export function ArchitectureExplorer({
         return;
       }
       if (event.key !== 'Tab') return;
-
       const focusable = [
         ...(canvasRef.current?.querySelectorAll<HTMLElement>(
           'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
@@ -232,7 +395,6 @@ export function ArchitectureExplorer({
       const first = focusable[0];
       const last = focusable.at(-1);
       if (!first || !last) return;
-
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -241,7 +403,6 @@ export function ArchitectureExplorer({
         first.focus();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -255,6 +416,15 @@ export function ArchitectureExplorer({
     setRelationTypes((current) =>
       current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
     );
+  }
+  function handleNodeActivation(nodeId: string) {
+    const node = renderedNodes.find((item) => item.id === nodeId);
+    if (node?.kind === 'domain') {
+      setExpandedDomain((current) => (current === node.domain ? undefined : node.domain));
+      setSelectedId(node.id);
+      return;
+    }
+    setSelectedId((current) => (current === nodeId ? undefined : nodeId));
   }
 
   return (
@@ -342,7 +512,7 @@ export function ArchitectureExplorer({
             const nodeId = node?.dataset.id;
             if (!nodeId) return;
             event.preventDefault();
-            setSelectedId(nodeId === selectedId ? undefined : nodeId);
+            handleNodeActivation(nodeId);
           }}
         >
           {isCanvasFullscreen ? (
@@ -372,7 +542,18 @@ export function ArchitectureExplorer({
               </svg>
             </button>
           )}
-          {nodes.length === 0 ? (
+          <ArchitectureLegend />
+          {layoutState.loading ? (
+            <p className="explorer-status" role="status">
+              Arranging architecture canvas…
+            </p>
+          ) : null}
+          {layoutState.error ? (
+            <p className="explorer-status explorer-status--error" role="alert">
+              Automatic layout unavailable. Showing deterministic fallback.
+            </p>
+          ) : null}
+          {renderedNodes.length === 0 ? (
             <div className="explorer-empty">
               <strong>No elements match these filters.</strong>
               <button
@@ -387,16 +568,17 @@ export function ArchitectureExplorer({
               </button>
             </div>
           ) : (
-            <ReactFlow
-              nodes={nodes}
+            <ReactFlow<ExplorerNode>
+              nodes={positionedNodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               nodesDraggable={false}
               nodesConnectable={false}
               elementsSelectable
-              onNodeClick={(_, node) => setSelectedId(node.id === selectedId ? undefined : node.id)}
+              onInit={setFlowInstance}
+              onNodeClick={(_, node) => handleNodeActivation(node.id)}
               onPaneClick={() => setSelectedId(undefined)}
-              fitView={variant === 'focused'}
-              defaultViewport={variant === 'whole' ? { x: 48, y: 48, zoom: 0.62 } : undefined}
+              fitView={false}
               minZoom={0.15}
               maxZoom={1.8}
               deleteKeyCode={null}
@@ -421,29 +603,45 @@ export function ArchitectureExplorer({
           aria-live="polite"
           aria-hidden={isCanvasFullscreen || undefined}
         >
-          {selectedNode ? (
+          {selectedProjectionNode?.kind === 'domain' ? (
             <>
-              <p className="explorer-kicker">{selectedNode.kind.replaceAll('_', ' ')}</p>
-              <h2>{selectedNode.label}</h2>
-              <p>{selectedNode.description}</p>
-              {selectedNode.serviceId && (
-                <a href={`/services/${selectedNode.serviceId}/`}>Open service →</a>
+              <p className="explorer-kicker">Architecture domain</p>
+              <h2>{selectedProjectionNode.label}</h2>
+              <p>
+                {selectedProjectionNode.canonicalNodeCount} canonical nodes and{' '}
+                {selectedProjectionNode.internalEdgeCount +
+                  selectedProjectionNode.externalEdgeCount}{' '}
+                canonical connections.
+              </p>
+              <p>
+                {selectedProjectionNode.expanded
+                  ? 'Domain expanded. Select an entity for detailed evidence.'
+                  : 'Activate domain to reveal its entities and internal relationships.'}
+              </p>
+            </>
+          ) : selectedCanonicalNode ? (
+            <>
+              <p className="explorer-kicker">{selectedCanonicalNode.kind.replaceAll('_', ' ')}</p>
+              <h2>{selectedCanonicalNode.label}</h2>
+              <p>{selectedCanonicalNode.description}</p>
+              {selectedCanonicalNode.serviceId && (
+                <a href={`/services/${selectedCanonicalNode.serviceId}/`}>Open service →</a>
               )}
-              {selectedNode.sourceDiagramIds && selectedNode.sourceDiagramIds.length > 0 && (
+              {selectedCanonicalNode.sourceDiagramIds?.length ? (
                 <>
                   <h3>Focused source views</h3>
                   <ul>
-                    {selectedNode.sourceDiagramIds.map((id) => (
+                    {selectedCanonicalNode.sourceDiagramIds.map((id) => (
                       <li key={id}>
                         <a href={`/explorer/${id}/`}>{id}</a>
                       </li>
                     ))}
                   </ul>
                 </>
-              )}
+              ) : null}
               <h3>Source decisions</h3>
               <ul>
-                {selectedNode.decisionIds.map((id) => (
+                {selectedCanonicalNode.decisionIds.map((id) => (
                   <li key={id}>
                     <a href={`/decisions/${id}/`}>{id}</a>
                   </li>
