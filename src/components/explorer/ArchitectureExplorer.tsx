@@ -104,6 +104,10 @@ export function ArchitectureExplorer({
   const activePhase = scopeOptions.length
     ? scopeOptions.find((option) => option.id === scope)?.phase
     : phase;
+  const phaseProjection = useMemo(
+    () => filterDiagram(diagram, { phase: activePhase, relationTypes: [], query: '' }),
+    [activePhase, diagram],
+  );
   const filtered = useMemo(
     () => filterDiagram(diagram, { phase: activePhase, relationTypes, serviceId, query }),
     [activePhase, diagram, query, relationTypes, serviceId],
@@ -118,10 +122,16 @@ export function ArchitectureExplorer({
     ]);
   }, [filtered.edges, selectedId]);
   const selectedNode = filtered.nodes.find((node) => node.id === selectedId);
-  const relationOptions = [...new Set(diagram.edges.map((edge) => edge.type))];
-  const services = [
-    ...new Set(diagram.nodes.flatMap((node) => (node.serviceId ? [node.serviceId] : []))),
-  ];
+  const relationOptions = useMemo(
+    () => [...new Set(phaseProjection.edges.map((edge) => edge.type))],
+    [phaseProjection.edges],
+  );
+  const services = useMemo(
+    () => [
+      ...new Set(phaseProjection.nodes.flatMap((node) => (node.serviceId ? [node.serviceId] : []))),
+    ],
+    [phaseProjection.nodes],
+  );
 
   const nodes = useMemo<Node[]>(() => {
     const columnCounts = new Map<number, number>();
@@ -183,6 +193,19 @@ export function ArchitectureExplorer({
       setSelectedId(undefined);
     }
   }, [filtered.nodes, selectedId]);
+
+  useEffect(() => {
+    if (serviceId && !services.includes(serviceId)) {
+      setServiceId(undefined);
+    }
+  }, [serviceId, services]);
+
+  useEffect(() => {
+    setRelationTypes((current) => {
+      const available = current.filter((type) => relationOptions.includes(type));
+      return available.length === current.length ? current : available;
+    });
+  }, [relationOptions]);
 
   useEffect(() => {
     if (!isCanvasFullscreen) return;

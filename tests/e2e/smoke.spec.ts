@@ -102,22 +102,38 @@ test('whole architecture explorer exposes complete and MVP canvas modes', async 
 
   await page.getByLabel('Architecture scope').selectOption('mvp');
   await expect(page).toHaveURL(/mode=mvp/u);
-  const mvpNodeCount = await page
-    .locator('.architecture-explorer--whole .react-flow__node')
-    .count();
-  const mvpEdgeCount = await page
-    .locator('.architecture-explorer--whole .react-flow__edge')
-    .count();
+  const mvpCanvas = page.locator('.architecture-explorer--whole');
+  const mvpNodeCount = await mvpCanvas.locator('.react-flow__node').count();
+  const mvpEdgeCount = await mvpCanvas.locator('.react-flow__edge').count();
   expect(mvpNodeCount).toBeGreaterThan(0);
   expect(mvpEdgeCount).toBeGreaterThan(0);
   expect(mvpNodeCount).toBeLessThan(allNodeCount);
   expect(mvpEdgeCount).toBeLessThan(allEdgeCount);
+  await expect(mvpCanvas.getByText('Core API', { exact: true })).toBeVisible();
+  await expect(mvpCanvas.getByText('pg-boss worker queue', { exact: true })).toBeVisible();
+  await expect(mvpCanvas.getByText('Billing', { exact: true })).toHaveCount(0);
+  await expect(
+    mvpCanvas.getByText('Stripe Checkout / Portal / Billing', { exact: true }),
+  ).toHaveCount(0);
+  await expect(mvpCanvas.getByText('RabbitMQ', { exact: true })).toHaveCount(0);
+  await expect(mvpCanvas.getByText('Redis', { exact: true })).toHaveCount(0);
+  const serviceFilter = page.getByLabel('Service');
+  await expect(serviceFilter.locator('option[value="service.identity-workspace"]')).toHaveCount(1);
+  await expect(serviceFilter.locator('option[value="service.mail"]')).toHaveCount(1);
+  await expect(serviceFilter.locator('option[value="service.gateway-bff"]')).toHaveCount(0);
+  await expect(serviceFilter.locator('option[value="service.audience"]')).toHaveCount(0);
+  await expect(serviceFilter.locator('option[value="service.billing"]')).toHaveCount(0);
+  await expect(page.getByRole('checkbox', { name: /^async command$/iu })).toHaveCount(0);
+  await expect(page.getByRole('checkbox', { name: /^trust boundary$/iu })).toHaveCount(0);
+  await expect(page.getByRole('checkbox', { name: /^job$/iu })).toBeVisible();
 
   await page.getByLabel('Architecture scope').selectOption('all');
   await expect(page).toHaveURL(/mode=all/u);
   await expect(page.locator('.architecture-explorer--whole .react-flow__node')).toHaveCount(
     allNodeCount,
   );
+  await expect(serviceFilter.locator('option[value="service.billing"]')).toHaveCount(1);
+  await expect(page.getByRole('checkbox', { name: /^async command$/iu })).toBeVisible();
 });
 
 test('whole architecture canvas keeps scope controls usable on small screens', async ({ page }) => {
