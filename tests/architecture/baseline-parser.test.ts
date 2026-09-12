@@ -60,10 +60,10 @@ describe('deterministic baseline parser', () => {
     });
 
     expect(parsed.sourceText).toBe(sourceText);
-    expect(parsed.version.bytes).toBe(360504);
-    expect(parsed.version.lines).toBe(2609);
+    expect(parsed.version.bytes).toBe(370617);
+    expect(parsed.version.lines).toBe(2615);
     expect(parsed.version.checksum).toBe(
-      '4dfc6a5ea4fc217d8f6de83e033ad0d2375244aef1bd37d263520d8a479575fc',
+      '9ca1c8e52adec6e4d2a6e6426dfdee6b035b9c9417acbe948c3c4c6dce88ea9d',
     );
     expect(parsed.sections.filter((section) => section.level === 2)).toHaveLength(22);
     expect(parsed.audit.unassignedMeaningfulLines).toEqual([]);

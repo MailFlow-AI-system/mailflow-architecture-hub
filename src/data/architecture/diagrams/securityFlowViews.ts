@@ -24,6 +24,7 @@ const distributedAuthDecisions = [
 const durableMessagingDecisions = [
   'decision.auth.durable-command-no-expiring-tokens',
   'decision.communication.events-commands-projections',
+  'decision.messaging.rabbitmq-distributed-transport',
   'decision.messaging.environment-isolation',
   'decision.messaging.amqplib-adapter',
 ];
@@ -48,7 +49,7 @@ const browserAuth: ArchitectureDiagramDefinition = {
   purpose:
     'Show the revocable opaque browser session, MFA, PostgreSQL-backed Identity state, and the Core in-process ingress boundary.',
   phases: ['mvp'],
-  sourceRanges: [{ startLine: 218, endLine: 230 }],
+  sourceRanges: [{ startLine: 226, endLine: 238 }],
   decisionIds: mvpAuthDecisions,
   serviceIds: ['service.identity-workspace', 'service.mail'],
   trustBoundaryIds: ['trust.browser-identity', 'trust.workspace-tenant', 'trust.service-database'],
@@ -164,8 +165,8 @@ const distributedIngress: ArchitectureDiagramDefinition = {
     'Show one Identity session-validation hop at the Gateway, Redis read-through acceleration, PostgreSQL canonical state, revocation signals, and synchronous high-impact revalidation.',
   phases: ['first_distributed'],
   sourceRanges: [
-    { startLine: 231, endLine: 247 },
-    { startLine: 268, endLine: 274 },
+    { startLine: 239, endLine: 255 },
+    { startLine: 276, endLine: 282 },
   ],
   decisionIds: [
     'decision.auth.gateway-ingress-validation',
@@ -376,7 +377,7 @@ const workloadDelegation: ArchitectureDiagramDefinition = {
   purpose:
     'Distinguish caller workload identity from delegated user/workspace context and show that the browser cookie is never forwarded as a service credential.',
   phases: ['first_distributed'],
-  sourceRanges: [{ startLine: 258, endLine: 274 }],
+  sourceRanges: [{ startLine: 266, endLine: 282 }],
   decisionIds: [
     'decision.auth.hybrid-decentralized-authorization',
     'decision.auth.workload-and-delegated-identities',
@@ -547,7 +548,7 @@ const jwksValidation: ArchitectureDiagramDefinition = {
   purpose:
     'Show the private signing-key boundary, public JWKS distribution and rotation, local validation, and fail-closed behavior for unknown or invalid keys and claims.',
   phases: ['first_distributed'],
-  sourceRanges: [{ startLine: 278, endLine: 299 }],
+  sourceRanges: [{ startLine: 286, endLine: 307 }],
   decisionIds: ['decision.auth.jwks-local-validation', 'decision.auth.token-implementation'],
   serviceIds: [
     'service.identity-workspace',
@@ -716,8 +717,8 @@ const synchronousAndDurable: ArchitectureDiagramDefinition = {
     'Contrast short-lived synchronous assertions with durable RabbitMQ authorization evidence and make expiring tokens in persisted commands visibly prohibited.',
   phases: ['first_distributed'],
   sourceRanges: [
-    { startLine: 284, endLine: 327 },
-    { startLine: 481, endLine: 513 },
+    { startLine: 292, endLine: 335 },
+    { startLine: 489, endLine: 521 },
   ],
   decisionIds: [...distributedAuthDecisions, ...durableMessagingDecisions],
   serviceIds: [
@@ -897,8 +898,8 @@ const brokerCredentials: ArchitectureDiagramDefinition = {
     'Show environment-isolated broker transport with separate service identities, virtual-host and route permissions, and local domain authorization after delivery.',
   phases: ['first_distributed', 'future'],
   sourceRanges: [
-    { startLine: 320, endLine: 327 },
-    { startLine: 501, endLine: 513 },
+    { startLine: 328, endLine: 335 },
+    { startLine: 509, endLine: 521 },
   ],
   decisionIds: [
     'decision.auth.durable-command-no-expiring-tokens',
@@ -1051,14 +1052,14 @@ const outboxInbox: ArchitectureDiagramDefinition = {
   title: 'Outbox, inbox, idempotency, retry, DLQ, and reconciliation',
   purpose:
     'Show durable intent and consumer recovery from the owner transaction through broker delivery, inbox idempotency, retry, DLQ, and reconciliation.',
-  phases: ['mvp', 'first_distributed'],
+  phases: ['first_distributed'],
   sourceRanges: [
-    { startLine: 481, endLine: 513 },
-    { startLine: 555, endLine: 593 },
+    { startLine: 489, endLine: 521 },
+    { startLine: 563, endLine: 601 },
   ],
   decisionIds: [
-    'decision.jobs.pgboss-transactional',
     'decision.communication.events-commands-projections',
+    'decision.messaging.rabbitmq-distributed-transport',
     'decision.messaging.audience-rabbitmq-redis',
     'decision.messaging.amqplib-adapter',
     'decision.mail.at-least-once-provider-effects',
@@ -1070,14 +1071,14 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       id: 'node.security.outbox.owner',
       label: 'Owning service transaction',
       kind: 'service',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       description:
         'Domain state and outbox intent commit together; service code never treats broker memory as durable.',
       serviceId: 'service.mail',
-      stackIds: ['stack.postgresql', 'stack.pgboss'],
+      stackIds: ['stack.postgresql'],
       decisionIds: [
-        'decision.jobs.pgboss-transactional',
         'decision.communication.events-commands-projections',
+        'decision.messaging.rabbitmq-distributed-transport',
       ],
       trustBoundaryIds: ['trust.service-database'],
     }),
@@ -1085,13 +1086,13 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       id: 'node.security.outbox.postgres',
       label: 'Owner PostgreSQL',
       kind: 'data_store',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       description:
         'Canonical domain state, outbox rows, inbox/idempotency records, attempt history, and reconciliation state.',
       serviceId: 'service.mail',
       stackIds: ['stack.postgresql'],
       decisionIds: [
-        'decision.jobs.pgboss-transactional',
+        'decision.messaging.rabbitmq-distributed-transport',
         'decision.mail.at-least-once-provider-effects',
       ],
       trustBoundaryIds: ['trust.service-database'],
@@ -1100,12 +1101,15 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       id: 'node.security.outbox.relay',
       label: 'Outbox relay',
       kind: 'module',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       description:
-        'Publishes pending outbox messages and keeps them pending until broker confirmation.',
+        'Bridges Mail-local transactional intent to RabbitMQ and keeps outbox messages pending until broker confirmation.',
       serviceId: 'service.mail',
-      stackIds: ['stack.pgboss', 'stack.rabbitmq-acl'],
-      decisionIds: ['decision.jobs.pgboss-transactional', 'decision.messaging.amqplib-adapter'],
+      stackIds: ['stack.postgresql', 'stack.rabbitmq-acl'],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.amqplib-adapter',
+      ],
       trustBoundaryIds: ['trust.service-database', 'trust.broker-transport'],
     }),
     node({
@@ -1114,10 +1118,11 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       kind: 'queue',
       phases: ['first_distributed'],
       description:
-        'At-least-once integration transport with confirms, acknowledgements, retries, and DLQ policy.',
+        'Mandatory at-least-once internal-job and cross-service transport with confirms, acknowledgements, retries, and DLQ policy.',
       stackIds: ['stack.rabbitmq-acl'],
       decisionIds: [
         'decision.communication.events-commands-projections',
+        'decision.messaging.rabbitmq-distributed-transport',
         'decision.messaging.amqplib-adapter',
       ],
       trustBoundaryIds: ['trust.broker-transport'],
@@ -1153,12 +1158,15 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       id: 'node.security.outbox.retry',
       label: 'Retry scheduler',
       kind: 'module',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       description:
         'Applies bounded retry, backoff, leases, and redrive policy without losing canonical intent.',
       serviceId: 'service.mail',
-      stackIds: ['stack.pgboss', 'stack.rabbitmq-acl'],
-      decisionIds: ['decision.jobs.pgboss-transactional', 'decision.messaging.amqplib-adapter'],
+      stackIds: ['stack.postgresql', 'stack.rabbitmq-acl'],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.amqplib-adapter',
+      ],
       trustBoundaryIds: ['trust.service-database', 'trust.broker-transport'],
     }),
     node({
@@ -1176,14 +1184,15 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       id: 'node.security.outbox.reconciliation',
       label: 'Reconciliation worker',
       kind: 'module',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       description:
         'Reconciles unknown outcomes, stale projections, retries, and provider or broker divergence.',
       serviceId: 'service.mail',
-      stackIds: ['stack.pgboss', 'stack.postgresql'],
+      stackIds: ['stack.rabbitmq-acl', 'stack.postgresql'],
       decisionIds: [
         'decision.mail.at-least-once-provider-effects',
         'decision.communication.events-commands-projections',
+        'decision.messaging.rabbitmq-distributed-transport',
       ],
       trustBoundaryIds: ['trust.service-database', 'trust.mail-provider'],
     }),
@@ -1195,8 +1204,8 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       target: 'node.security.outbox.postgres',
       label: 'domain state plus outbox in one transaction',
       type: 'data',
-      phases: ['mvp', 'first_distributed'],
-      decisionIds: ['decision.jobs.pgboss-transactional'],
+      phases: ['first_distributed'],
+      decisionIds: ['decision.messaging.rabbitmq-distributed-transport'],
       trustBoundaryId: 'trust.service-database',
       confidentialData: ['tenant domain state', 'non-secret event or command envelope'],
     }),
@@ -1206,8 +1215,8 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       target: 'node.security.outbox.relay',
       label: 'claim pending outbox row',
       type: 'job',
-      phases: ['mvp', 'first_distributed'],
-      decisionIds: ['decision.jobs.pgboss-transactional'],
+      phases: ['first_distributed'],
+      decisionIds: ['decision.messaging.rabbitmq-distributed-transport'],
       trustBoundaryId: 'trust.service-database',
       confidentialData: ['outbox envelope'],
     }),
@@ -1221,6 +1230,7 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       decisionIds: [
         'decision.messaging.amqplib-adapter',
         'decision.communication.events-commands-projections',
+        'decision.messaging.rabbitmq-distributed-transport',
       ],
       trustBoundaryId: 'trust.broker-transport',
       confidentialData: ['versioned event or command', 'stable authorization evidence'],
@@ -1234,6 +1244,7 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       phases: ['first_distributed'],
       decisionIds: [
         'decision.communication.events-commands-projections',
+        'decision.messaging.rabbitmq-distributed-transport',
         'decision.messaging.amqplib-adapter',
       ],
       trustBoundaryId: 'trust.broker-transport',
@@ -1290,7 +1301,7 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       target: 'node.security.outbox.postgres',
       label: 'reconcile pending, unknown, or divergent state',
       type: 'data',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       decisionIds: [
         'decision.mail.at-least-once-provider-effects',
         'decision.communication.events-commands-projections',
@@ -1304,7 +1315,7 @@ const outboxInbox: ArchitectureDiagramDefinition = {
       target: 'node.security.outbox.owner',
       label: 'owner-controlled provider reconciliation',
       type: 'provider_call',
-      phases: ['mvp', 'first_distributed'],
+      phases: ['first_distributed'],
       decisionIds: ['decision.mail.at-least-once-provider-effects'],
       trustBoundaryId: 'trust.mail-provider',
       confidentialData: ['provider operation identity', 'non-confidential outcome metadata'],
@@ -1319,8 +1330,8 @@ const trustAndConfidentiality: ArchitectureDiagramDefinition = {
     'Make the approved trust boundaries visible: browser identity, Gateway, Identity issuer, service databases, broker transport, provider credential ownership, and the prohibited confidential flows.',
   phases: ['mvp', 'first_distributed'],
   sourceRanges: [
-    { startLine: 218, endLine: 356 },
-    { startLine: 320, endLine: 327 },
+    { startLine: 226, endLine: 364 },
+    { startLine: 328, endLine: 335 },
   ],
   decisionIds: [
     'decision.auth.opaque-browser-sessions',
@@ -1503,7 +1514,7 @@ const tenantCredentialBoundary: ArchitectureDiagramDefinition = {
   purpose:
     'Show the owner-service envelope-encryption path for dynamic tenant credentials and separate it from Infisical platform/deployment secret delivery.',
   phases: ['mvp', 'first_distributed', 'future'],
-  sourceRanges: [{ startLine: 1860, endLine: 1938 }],
+  sourceRanges: [{ startLine: 1868, endLine: 1946 }],
   decisionIds: [
     'decision.platform.infisical-secrets',
     'decision.platform.tenant-credential-envelope',
@@ -1575,7 +1586,7 @@ const tenantCredentialBoundary: ArchitectureDiagramDefinition = {
       kind: 'provider',
       phases: ['mvp', 'first_distributed', 'future'],
       description:
-        'Stores platform and deployment secrets with environment/service identity separation; it is not a dynamic tenant-credential store.',
+        'Stores platform and deployment secrets with environment/service identity separation; Railway receives environment and service scoped values through Secret Sync, and it is not a dynamic tenant-credential store.',
       decisionIds: ['decision.platform.infisical-secrets'],
       trustBoundaryIds: ['trust.platform-secrets'],
     }),

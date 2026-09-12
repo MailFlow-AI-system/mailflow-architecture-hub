@@ -12,14 +12,14 @@ const governanceDecisionId = 'decision.platform.decision-governance';
 const gates: GateSeed[] = [
   {
     id: 'gate.platform.oci-paid-compute',
-    name: 'OCI free compute to paid compute',
+    name: 'Railway MVP to paid VPS migration',
     summary:
-      'Move from the OCI Always Free pilot to paid compute when the documented capacity, reliability, or contractual trigger is met.',
+      'Keep Railway as the MVP compute platform and migrate the portable container workloads to paid VPS capacity when the documented scale, reliability, control, or operational-cost trigger is met.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 2564, endLine: 2566 }],
+    sourceRanges: [{ startLine: 2570, endLine: 2572 }],
     decisionIds: ['decision.platform.compute-placement', governanceDecisionId],
     criterion:
-      'Daily customer usage, contractual requirements, or the pilot capacity and reliability gate requires paid compute.',
+      'Measured resource, reliability, availability, operational, or customer-dependency evidence justifies accepting recurring VPS costs and migrating the portable services from Railway.',
   },
   {
     id: 'gate.platform.logical-to-physical-database',
@@ -27,25 +27,26 @@ const gates: GateSeed[] = [
     summary:
       'Reassess logical database isolation and move a context to an independently operated database when its trigger is reached.',
     phase: 'first_distributed',
-    sourceRanges: [{ startLine: 2564, endLine: 2566 }],
+    sourceRanges: [{ startLine: 2570, endLine: 2572 }],
     decisionIds: ['decision.platform.progressive-placement', governanceDecisionId],
     criterion:
       'Resource contention, independent scaling, failure isolation, compliance, or another documented boundary trigger justifies physical separation.',
   },
   {
     id: 'gate.platform.pgboss-to-rabbitmq-redis',
-    name: 'pg-boss to RabbitMQ and Redis',
+    name: 'Migrate pg-boss jobs to RabbitMQ',
     summary:
-      'Replace the MVP durable-job arrangement when service extraction and asynchronous workload requirements justify the distributed broker topology.',
+      'At the first service extraction, migrate Mail internal jobs and cross-service asynchronous flows to RabbitMQ after the equivalence and recovery gates pass; Redis is activated independently.',
     phase: 'first_distributed',
-    sourceRanges: [{ startLine: 2564, endLine: 2567 }],
+    sourceRanges: [{ startLine: 2570, endLine: 2573 }],
     decisionIds: [
       backendDecisionId,
       'decision.platform.first-distributed-topology',
+      'decision.messaging.rabbitmq-distributed-transport',
       governanceDecisionId,
     ],
     criterion:
-      'The documented extraction, throughput, isolation, or operational trigger requires RabbitMQ and Redis.',
+      'Audience becomes independently deployed, RabbitMQ job equivalence and client recovery evidence is accepted, every pg-boss queue is migrated and reconciled, and the rollback window closes before pg-boss is removed.',
   },
   {
     id: 'gate.platform.postgres-search-to-dedicated-search',
@@ -53,7 +54,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess PostgreSQL search when scale or search requirements no longer fit the confirmed PostgreSQL approach.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2567, endLine: 2568 }],
+    sourceRanges: [{ startLine: 2573, endLine: 2574 }],
     decisionIds: [backendDecisionId, governanceDecisionId],
     criterion:
       'Search scale, latency, relevance, or operational requirements trigger a dedicated search evaluation.',
@@ -64,7 +65,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess pgvector when AI retrieval scale or workload characteristics justify a dedicated vector system.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2568, endLine: 2569 }],
+    sourceRanges: [{ startLine: 2574, endLine: 2575 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Vector workload scale, isolation, latency, or operational requirements trigger a dedicated vector evaluation.',
@@ -75,7 +76,7 @@ const gates: GateSeed[] = [
     summary:
       'Keep TimescaleDB as the documented fallback if the ClickHouse analytics choice does not pass its validation.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2569, endLine: 2570 }],
+    sourceRanges: [{ startLine: 2575, endLine: 2576 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Analytics validation shows that TimescaleDB is a better fit than the selected ClickHouse direction.',
@@ -86,7 +87,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess the selected analytics visualization library if its suitability or operating constraints fail validation.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2570, endLine: 2571 }],
+    sourceRanges: [{ startLine: 2576, endLine: 2577 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'The documented charting validation identifies a materially better library or a blocking limitation.',
@@ -97,7 +98,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess MJML and use React Email only if the documented template and rendering validation supports the change.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2571, endLine: 2572 }],
+    sourceRanges: [{ startLine: 2577, endLine: 2578 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Template complexity, rendering fidelity, or operational evidence triggers the MJML-to-React Email evaluation.',
@@ -108,7 +109,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess the selected visual editor when its validation gate or product requirements are not satisfied.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2572, endLine: 2573 }],
+    sourceRanges: [{ startLine: 2578, endLine: 2579 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Editor capability, accessibility, maintainability, or product validation triggers a Puck alternative evaluation.',
@@ -119,7 +120,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess the architecture explorer graph library if the visual, accessibility, performance, or maintenance gate fails.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2573, endLine: 2574 }],
+    sourceRanges: [{ startLine: 2579, endLine: 2580 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Graph layout, interaction, accessibility, bundle, maintenance, or licensing evidence triggers a library change.',
@@ -130,7 +131,7 @@ const gates: GateSeed[] = [
     summary:
       'Move the Resend arrangement when sending volume, domain, or production requirements exceed the current boundary.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 2574, endLine: 2575 }],
+    sourceRanges: [{ startLine: 2580, endLine: 2581 }],
     decisionIds: ['decision.billing.stripe-boundary', governanceDecisionId],
     criterion:
       'Sending volume, custom-domain requirements, or production email policy requires a paid or custom-domain arrangement.',
@@ -141,7 +142,7 @@ const gates: GateSeed[] = [
     summary:
       'Replace pilot quota values with plan-based policy after Billing entitlements and operational evidence are ready.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 2575, endLine: 2576 }],
+    sourceRanges: [{ startLine: 2581, endLine: 2582 }],
     decisionIds: ['decision.billing.stripe-boundary', governanceDecisionId],
     criterion:
       'Plan entitlements, usage evidence, and the billing policy are ready to replace the pilot quota policy.',
@@ -152,7 +153,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess self-managed ClamAV if operational or scale requirements justify a managed scanning service.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2576, endLine: 2577 }],
+    sourceRanges: [{ startLine: 2582, endLine: 2583 }],
     decisionIds: [backendDecisionId, governanceDecisionId],
     criterion:
       'ClamAV capacity, maintenance, availability, or security requirements trigger managed scanning evaluation.',
@@ -163,7 +164,7 @@ const gates: GateSeed[] = [
     summary:
       'Consider Bun only after a measured compatibility and operational spike passes the documented gate.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2577, endLine: 2578 }],
+    sourceRanges: [{ startLine: 2583, endLine: 2584 }],
     decisionIds: [backendDecisionId, governanceDecisionId],
     criterion:
       'A measured Bun spike demonstrates required compatibility, performance, and operational maturity.',
@@ -174,7 +175,7 @@ const gates: GateSeed[] = [
     summary:
       'Use another backend language only for the explicitly documented workload or evidence-driven extraction case.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2578, endLine: 2579 }],
+    sourceRanges: [{ startLine: 2584, endLine: 2585 }],
     decisionIds: [backendDecisionId, governanceDecisionId],
     criterion:
       'A custom ML, scientific, NLP, model-serving, or specialized runtime workload supplies evidence for another language.',
@@ -185,7 +186,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess the AI provider adapter when provider, model, capability, cost, or reliability evidence warrants it.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2579, endLine: 2580 }],
+    sourceRanges: [{ startLine: 2585, endLine: 2586 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'AI provider compatibility, cost, reliability, policy, or capability evidence triggers the alternative evaluation.',
@@ -195,7 +196,7 @@ const gates: GateSeed[] = [
     name: 'OpenRouter embedding provider',
     summary: 'Choose the embedding provider only after the documented model and provider spike.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2580, endLine: 2581 }],
+    sourceRanges: [{ startLine: 2586, endLine: 2587 }],
     decisionIds: [governanceDecisionId],
     criterion:
       'Embedding quality, cost, availability, or compatibility evidence resolves the provider choice.',
@@ -206,7 +207,7 @@ const gates: GateSeed[] = [
     summary:
       'Use the React Router and Vite fallback if TanStack Start fails the subject and deployment spike.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: ['decision.platform.frontend-stack', governanceDecisionId],
     criterion:
       'The TanStack Start subject or deployment validation fails, so the documented React Router plus Vite fallback is selected.',
@@ -217,21 +218,21 @@ const gates: GateSeed[] = [
     summary:
       'Use a managed or versioned state backend if the R2 state spike does not satisfy locking, recovery, and protection requirements.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 1999, endLine: 2034 }],
+    sourceRanges: [{ startLine: 2000, endLine: 2035 }],
     decisionIds: ['decision.platform.infrastructure-automation', governanceDecisionId],
     criterion:
       'The R2 state validation fails on locking, recovery, versioning, or operational protection requirements.',
   },
   {
     id: 'gate.platform.rabbitmq-redis-paid',
-    name: 'Free RabbitMQ and Redis to paid services',
+    name: 'Independent managed RabbitMQ and Redis upgrades',
     summary:
-      'Move the distributed broker and cache services to paid capacity when their free allocation or reliability is insufficient.',
+      'Upgrade RabbitMQ or Redis independently when that component reaches its own documented capacity, reliability, or customer-dependency trigger.',
     phase: 'first_distributed',
-    sourceRanges: [{ startLine: 2584, endLine: 2585 }],
+    sourceRanges: [{ startLine: 2590, endLine: 2591 }],
     decisionIds: ['decision.platform.first-distributed-topology', governanceDecisionId],
     criterion:
-      'Broker or cache capacity, reliability, or customer load requires paid infrastructure.',
+      'The affected broker or cache independently reaches its capacity, reliability, or customer-load threshold; one component does not force the other to upgrade.',
   },
   {
     id: 'gate.platform.wireguard-to-workload-aware-transport',
@@ -239,7 +240,7 @@ const gates: GateSeed[] = [
     summary:
       'Reassess the private transport when full-mesh operations or workload identity requirements outgrow the documented WireGuard arrangement.',
     phase: 'future',
-    sourceRanges: [{ startLine: 2585, endLine: 2587 }],
+    sourceRanges: [{ startLine: 2591, endLine: 2593 }],
     decisionIds: ['decision.platform.automation-full-mesh', governanceDecisionId],
     criterion:
       'Private-network scale, workload identity, rotation, policy, or operations evidence triggers a workload-aware transport evaluation.',
@@ -250,7 +251,7 @@ const gates: GateSeed[] = [
     summary:
       'Move Infisical to paid capacity or an alternative when identity, environment, audit, versioning, or recovery requirements exceed the free arrangement.',
     phase: 'first_distributed',
-    sourceRanges: [{ startLine: 1860, endLine: 1915 }],
+    sourceRanges: [{ startLine: 1868, endLine: 1923 }],
     decisionIds: ['decision.platform.infisical-secrets', governanceDecisionId],
     criterion:
       'Identity count, environment count, auditability, versioning, recovery, or service-extraction requirements trigger the documented migration.',
@@ -265,7 +266,7 @@ const stacks: StackSeed[] = [
       'Default backend and frontend language; other languages remain workload- or evidence-conditioned.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId, 'decision.platform.frontend-stack'],
     serviceIds: ['service.billing'],
   },
@@ -275,7 +276,7 @@ const stacks: StackSeed[] = [
     summary: 'Default backend runtime selected for operational maturity and compatibility.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId],
     serviceIds: ['service.billing'],
   },
@@ -285,7 +286,7 @@ const stacks: StackSeed[] = [
     summary: 'Backend HTTP framework for the default TypeScript service stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId],
     serviceIds: ['service.billing'],
   },
@@ -295,7 +296,7 @@ const stacks: StackSeed[] = [
     summary: 'Backend API contract and transport convention.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId],
     serviceIds: ['service.billing'],
   },
@@ -305,7 +306,7 @@ const stacks: StackSeed[] = [
     summary: 'Runtime validation and OpenAPI contract generation for backend boundaries.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId],
     serviceIds: ['service.billing'],
   },
@@ -316,7 +317,7 @@ const stacks: StackSeed[] = [
       'Primary relational database with explicit RLS migrations and service-local ownership.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId, 'decision.platform.neon-hosting'],
     serviceIds: ['service.billing'],
   },
@@ -327,20 +328,25 @@ const stacks: StackSeed[] = [
       'Database access and reviewed versioned SQL migration tooling; schemas are not public contracts.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     decisionIds: [backendDecisionId],
     serviceIds: ['service.billing'],
   },
   {
     id: 'stack.pg-boss',
     name: 'pg-boss',
-    summary: 'Durable MVP job execution before the documented distributed broker extraction gate.',
+    summary:
+      'PostgreSQL-backed durable jobs for the MVP; retained only as a migration rollback path until RabbitMQ cutover is accepted, then removed from the runtime stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
-    decisionIds: [backendDecisionId],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
+    decisionIds: [
+      backendDecisionId,
+      'decision.jobs.pgboss-transactional',
+      'decision.messaging.rabbitmq-distributed-transport',
+    ],
     gateIds: ['gate.platform.pgboss-to-rabbitmq-redis'],
-    serviceIds: ['service.billing'],
+    serviceIds: ['service.mail', 'service.billing'],
   },
   {
     id: 'stack.clamav',
@@ -349,8 +355,8 @@ const stacks: StackSeed[] = [
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 1731, endLine: 1757 },
-      { startLine: 2035, endLine: 2077 },
+      { startLine: 1739, endLine: 1765 },
+      { startLine: 2036, endLine: 2080 },
     ],
     decisionIds: [backendDecisionId, 'decision.platform.mvp-deployment-topology'],
     gateIds: ['gate.platform.managed-clamav-scanning'],
@@ -361,7 +367,7 @@ const stacks: StackSeed[] = [
     summary: 'Future runtime candidate requiring a measured compatibility and operations spike.',
     phase: 'future',
     status: 'deferred',
-    sourceRanges: [{ startLine: 1758, endLine: 1765 }],
+    sourceRanges: [{ startLine: 1766, endLine: 1773 }],
     decisionIds: ['decision.platform.future-language-choices'],
     gateIds: ['gate.platform.nodejs-to-bun'],
   },
@@ -372,7 +378,7 @@ const stacks: StackSeed[] = [
       'Conditional future language for custom ML, scientific, NLP, evaluation, model-serving, or scientific data workloads.',
     phase: 'future',
     status: 'deferred',
-    sourceRanges: [{ startLine: 1758, endLine: 1765 }],
+    sourceRanges: [{ startLine: 1766, endLine: 1773 }],
     decisionIds: ['decision.platform.future-language-choices'],
     gateIds: ['gate.platform.typescript-to-python-or-go'],
   },
@@ -382,7 +388,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional future language for a specialized runtime workload.',
     phase: 'future',
     status: 'deferred',
-    sourceRanges: [{ startLine: 1758, endLine: 1765 }],
+    sourceRanges: [{ startLine: 1766, endLine: 1773 }],
     decisionIds: ['decision.platform.future-language-choices'],
     gateIds: ['gate.platform.typescript-to-python-or-go'],
   },
@@ -392,7 +398,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional Automation Runtime candidates requiring evidence before adoption.',
     phase: 'future',
     status: 'deferred',
-    sourceRanges: [{ startLine: 1758, endLine: 1765 }],
+    sourceRanges: [{ startLine: 1766, endLine: 1773 }],
     decisionIds: ['decision.platform.future-language-choices'],
   },
   {
@@ -401,7 +407,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend component framework.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -412,8 +418,8 @@ const stacks: StackSeed[] = [
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 1829, endLine: 1849 },
-      { startLine: 2544, endLine: 2557 },
+      { startLine: 1837, endLine: 1857 },
+      { startLine: 2550, endLine: 2563 },
     ],
     decisionIds: ['decision.platform.frontend-stack', governanceDecisionId],
     gateIds: ['gate.platform.tanstack-start-fallback'],
@@ -425,8 +431,8 @@ const stacks: StackSeed[] = [
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 1829, endLine: 1849 },
-      { startLine: 2544, endLine: 2557 },
+      { startLine: 1837, endLine: 1857 },
+      { startLine: 2550, endLine: 2563 },
     ],
     decisionIds: ['decision.platform.frontend-stack', governanceDecisionId],
     gateIds: ['gate.platform.tanstack-start-fallback'],
@@ -437,7 +443,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend deployment target; Cloudflare Pages is not the selected target.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack', 'decision.platform.cloudflare-r2-storage'],
   },
   {
@@ -446,7 +452,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend server-state cache and synchronization.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -455,7 +461,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend state for local and unsaved editor concerns.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -464,7 +470,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend form handling and validation.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -473,7 +479,7 @@ const stacks: StackSeed[] = [
     summary: 'Form and UI primitive integration selected with the frontend stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -482,7 +488,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend styling system using tokens and CSS variables.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -491,7 +497,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend component convention; Radix and Uber Base are not the selected primitives.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -500,7 +506,7 @@ const stacks: StackSeed[] = [
     summary: 'Restricted-schema rich text editor whose JSON is the editable source.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     decisionIds: ['decision.platform.frontend-stack'],
   },
   {
@@ -509,7 +515,7 @@ const stacks: StackSeed[] = [
     summary: 'DNS, TLS, CDN, WAF, frontend Worker hosting, and object-storage edge boundary.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1852, endLine: 1859 }],
+    sourceRanges: [{ startLine: 1860, endLine: 1867 }],
     decisionIds: ['decision.platform.cloudflare-r2-storage', 'decision.platform.frontend-stack'],
   },
   {
@@ -520,8 +526,8 @@ const stacks: StackSeed[] = [
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 1852, endLine: 1859 },
-      { startLine: 1980, endLine: 2034 },
+      { startLine: 1860, endLine: 1867 },
+      { startLine: 1981, endLine: 2035 },
     ],
     decisionIds: [
       'decision.platform.cloudflare-r2-storage',
@@ -538,7 +544,7 @@ const stacks: StackSeed[] = [
       'Local S3-compatible object-storage implementation used for development rather than a production provider.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1852, endLine: 1859 }],
+    sourceRanges: [{ startLine: 1860, endLine: 1867 }],
     decisionIds: ['decision.platform.cloudflare-r2-storage'],
   },
   {
@@ -548,7 +554,7 @@ const stacks: StackSeed[] = [
       'MVP source of truth for deployment and platform secrets with environment and identity separation.',
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 1860, endLine: 1915 }],
+    sourceRanges: [{ startLine: 1868, endLine: 1923 }],
     decisionIds: ['decision.platform.infisical-secrets'],
     gateIds: ['gate.platform.infisical-free-to-paid'],
     primaryReferences: [],
@@ -560,7 +566,7 @@ const stacks: StackSeed[] = [
       'Owner-service storage boundary for dynamic integration credentials; exact KMS provider remains a documented spike.',
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 1916, endLine: 1938 }],
+    sourceRanges: [{ startLine: 1924, endLine: 1946 }],
     decisionIds: ['decision.platform.tenant-credential-envelope'],
     gateIds: ['gate.platform.tenant-credential-kms'],
   },
@@ -572,8 +578,8 @@ const stacks: StackSeed[] = [
     phase: 'mvp',
     status: 'deferred',
     sourceRanges: [
-      { startLine: 1916, endLine: 1938 },
-      { startLine: 2558, endLine: 2563 },
+      { startLine: 1924, endLine: 1946 },
+      { startLine: 2564, endLine: 2569 },
     ],
     decisionIds: ['decision.platform.tenant-credential-envelope', governanceDecisionId],
     gateIds: ['gate.platform.tenant-credential-kms'],
@@ -585,18 +591,38 @@ const stacks: StackSeed[] = [
       'Production PostgreSQL hosting with paid Launch, US East placement, TLS, pooling, PITR, and encrypted logical backups to R2.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 1939, endLine: 1950 }],
+    sourceRanges: [{ startLine: 1947, endLine: 1958 }],
     decisionIds: ['decision.platform.neon-hosting'],
     serviceIds: ['service.billing'],
   },
   {
-    id: 'stack.oci',
-    name: 'OCI Always Free A1 Flex',
+    id: 'stack.railway',
+    name: 'Railway',
     summary:
-      'Preferred MVP compute pilot in Ashburn when available, with a documented paid migration gate.',
+      'MVP application platform for the Core API and worker across isolated development, staging, and production environments in US East Metal, Virginia; Railway performs native CD after CI while Infisical Secret Sync delivers environment and service scoped secrets.',
     phase: 'mvp',
-    status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 1951, endLine: 1979 }],
+    status: 'confirmed',
+    sourceRanges: [{ startLine: 1959, endLine: 1980 }],
+    decisionIds: [
+      'decision.platform.compute-placement',
+      'decision.platform.infrastructure-automation',
+      'decision.platform.mvp-deployment-topology',
+      'decision.platform.ci-cd',
+    ],
+    primaryReferences: [
+      'https://docs.railway.com/deployments/github-autodeploys',
+      'https://docs.railway.com/environments',
+      'https://railway.com/pricing',
+    ],
+  },
+  {
+    id: 'stack.oci',
+    name: 'OCI Compute (future paid VPS)',
+    summary:
+      'Future paid VPS migration candidate when the MVP outgrows Railway or requires direct host, network, or resource control.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 1959, endLine: 1980 }],
     decisionIds: ['decision.platform.compute-placement'],
     gateIds: ['gate.platform.oci-paid-compute'],
     primaryReferences: [
@@ -606,10 +632,11 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.digitalocean',
     name: 'DigitalOcean',
-    summary: 'Portable paid compute, VPC, and firewall fallback for the OCI placement hypothesis.',
-    phase: 'mvp',
-    status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 1951, endLine: 1979 }],
+    summary:
+      'Future paid VPS migration candidate with portable compute, VPC, and firewall controls when the MVP outgrows Railway or requires direct host operations.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 1959, endLine: 1980 }],
     decisionIds: ['decision.platform.compute-placement'],
     gateIds: ['gate.platform.oci-paid-compute'],
     primaryReferences: [
@@ -621,10 +648,10 @@ const stacks: StackSeed[] = [
     id: 'stack.opentofu',
     name: 'OpenTofu',
     summary:
-      'External infrastructure-as-code layer with encrypted private state and protected production apply.',
-    phase: 'mvp',
-    status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 1980, endLine: 2034 }],
+      'Future VPS infrastructure-as-code layer with encrypted private state and protected production apply; Railway is the MVP application platform.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 1981, endLine: 2035 }],
     decisionIds: ['decision.platform.infrastructure-automation'],
     gateIds: ['gate.platform.r2-opentofu-state'],
     primaryReferences: [
@@ -636,19 +663,19 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.cloud-init',
     name: 'cloud-init',
-    summary: 'First-boot host provisioning layer.',
-    phase: 'mvp',
-    status: 'confirmed',
-    sourceRanges: [{ startLine: 1980, endLine: 2034 }],
+    summary: 'Future VPS first-boot host provisioning layer.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 1981, endLine: 2035 }],
     decisionIds: ['decision.platform.infrastructure-automation'],
   },
   {
     id: 'stack.ansible',
     name: 'Ansible',
-    summary: 'Host configuration layer separated from infrastructure provisioning.',
-    phase: 'mvp',
-    status: 'confirmed',
-    sourceRanges: [{ startLine: 1980, endLine: 2034 }],
+    summary: 'Future VPS host configuration layer separated from infrastructure provisioning.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 1981, endLine: 2035 }],
     decisionIds: ['decision.platform.infrastructure-automation'],
     primaryReferences: [
       'https://docs.ansible.com/projects/ansible/latest/collections/community/docker/docker_compose_v2_module.html',
@@ -657,12 +684,13 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.docker-compose',
     name: 'Docker Compose',
-    summary: 'Application topology and service process orchestration on the staged hosts.',
+    summary:
+      'Local development orchestration and future VPS application topology; the selected portable Dockerfile is the intended Railway build input, with implementation and validation tracked by CI/CD work.',
     phase: 'mvp',
     status: 'confirmed',
     sourceRanges: [
-      { startLine: 1980, endLine: 2034 },
-      { startLine: 2035, endLine: 2077 },
+      { startLine: 1981, endLine: 2035 },
+      { startLine: 2036, endLine: 2080 },
     ],
     decisionIds: [
       'decision.platform.infrastructure-automation',
@@ -673,12 +701,12 @@ const stacks: StackSeed[] = [
     id: 'stack.github-actions',
     name: 'GitHub Actions',
     summary:
-      'CI/CD orchestration with OIDC, protected environments, concurrency, immutable builds, and audited secrets.',
+      'Accepted MVP CI validation through GitHub Actions with lint, typecheck, tests, protected environments, and concurrency gates pending implementation; Railway performs native branch CD after the configured Wait for CI gate, while exact same-digest promotion remains unresolved.',
     phase: 'mvp',
     status: 'confirmed',
     sourceRanges: [
-      { startLine: 1980, endLine: 2034 },
-      { startLine: 2332, endLine: 2342 },
+      { startLine: 1981, endLine: 2035 },
+      { startLine: 2335, endLine: 2347 },
     ],
     decisionIds: ['decision.platform.infrastructure-automation', 'decision.platform.ci-cd'],
     primaryReferences: [
@@ -688,10 +716,10 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.cloudflared',
     name: 'cloudflared',
-    summary: 'Outbound-only Cloudflare Tunnel connectivity for the MVP host.',
-    phase: 'mvp',
-    status: 'confirmed',
-    sourceRanges: [{ startLine: 2035, endLine: 2077 }],
+    summary: 'Future VPS outbound-only Cloudflare Tunnel connectivity.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 2036, endLine: 2080 }],
     decisionIds: ['decision.platform.mvp-deployment-topology'],
     primaryReferences: [
       'https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/',
@@ -700,10 +728,11 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.caddy',
     name: 'Caddy',
-    summary: 'MVP reverse proxy and blue-green traffic switch with health and drain behavior.',
-    phase: 'mvp',
-    status: 'confirmed',
-    sourceRanges: [{ startLine: 2035, endLine: 2077 }],
+    summary:
+      'Future VPS reverse proxy and blue-green traffic switch with health and drain behavior.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 2036, endLine: 2080 }],
     decisionIds: ['decision.platform.mvp-deployment-topology'],
     primaryReferences: [
       'https://caddyserver.com/docs/getting-started',
@@ -714,12 +743,12 @@ const stacks: StackSeed[] = [
     id: 'stack.wireguard',
     name: 'WireGuard',
     summary:
-      'Private authenticated host-to-host transport for the distributed topologies, with a later workload-aware transport gate.',
-    phase: 'first_distributed',
+      'Future private authenticated host-to-host transport for paid VPS topologies, with a later workload-aware transport gate.',
+    phase: 'future',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 2078, endLine: 2143 },
-      { startLine: 2163, endLine: 2329 },
+      { startLine: 2081, endLine: 2146 },
+      { startLine: 2166, endLine: 2332 },
     ],
     decisionIds: [
       'decision.platform.first-distributed-topology',
@@ -735,10 +764,10 @@ const stacks: StackSeed[] = [
     id: 'stack.oci-vcn-nsg',
     name: 'OCI VCN and NSGs',
     summary:
-      'Preferred private network and security-group controls for the first distributed topology.',
-    phase: 'first_distributed',
-    status: 'confirmed',
-    sourceRanges: [{ startLine: 2078, endLine: 2143 }],
+      'Future OCI private network and security-group controls if OCI is selected for the VPS migration.',
+    phase: 'future',
+    status: 'deferred',
+    sourceRanges: [{ startLine: 2081, endLine: 2146 }],
     decisionIds: ['decision.platform.first-distributed-topology'],
     primaryReferences: [
       'https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/overview.htm',
@@ -749,18 +778,26 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.rabbitmq',
     name: 'RabbitMQ',
-    summary: 'Distributed durable command and event broker introduced at service extraction.',
+    summary:
+      'Mandatory post-MVP durable substrate for private service-owned work queues and versioned cross-service commands or events.',
     phase: 'first_distributed',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 2078, endLine: 2143 },
-      { startLine: 2222, endLine: 2273 },
+      { startLine: 2081, endLine: 2146 },
+      { startLine: 2225, endLine: 2276 },
     ],
     decisionIds: [
       'decision.platform.first-distributed-topology',
       'decision.platform.audience-campaign-snapshot',
+      'decision.messaging.rabbitmq-distributed-transport',
     ],
-    gateIds: ['gate.platform.rabbitmq-redis-paid'],
+    gateIds: [
+      'gate.messaging.rabbitmq-job-equivalence',
+      'gate.messaging.amqplib-recovery',
+      'gate.platform.pgboss-to-rabbitmq-redis',
+      'gate.platform.rabbitmq-redis-paid',
+    ],
+    serviceIds: ['service.mail', 'service.audience'],
   },
   {
     id: 'stack.redis',
@@ -770,14 +807,15 @@ const stacks: StackSeed[] = [
     phase: 'first_distributed',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
-      { startLine: 2078, endLine: 2143 },
-      { startLine: 2222, endLine: 2273 },
+      { startLine: 2081, endLine: 2146 },
+      { startLine: 2225, endLine: 2276 },
     ],
     decisionIds: [
       'decision.platform.first-distributed-topology',
       'decision.platform.audience-campaign-snapshot',
+      'decision.messaging.redis-ephemeral-state',
     ],
-    gateIds: ['gate.platform.rabbitmq-redis-paid'],
+    gateIds: ['gate.messaging.redis-client-recovery', 'gate.platform.rabbitmq-redis-paid'],
   },
   {
     id: 'stack.vitest',
@@ -785,7 +823,7 @@ const stacks: StackSeed[] = [
     summary: 'Selected unit and test-runner stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     decisionIds: ['decision.platform.testing-stack'],
     primaryReferences: ['https://main.vitest.dev/guide/features'],
   },
@@ -795,7 +833,7 @@ const stacks: StackSeed[] = [
     summary: 'Selected frontend behavior-testing stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     decisionIds: ['decision.platform.testing-stack'],
     primaryReferences: ['https://testing-library.com/docs/react-testing-library/intro/'],
   },
@@ -805,7 +843,7 @@ const stacks: StackSeed[] = [
     summary: 'Selected API/provider mocking boundary for tests.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     decisionIds: ['decision.platform.testing-stack'],
     primaryReferences: ['https://mswjs.io/'],
   },
@@ -815,7 +853,7 @@ const stacks: StackSeed[] = [
     summary: 'Selected real-service integration test environment.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     decisionIds: ['decision.platform.testing-stack'],
     primaryReferences: ['https://node.testcontainers.org/quickstart/usage/'],
   },
@@ -825,7 +863,7 @@ const stacks: StackSeed[] = [
     summary: 'Selected browser end-to-end test stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     decisionIds: ['decision.platform.testing-stack', 'decision.platform.ci-cd'],
     primaryReferences: ['https://playwright.dev/docs/writing-tests'],
   },
@@ -835,7 +873,7 @@ const stacks: StackSeed[] = [
     summary: 'Telemetry instrumentation and export convention across services and hosts.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
   },
   {
@@ -844,7 +882,7 @@ const stacks: StackSeed[] = [
     summary: 'Structured application logging stack.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
   },
   {
@@ -854,7 +892,7 @@ const stacks: StackSeed[] = [
       'Selected hosted observability destination with documented SLO, sampling, privacy, and retention constraints.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
     primaryReferences: [
       'https://grafana.com/docs/grafana-cloud/send-data/otlp/',
@@ -867,7 +905,7 @@ const stacks: StackSeed[] = [
     summary: 'Frontend observability integration for the browser experience.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
     primaryReferences: [
       'https://grafana.com/docs/grafana-cloud/monitor-applications/frontend-observability/',
@@ -881,7 +919,7 @@ const stacks: StackSeed[] = [
     summary: 'Cloudflare-native observability fallback for frontend Worker concerns.',
     phase: 'mvp',
     status: 'confirmed',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
     primaryReferences: ['https://developers.cloudflare.com/workers/observability/'],
   },
@@ -891,7 +929,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional authentication stack requiring the documented validation gate.',
     phase: 'mvp',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.better-auth-validation'],
   },
@@ -901,7 +939,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional visual editor choice requiring its validation gate.',
     phase: 'future',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.puck-to-other-editor'],
   },
@@ -911,7 +949,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional email markup choice with React Email as the documented fallback.',
     phase: 'future',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.mjml-to-react-email'],
   },
@@ -921,7 +959,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional analytics stack with TimescaleDB as the documented fallback.',
     phase: 'future',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.clickhouse-to-timescaledb'],
   },
@@ -931,7 +969,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional AI provider adapter behind an AI-owned boundary.',
     phase: 'future',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.ai-sdk-openrouter-alternative'],
   },
@@ -942,9 +980,13 @@ const stacks: StackSeed[] = [
       'Conditional RabbitMQ client choice requiring compatibility and operational validation.',
     phase: 'first_distributed',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
-    gateIds: ['gate.platform.pgboss-to-rabbitmq-redis'],
+    gateIds: [
+      'gate.messaging.rabbitmq-job-equivalence',
+      'gate.messaging.amqplib-recovery',
+      'gate.platform.pgboss-to-rabbitmq-redis',
+    ],
   },
   {
     id: 'stack.token-exchange',
@@ -952,7 +994,7 @@ const stacks: StackSeed[] = [
     summary: 'Conditional dependency choice for workload and delegation token flows.',
     phase: 'first_distributed',
     status: 'confirmed_with_validation_gate',
-    sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+    sourceRanges: [{ startLine: 2550, endLine: 2563 }],
     decisionIds: [governanceDecisionId],
     gateIds: ['gate.platform.token-exchange-dependency'],
   },
@@ -966,7 +1008,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use the documented TypeScript, Node.js, Hono, REST/JSON/OpenAPI, Zod, PostgreSQL, Drizzle, pg-boss, and ClamAV backend stack while preserving service-local contracts and migrations.',
-    sourceRanges: [{ startLine: 1731, endLine: 1757 }],
+    sourceRanges: [{ startLine: 1739, endLine: 1765 }],
     stackIds: [
       'stack.typescript',
       'stack.nodejs-24-lts',
@@ -994,7 +1036,7 @@ const decisions: DecisionSeed[] = [
     phase: 'future',
     summary:
       'Keep TypeScript as the default and consider Python or Go only for the explicitly documented workload classes after evidence.',
-    sourceRanges: [{ startLine: 1758, endLine: 1765 }],
+    sourceRanges: [{ startLine: 1766, endLine: 1773 }],
     stackIds: ['stack.bun', 'stack.python', 'stack.go', 'stack.automation-specialized-runtime'],
     gateIds: ['gate.platform.nodejs-to-bun', 'gate.platform.typescript-to-python-or-go'],
     relatedDecisionIds: [backendDecisionId],
@@ -1006,7 +1048,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Billing is an independent bounded context: Stripe owns payment collection and financial self-service, while MailFlow owns plans, projections, entitlements, quotas, grace, suspension, overrides, and authorization.',
-    sourceRanges: [{ startLine: 1766, endLine: 1828 }],
+    sourceRanges: [{ startLine: 1774, endLine: 1836 }],
     serviceIds: ['service.billing'],
     stackIds: [
       'stack.typescript',
@@ -1036,7 +1078,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use the documented React frontend and Cloudflare Workers with Static Assets, with TanStack Start preferred subject to validation and React Router plus Vite as fallback.',
-    sourceRanges: [{ startLine: 1829, endLine: 1849 }],
+    sourceRanges: [{ startLine: 1837, endLine: 1857 }],
     stackIds: [
       'stack.typescript',
       'stack.react',
@@ -1061,7 +1103,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use Cloudflare for edge services and private R2 buckets separated by environment, with MinIO as the local S3-compatible implementation.',
-    sourceRanges: [{ startLine: 1852, endLine: 1859 }],
+    sourceRanges: [{ startLine: 1860, endLine: 1867 }],
     stackIds: ['stack.cloudflare', 'stack.r2', 'stack.minio'],
     trustBoundaryIds: ['trust.object-storage'],
     primaryReferences: ['https://developers.cloudflare.com/r2/api/s3/api/'],
@@ -1073,7 +1115,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use Infisical Cloud as the MVP source of truth for deployment and platform secrets, with identities separated per environment and service extraction.',
-    sourceRanges: [{ startLine: 1860, endLine: 1915 }],
+    sourceRanges: [{ startLine: 1868, endLine: 1923 }],
     stackIds: ['stack.infisical'],
     gateIds: ['gate.platform.infisical-free-to-paid'],
     trustBoundaryIds: ['trust.platform-secrets'],
@@ -1088,7 +1130,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Keep dynamic tenant credentials in the owning service database using envelope encryption; plaintext is restricted to the owner process and the exact KMS choice remains gated.',
-    sourceRanges: [{ startLine: 1916, endLine: 1938 }],
+    sourceRanges: [{ startLine: 1924, endLine: 1946 }],
     stackIds: ['stack.envelope-credential-cipher', 'stack.managed-kms'],
     gateIds: ['gate.platform.tenant-credential-kms'],
     trustBoundaryIds: ['trust.tenant-credential-envelope'],
@@ -1103,21 +1145,23 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use paid Neon Launch in US East for production PostgreSQL with TLS, pooling, PITR, and encrypted logical backups to R2; free is development-only.',
-    sourceRanges: [{ startLine: 1939, endLine: 1950 }],
+    sourceRanges: [{ startLine: 1947, endLine: 1958 }],
     stackIds: ['stack.postgresql', 'stack.neon', 'stack.r2'],
     trustBoundaryIds: ['trust.object-storage', 'trust.service-data-and-contracts'],
   },
   {
     id: 'decision.platform.compute-placement',
     title: 'Backend compute placement',
-    status: 'confirmed_with_validation_gate',
+    status: 'confirmed',
     phase: 'mvp',
     summary:
-      'Pilot OCI Always Free A1 Flex in Ashburn when available and retain DigitalOcean as the portable fallback, with a documented paid migration gate.',
-    sourceRanges: [{ startLine: 1951, endLine: 1979 }],
-    stackIds: ['stack.oci', 'stack.digitalocean'],
+      'Use Railway as the paid MVP application platform in US East Metal, Virginia, with isolated development, staging, and production API and worker services; retain OCI and DigitalOcean as future paid VPS migration candidates when scale or operational requirements justify the cost and control.',
+    sourceRanges: [{ startLine: 1959, endLine: 1980 }],
+    stackIds: ['stack.railway', 'stack.oci', 'stack.digitalocean'],
     gateIds: ['gate.platform.oci-paid-compute'],
     primaryReferences: [
+      'https://docs.railway.com/deployments/regions',
+      'https://docs.railway.com/environments',
       'https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm',
       'https://docs.digitalocean.com/products/networking/vpc/',
       'https://docs.digitalocean.com/products/networking/firewalls/',
@@ -1129,14 +1173,15 @@ const decisions: DecisionSeed[] = [
     status: 'confirmed_with_validation_gate',
     phase: 'mvp',
     summary:
-      'Separate OpenTofu infrastructure, cloud-init bootstrap, Ansible host configuration, Docker Compose application topology, GitHub Actions orchestration, and Infisical secret delivery.',
-    sourceRanges: [{ startLine: 1980, endLine: 2034 }],
+      'Use Railway native build and deployment for the MVP services, the selected portable Dockerfile with implementation and validation tracked by CI/CD work, GitHub Actions CI pending implementation, and Infisical Secret Sync for environment and service scoped delivery; defer OpenTofu, cloud-init, Ansible, and Docker Compose host automation to the future VPS migration.',
+    sourceRanges: [{ startLine: 1981, endLine: 2035 }],
     stackIds: [
       'stack.opentofu',
       'stack.cloud-init',
       'stack.ansible',
       'stack.docker-compose',
       'stack.github-actions',
+      'stack.railway',
       'stack.infisical',
       'stack.r2',
     ],
@@ -1157,35 +1202,29 @@ const decisions: DecisionSeed[] = [
     status: 'confirmed',
     phase: 'mvp',
     summary:
-      'Run the MVP on one OCI host with Docker Compose, outbound-only Cloudflare Tunnel, Caddy blue-green routing, internal core processes, and managed external Neon, R2, and Resend dependencies.',
-    sourceRanges: [{ startLine: 2035, endLine: 2077 }],
-    stackIds: [
-      'stack.oci',
-      'stack.docker-compose',
-      'stack.cloudflared',
-      'stack.caddy',
-      'stack.clamav',
-      'stack.open-telemetry',
-    ],
+      'Run the MVP on Railway with separate Core API and worker services in development, staging, and production, native public API domains, private workers, the selected portable Dockerfile with implementation and validation tracked by CI/CD work, Infisical Secret Sync, and managed external Neon, R2, and Resend dependencies.',
+    sourceRanges: [{ startLine: 2036, endLine: 2080 }],
+    stackIds: ['stack.railway', 'stack.clamav', 'stack.open-telemetry'],
     gateIds: ['gate.platform.oci-paid-compute'],
     trustBoundaryIds: ['trust.service-deployment-network', 'trust.object-storage'],
     primaryReferences: [
-      'https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/',
-      'https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/tunnel-useful-terms/',
-      'https://caddyserver.com/docs/getting-started',
-      'https://caddyserver.com/docs/caddyfile/directives/reverse_proxy',
+      'https://docs.railway.com/deployments/github-autodeploys',
+      'https://docs.railway.com/deployments/healthchecks',
+      'https://docs.railway.com/networking/domains/working-with-domains',
+      'https://infisical.com/docs/integrations/secret-syncs/railway',
     ],
   },
   {
     id: 'decision.platform.first-distributed-topology',
-    title: 'First distributed topology at Audience extraction',
+    title: 'Future distributed topology after Railway scale',
     status: 'confirmed_with_validation_gate',
-    phase: 'first_distributed',
+    phase: 'future',
     summary:
-      'Place the first independently deployed Audience service on VPS B and retain Core services on VPS A with private networking, RabbitMQ, Redis, independent secrets, and service-local databases.',
-    sourceRanges: [{ startLine: 2078, endLine: 2143 }],
+      'When measured scale, failure isolation, SLO, or operational requirements justify leaving Railway, migrate independently deployable services to paid VPS hosts with private networking, RabbitMQ, Redis, independent secrets, and service-local databases; the migration is not required for the current MVP.',
+    sourceRanges: [{ startLine: 2081, endLine: 2146 }],
     serviceIds: ['service.audience'],
     stackIds: [
+      'stack.railway',
       'stack.oci-vcn-nsg',
       'stack.digitalocean',
       'stack.wireguard',
@@ -1217,10 +1256,10 @@ const decisions: DecisionSeed[] = [
     id: 'decision.platform.progressive-placement',
     title: 'Progressive service placement',
     status: 'confirmed_with_validation_gate',
-    phase: 'first_distributed',
+    phase: 'future',
     summary:
-      'Make placement decisions from resource, scaling, SLO, failure, sensitivity, call-graph, headroom, and cost evidence; do not use VPS B as overflow.',
-    sourceRanges: [{ startLine: 2144, endLine: 2162 }],
+      'After the Railway MVP, make VPS placement decisions from resource, scaling, SLO, failure, sensitivity, call-graph, headroom, and cost evidence; do not use a future host as overflow.',
+    sourceRanges: [{ startLine: 2147, endLine: 2165 }],
     gateIds: ['gate.platform.logical-to-physical-database'],
     trustBoundaryIds: ['trust.service-deployment-network'],
     reassessmentTriggers: ['A service is moved only after its documented placement gate passes.'],
@@ -1231,8 +1270,8 @@ const decisions: DecisionSeed[] = [
     status: 'confirmed_with_validation_gate',
     phase: 'future',
     summary:
-      'Use a direct authenticated full mesh between VPS A, VPS B, and VPS C for Automation Runtime activation; do not make VPS A a transit router.',
-    sourceRanges: [{ startLine: 2163, endLine: 2170 }],
+      'If Automation Runtime activation follows a future paid VPS migration, use a direct authenticated full mesh between the selected VPS hosts (VPS A, VPS B, and VPS C are reference placements); do not make VPS A a transit router.',
+    sourceRanges: [{ startLine: 2166, endLine: 2173 }],
     stackIds: ['stack.wireguard'],
     gateIds: ['gate.platform.wireguard-to-workload-aware-transport'],
     trustBoundaryIds: ['trust.service-deployment-network'],
@@ -1248,7 +1287,7 @@ const decisions: DecisionSeed[] = [
     phase: 'first_distributed',
     summary:
       'Use a minimal snapshot and authenticated bulk transfer boundary; Campaign copies only the documented minimal recipient and suppression fields and never performs synchronous per-recipient Audience calls.',
-    sourceRanges: [{ startLine: 2222, endLine: 2273 }],
+    sourceRanges: [{ startLine: 2225, endLine: 2276 }],
     serviceIds: ['service.audience', 'service.campaign'],
     stackIds: ['stack.rabbitmq', 'stack.r2'],
     trustBoundaryIds: ['trust.service-deployment-network', 'trust.object-storage'],
@@ -1259,8 +1298,8 @@ const decisions: DecisionSeed[] = [
     status: 'confirmed',
     phase: 'first_distributed',
     summary:
-      'Keep Campaign Control and Campaign Execution together on VPS B with service-local schemas, asynchronous launch, and Mail as the only email provider owner.',
-    sourceRanges: [{ startLine: 2274, endLine: 2329 }],
+      'When Campaign is extracted in a future distributed topology, keep Campaign Control and Campaign Execution together on the selected domain and control host (VPS B is a reference placement) with service-local schemas, asynchronous launch, and Mail as the only email provider owner; placement remains conditional on measured gate evidence.',
+    sourceRanges: [{ startLine: 2277, endLine: 2332 }],
     serviceIds: ['service.campaign'],
     stackIds: [
       'stack.typescript',
@@ -1283,9 +1322,9 @@ const decisions: DecisionSeed[] = [
     status: 'confirmed',
     phase: 'mvp',
     summary:
-      'Validate pull requests and deploy an immutable build once through isolated homologation before promotion, with protected environments, OIDC, concurrency, and rollback.',
-    sourceRanges: [{ startLine: 2330, endLine: 2342 }],
-    stackIds: ['stack.github-actions', 'stack.playwright'],
+      'GitHub Actions CI remains pending implementation; Railway native auto-deploy is configured for development, staging, and production branches with Wait for CI enabled, the selected portable Dockerfile implementation and validation are tracked by CI/CD work, and production branch promotion plus promotion of one immutable image digest remain unresolved.',
+    sourceRanges: [{ startLine: 2333, endLine: 2347 }],
+    stackIds: ['stack.railway', 'stack.github-actions', 'stack.playwright'],
     trustBoundaryIds: ['trust.platform-secrets'],
     primaryReferences: [
       'https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments',
@@ -1298,7 +1337,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use Vitest, Testing Library, MSW, Testcontainers, and Playwright across unit, integration, contract, provider, and browser validation boundaries.',
-    sourceRanges: [{ startLine: 2343, endLine: 2449 }],
+    sourceRanges: [{ startLine: 2348, endLine: 2454 }],
     stackIds: [
       'stack.vitest',
       'stack.testing-library',
@@ -1327,7 +1366,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use OpenTelemetry, Pino, a host-local collector, Grafana Cloud, Grafana Faro, and Cloudflare Worker observability with documented SLO, sampling, privacy, and recovery constraints.',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     stackIds: [
       'stack.open-telemetry',
       'stack.pino',
@@ -1353,7 +1392,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use US East as the initial geography, accept international and Brazil usage, start with English UI and i18n-ready structure, and store UTC while rendering user time zones.',
-    sourceRanges: [{ startLine: 2518, endLine: 2525 }],
+    sourceRanges: [{ startLine: 2523, endLine: 2530 }],
   },
   {
     id: 'decision.platform.identifiers-lifecycle',
@@ -1362,7 +1401,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Use UUIDv7 identifiers, correlation and causation IDs, idempotency keys, append-only delivery attempts, and minimal tombstones.',
-    sourceRanges: [{ startLine: 2526, endLine: 2532 }],
+    sourceRanges: [{ startLine: 2531, endLine: 2537 }],
   },
   {
     id: governanceDecisionId,
@@ -1371,7 +1410,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Treat the decision tree as closed: material changes require explicit new decisions, and conditional or deferred choices retain their validation gates and fallbacks.',
-    sourceRanges: [{ startLine: 2533, endLine: 2563 }],
+    sourceRanges: [{ startLine: 2538, endLine: 2569 }],
     stackIds: [
       'stack.better-auth',
       'stack.tanstack-start',
@@ -1399,7 +1438,7 @@ const decisions: DecisionSeed[] = [
     phase: 'mvp',
     summary:
       'Maintain ADRs, connected architecture diagrams, an Astro TypeScript static Vercel application, source-of-truth coverage and drift checks, service stack views, and private client documentation.',
-    sourceRanges: [{ startLine: 2591, endLine: 2609 }],
+    sourceRanges: [{ startLine: 2597, endLine: 2615 }],
     stackIds: ['stack.github-actions'],
     trustBoundaryIds: ['trust.platform-secrets'],
   },
@@ -1413,8 +1452,8 @@ const trustBoundaries: TrustBoundarySeed[] = [
       'Service-local data, DTOs, schemas, migrations, APIs, and asynchronous contracts remain owned by their bounded context.',
     phase: 'mvp',
     sourceRanges: [
-      { startLine: 1731, endLine: 1757 },
-      { startLine: 2274, endLine: 2329 },
+      { startLine: 1739, endLine: 1765 },
+      { startLine: 2277, endLine: 2332 },
     ],
     decisionIds: [backendDecisionId, 'decision.platform.campaign-modular-boundary'],
     forbiddenData: [
@@ -1430,8 +1469,8 @@ const trustBoundaries: TrustBoundarySeed[] = [
       'Infisical and deployment identities provide platform secrets; service identities are separate and tenant credentials use the owner-service boundary.',
     phase: 'mvp',
     sourceRanges: [
-      { startLine: 1860, endLine: 1915 },
-      { startLine: 2078, endLine: 2143 },
+      { startLine: 1868, endLine: 1923 },
+      { startLine: 2081, endLine: 2146 },
     ],
     decisionIds: [
       'decision.platform.infisical-secrets',
@@ -1450,7 +1489,7 @@ const trustBoundaries: TrustBoundarySeed[] = [
     summary:
       'The owning service stores encrypted tenant credentials and is the only process allowed to handle plaintext for provider calls.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 1916, endLine: 1938 }],
+    sourceRanges: [{ startLine: 1924, endLine: 1946 }],
     decisionIds: ['decision.platform.tenant-credential-envelope'],
     forbiddenData: [
       'Plaintext credentials in Redis',
@@ -1466,9 +1505,9 @@ const trustBoundaries: TrustBoundarySeed[] = [
       'R2 buckets are private, separated by environment, least-privilege, tenant-prefixed, and accessed through short-lived presigned or service-owned paths.',
     phase: 'mvp',
     sourceRanges: [
-      { startLine: 1852, endLine: 1859 },
-      { startLine: 1980, endLine: 2034 },
-      { startLine: 2222, endLine: 2273 },
+      { startLine: 1860, endLine: 1867 },
+      { startLine: 1981, endLine: 2035 },
+      { startLine: 2225, endLine: 2276 },
     ],
     decisionIds: [
       'decision.platform.cloudflare-r2-storage',
@@ -1488,8 +1527,8 @@ const trustBoundaries: TrustBoundarySeed[] = [
       'Distributed services communicate through private authenticated network paths and service identities rather than public service endpoints or shared databases.',
     phase: 'first_distributed',
     sourceRanges: [
-      { startLine: 2078, endLine: 2143 },
-      { startLine: 2163, endLine: 2329 },
+      { startLine: 2081, endLine: 2146 },
+      { startLine: 2166, endLine: 2332 },
     ],
     decisionIds: [
       'decision.platform.first-distributed-topology',
@@ -1509,7 +1548,7 @@ const trustBoundaries: TrustBoundarySeed[] = [
     summary:
       'Telemetry is sampled and privacy-constrained; sensitive customer content and unbounded high-cardinality data are excluded from observability payloads.',
     phase: 'mvp',
-    sourceRanges: [{ startLine: 2450, endLine: 2517 }],
+    sourceRanges: [{ startLine: 2455, endLine: 2522 }],
     decisionIds: ['decision.platform.observability'],
     forbiddenData: [
       'Raw email bodies',
@@ -1523,7 +1562,7 @@ const trustBoundaries: TrustBoundarySeed[] = [
 
 const platformShard: ArchitectureShard = {
   id: 'shard.platform',
-  sourceRange: { startLine: 1731, endLine: 2609 },
+  sourceRange: { startLine: 1739, endLine: 2615 },
   decisions,
   services: [],
   stacks,
@@ -1536,8 +1575,8 @@ const platformShard: ArchitectureShard = {
         'Select the exact managed KMS provider, region, SDK, and policy for envelope-encrypted tenant credentials.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 1916, endLine: 1938 },
-        { startLine: 2558, endLine: 2563 },
+        { startLine: 1924, endLine: 1946 },
+        { startLine: 2564, endLine: 2569 },
       ],
       decisionIds: ['decision.platform.tenant-credential-envelope', governanceDecisionId],
       criterion:
@@ -1549,7 +1588,7 @@ const platformShard: ArchitectureShard = {
       summary:
         'Validate Better Auth before treating it as the selected authentication implementation.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+      sourceRanges: [{ startLine: 2550, endLine: 2563 }],
       decisionIds: [governanceDecisionId],
       criterion:
         'The authentication spike confirms the documented Better Auth choice and its compatibility with the approved trust model.',
@@ -1560,7 +1599,7 @@ const platformShard: ArchitectureShard = {
       summary:
         'Validate the token exchange and signing dependency versions before adopting them in the distributed token flow.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 2544, endLine: 2557 }],
+      sourceRanges: [{ startLine: 2550, endLine: 2563 }],
       decisionIds: [governanceDecisionId],
       criterion:
         'The dependency-major and token-signing spike confirms compatibility with workload and delegation token requirements.',
@@ -1571,7 +1610,7 @@ const platformShard: ArchitectureShard = {
       summary:
         'Extract Delivery only after the documented resource, SLO, failure, scaling, and operational triggers are reached.',
       phase: 'future',
-      sourceRanges: [{ startLine: 2274, endLine: 2329 }],
+      sourceRanges: [{ startLine: 2277, endLine: 2332 }],
       decisionIds: ['decision.platform.campaign-modular-boundary', governanceDecisionId],
       criterion:
         'Campaign Delivery extraction satisfies the documented independent service placement and provider-ownership gates.',
