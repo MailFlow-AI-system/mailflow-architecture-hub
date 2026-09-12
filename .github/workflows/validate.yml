@@ -20,7 +20,7 @@ jobs:
       - run: bun run check
       - run: bun run lint
       - run: bun run format:check
-      - run: bun test
+      - run: bun run test
       - run: bun run diagram-sources:check
       - run: bun run coverage:check
       - run: bun run build
