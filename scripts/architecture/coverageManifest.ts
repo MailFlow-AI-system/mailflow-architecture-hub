@@ -27,6 +27,7 @@ type PriorManifest = {
   manifest?: { checksum?: string; previousManifestChecksum?: string | null };
   previousBaselineChecksum?: string | null;
   delta?: {
+    coverage?: { before: number | null };
     addedKeys?: string[];
     changedKeys?: string[];
     removedRecords?: PriorRecord[];
@@ -165,7 +166,10 @@ export function createCoverageManifest(registry: ArchitectureRegistry, prior?: P
     removedRecords,
     unresolvedRecordKeys,
     coverage: {
-      before: prior?.summary?.records ?? null,
+      before:
+        !baselineChanged && prior?.delta?.coverage
+          ? prior.delta.coverage.before
+          : (prior?.summary?.records ?? null),
       after: records.length,
       resolvedAfter: resolved,
       unresolvedDelta: unresolvedRecordKeys.length,
