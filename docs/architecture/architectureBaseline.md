@@ -1,10 +1,18 @@
 # MailFlow Architecture Baseline
 
 Status: architecture approved, closed, and consolidated; derivative artifact production in progress  
-Last updated: 2026-09-04
+Last updated: 2026-09-12
 Purpose: canonical input for the architecture website, implementation plans, ADRs, and the non-technical client document.
 
 This document records the approved architecture, confirmed stacks, mandatory implementation-validation gates, and deliberate deferrals. A validation spike may activate an already documented fallback, but it does not reopen the accepted boundaries unless its evidence requires a new explicit architecture decision.
+
+### Current MVP infrastructure decision
+
+The MVP backend is assigned to Railway. The `mailflow-core` project has isolated `development`, `staging`, and `production` environments, each with separate API and worker services. The API services use Railway public domains for their environment-specific health and integration endpoints; worker services have no public HTTP ingress. The intended deployment packages the API and worker from the same repository and selected portable Dockerfile with different start commands; Dockerfile implementation and deployment validation remain pending. Neon PostgreSQL remains external and is regionally aligned in US East (Virginia), R2 and Resend remain external provider dependencies, and Infisical remains the runtime secret source.
+
+Railway is the accepted MVP compute choice because it provides the managed environment separation and persistent service execution needed by the current two-developer pilot without requiring the team to operate a VPS before the product has measured scale. The project accepts the resulting operational cost. A future migration to paid VPS compute is planned only when customer dependency, resource pressure, availability, control, or total-cost evidence justifies taking on host operations.
+
+All VPS, OCI, DigitalOcean, Cloudflare Tunnel, Caddy, blue/green, host-local Collector, WireGuard, OpenTofu/Ansible host, and per-runtime host-identity requirements elsewhere in this baseline are future VPS reference material. They are not requirements for the current Railway MVP. OCI and DigitalOcean remain historical candidates for the future VPS migration; neither is a guaranteed provider selection.
 
 ## 1. Product and delivery strategy
 
@@ -58,15 +66,15 @@ Event-driven architecture begins when Contact/Audience becomes the first extract
 - Transactional outboxes and idempotent consumers.
 - Service-owned databases, credentials, migrations, and authorization boundaries.
 - An API Gateway/BFF that remains thin and owns no business domain.
-- A second VPS dedicated to the Audience API and worker. The Core/Gateway/Mail/Identity workload remains on VPS A, while Audience becomes the first independently hosted business service on VPS B.
-- VPS A and VPS B use the same selected compute provider and US region, with provider-private networking and separate fault domains where available. OCI is the preferred path through VCN/NSGs; DigitalOcean is the portable fallback through VPC/cloud firewalls. Audience extraction begins with a point-to-point WireGuard tunnel between VPS A and VPS B. Automation Runtime activation evolves this into a direct A-B-C full mesh, while workload/delegation tokens continue to protect service traffic.
+- A future independent Audience API and worker deployment, with VPS B as the reference placement only if a later migration to self-managed hosts is selected. The Core/Gateway/Mail/Identity workload remains a separate ownership boundary; its physical placement is not fixed by this MVP decision.
+- If the future VPS path is selected, VPS A and VPS B use the same revalidated compute provider and US region, with provider-private networking and separate fault domains where available. OCI and DigitalOcean are historical candidates, not a guaranteed choice. A later multi-host deployment may use WireGuard or a workload-aware replacement after an explicit network decision. Automation Runtime may eventually require a third host, but no A-B-C topology is a current mandate.
 
 RabbitMQ and Redis are not MVP dependencies. RabbitMQ activates with the first distributed extraction after its equivalence gate passes; Redis activates only when an independently approved ephemeral-state workload needs it. Running either early would increase memory, I/O, deployment, monitoring, and failure-handling work without supplying a needed capability. RabbitMQ on the same single VPS would not provide high availability, and reliable quorum deployment requires multiple nodes.
 
 ### Strangler sequence
 
 1. Start with Identity/Workspace and Mail as modules inside Core, with separate schemas/migrations and explicit module interfaces.
-2. At Contact/Audience scope, add the thin Gateway, extract Audience with its own logical database and credentials onto VPS B, and introduce RabbitMQ, WireGuard host networking, and outbox delivery; introduce Redis separately only when its ephemeral-state workloads require it. Before cutover, Mail migrates every durable pg-boss job behind the internal job port to service-owned RabbitMQ work queues after the equivalence gate passes, while cross-service intent moves through versioned outbox/inbox adapters. VPS A retains Gateway, Identity/Workspace, Mail, Mail worker, and ClamAV.
+2. At Contact/Audience scope, add the thin Gateway and extract Audience with its own logical database, credentials, deployable, and release boundary when the ownership and scale evidence justifies it. RabbitMQ, outbox/inbox delivery, and Redis remain governed by their existing activation gates. If that extraction later uses self-managed hosts, VPS B is the reference placement and a future VPS A retains the Core/Gateway/Identity/Mail failure domain. Before cutover, Mail migrates every durable pg-boss job behind the internal job port to service-owned RabbitMQ work queues after the equivalence gate passes.
 3. Extract Identity/Workspace when independent ownership or scaling warrants it; Core then becomes the Mail service.
 4. Continue extracting only when a real domain boundary, load profile, reliability need, or team ownership justifies it.
 
@@ -106,7 +114,7 @@ Interactive synchronous-depth policy:
 
 - After authenticated ingress, the Gateway calls the service that owns the requested capability. That owning service may make at most one justified downstream synchronous service call in the interactive path.
 - The mandatory Gateway-to-Identity opaque-session validation is an ingress trust step. Any later critical live Identity revalidation counts as the owning service's one downstream synchronous dependency.
-- A sequence such as `Gateway -> Mail -> Audience -> Campaign -> Content` is prohibited even when every individual call is fast in local development or the modular MVP. Sequential latency, timeout probability, and cascading-failure risk multiply once Audience moves to VPS B and later services receive independent hosts.
+- A sequence such as `Gateway -> Mail -> Audience -> Campaign -> Content` is prohibited even when every individual call is fast in local development or the modular MVP. Sequential latency, timeout probability, and cascading-failure risk multiply once Audience becomes independently deployed, whether it runs on Railway or on a future VPS.
 - When one response needs independent data from several domains, the Gateway may perform bounded parallel API composition after authentication. It returns only the composition required by that user-facing use case and does not become a general data-joining domain.
 - The primary service must not call another service merely to reproduce a join. Stable remote facts needed on frequent paths are consumed through events into minimal local projections with freshness and reconciliation controls.
 - A process requiring multiple dependent steps, durable recovery, compensation, or a variable-duration external provider uses an outbox plus choreography, a service-owned saga, or a durable job rather than holding an interactive request chain open.
@@ -119,11 +127,11 @@ This is a maximum, not a target: the preferred owning-service request has no dow
 
 #### Provisional distributed latency budgets
 
-These are engineering targets for the first two-VPS topology, not contractual customer SLAs:
+These are engineering targets for the first distributed deployment, independent of whether it uses Railway or future VPS hosts. They are not contractual customer SLAs:
 
 - Identity session validation from its Redis cache: p95 at or below 75 ms.
 - Identity session validation with canonical PostgreSQL fallback: p95 at or below 150 ms.
-- A synchronous internal call between VPS A and VPS B, excluding material domain work: p95 at or below 100 ms.
+- A synchronous internal call between future extraction hosts, excluding material domain work: p95 at or below 100 ms.
 - Per-attempt internal-call timeout: 250 ms and always shorter than the remaining upstream deadline.
 - Common external read: p95 at or below 400 ms.
 - Common synchronous external write: p95 at or below 500 ms.
@@ -133,20 +141,20 @@ These are engineering targets for the first two-VPS topology, not contractual cu
 
 The two-second deadline is a failure boundary, not a permission to wait before responding. Provider calls and variable-duration work such as Resend delivery, attachment processing, campaigns, AI generation, and automation execution return a durable asynchronous state when they cannot reliably complete inside their explicit interactive budget. Retries must fit inside the original deadline and remain limited to safe or idempotent operations.
 
-OpenTelemetry records warm and cold p50/p95/p99 values separately across Gateway, Identity, Redis/PostgreSQL fallback, WireGuard, target service, and target database. Homologation load and fault tests validate the targets before Audience production extraction. Revise the numbers from representative evidence when a target is either routinely missed despite ordinary tuning or so loose that it fails to detect a user-visible regression; record every revision rather than silently normalizing degraded performance.
+OpenTelemetry records warm and cold p50/p95/p99 values separately across Gateway, Identity, Redis/PostgreSQL fallback, any future private transport, target service, and target database. Homologation load and fault tests validate the targets before Audience production extraction. Revise the numbers from representative evidence when a target is either routinely missed despite ordinary tuning or so loose that it fails to detect a user-visible regression; record every revision rather than silently normalizing degraded performance.
 
-Automation Runtime activation on VPS C triggers a new three-host baseline. The A-B measurements remain historical evidence, not a valid proxy for every path. Homologation and production telemetry measure A-B, A-C, and B-C independently under representative warm, cold, idle, concurrent, degraded, and recovery conditions. The review includes p50/p95/p99 request latency, connection establishment, DNS and WireGuard overhead, throughput, packet loss, timeout and circuit-breaker behavior, host and service resource contention, and complete user-facing or asynchronous-path latency. A-B is measured again because added services and traffic can invalidate its earlier headroom even when its physical route has not changed.
+If Automation Runtime later requires a third self-managed host, that activation triggers a new three-host baseline. The earlier two-host measurements remain historical evidence, not a proxy for every path. Homologation and production telemetry then measure every host pair independently under representative warm, cold, idle, concurrent, degraded, and recovery conditions. The review includes p50/p95/p99 request latency, connection establishment, DNS and private-transport overhead, throughput, packet loss, timeout and circuit-breaker behavior, host and service resource contention, and complete user-facing or asynchronous-path latency.
 
-The same stage refreshes the cost model using then-current provider prices and measured traffic. It records VPS C compute and storage, backup, monitoring and log ingestion, secret and deployment operations, managed database/broker/cache connections and traffic, and any applicable private, cross-zone, public, or provider egress charges for each path. The number of WireGuard peer relationships is an operational-complexity input; billable cost depends on the actual infrastructure and traffic path and must not be inferred from tunnel count alone. Existing interactive deadlines and synchronous-depth limits remain constraints. They are changed only through an explicit evidence-backed architecture decision, not merely because the topology gained another host.
+The same stage refreshes the cost model using then-current provider prices and measured traffic. For a future VPS migration it records host compute and storage, backup, monitoring and log ingestion, secret and deployment operations, managed database/broker/cache connections and traffic, and any applicable private, cross-zone, public, or provider egress charges for each path. Any private-transport peer relationships are an operational-complexity input; billable cost depends on the actual infrastructure and traffic path and must not be inferred from peer count alone. Existing interactive deadlines and synchronous-depth limits remain constraints. They are changed only through an explicit evidence-backed architecture decision.
 
 ### Asynchronous communication
 
-- Events are immutable past-tense facts; commands request a specific recipient to attempt an outcome.
+- Events are immutable past-tense facts; commands request a specific recipient to attempt an outcome. From the first distributed extraction onward, RabbitMQ is the mandatory transport for versioned messages that cross service boundaries and for private service-owned durable work queues.
 - Event payloads contain the smallest justified integration data, identifiers, version, timestamps, correlation, and causation metadata.
 - Services build local projections instead of reaching into another service's database.
 - Independent reactions use choreography. A service-owned saga coordinates multi-step processes that require state, compensation, or a defined outcome.
 - Consumers are idempotent and delivery is treated as at least once.
-- Reconciliation repairs missed or inconsistent derived state.
+- Reconciliation repairs missed or inconsistent derived state. Internal jobs remain private implementation details behind a service-owned job port, but after the migration gate they execute through RabbitMQ competing consumers rather than pg-boss; PostgreSQL remains the canonical state, outbox, schedule authority, inbox, and reconciliation ledger.
 
 ### Contract ownership
 
@@ -295,7 +303,7 @@ Token renewal and revocation:
 
 This model avoids central authorization on every domain request, which would add latency and make Identity an availability bottleneck. It accepts eventual propagation for ordinary low-risk permissions and constrains that trade-off through short lifetimes, versioned projections, immediate revocation signals, and synchronous checks for critical operations.
 
-Transport identity evolves independently. The MVP uses private container networking, closed public service ports, TLS where traffic leaves the host, and application-level workload tokens. Audience extraction triggers multi-host networking: VPS A and VPS B communicate over a WireGuard tunnel carried by the selected provider's same-region private network. Automation Runtime activation adds VPS C and converts the static topology to a direct A-B-C full mesh; no host is a transit gateway for another pair. Provider firewalls—OCI NSGs on the preferred path or DigitalOcean cloud firewalls on the fallback—and host firewalls restrict peers and ports in both stages, while application-level workload/delegation tokens remain mandatory. WireGuard authenticates and encrypts hosts, not application services, so it does not replace audience-bound tokens or target-service authorization. Evaluate application mTLS/SPIFFE or a service mesh later when host count, dynamic scheduling, multiple regions/providers, compliance, or policy/audit requirements outweigh their operational cost.
+Transport identity evolves independently. The Railway MVP uses private service networking where available, closed worker ingress, TLS for provider connections, and application-level workload tokens. A future self-managed multi-host deployment may require provider-private networking, WireGuard, or a workload-aware replacement between extraction hosts; no host is a transit gateway by assumption. Provider and host firewalls would restrict peers and ports, while application-level workload/delegation tokens remain mandatory. A host transport mechanism authenticates and encrypts hosts, not application services, so it does not replace audience-bound tokens or target-service authorization. Evaluate application mTLS/SPIFFE or a service mesh later when host count, dynamic scheduling, multiple regions/providers, compliance, or policy/audit requirements outweigh their operational cost.
 
 ### Connection ownership and execution authorization
 
@@ -461,7 +469,7 @@ The MVP uses PostgreSQL lexical search over normalized email metadata and body t
 
 ### Malware scanning
 
-- The MVP runs ClamAV in a local container on the backend VPS.
+- The MVP requires ClamAV scanning before an attachment becomes available. It is a private backend dependency with no public ingress; the planned Railway implementation may run it as a private service alongside the worker after capacity validation. A local ClamAV container remains a future VPS implementation option.
 - `clamd` is reachable only on the internal container network and signatures are refreshed with `freshclam`.
 - Attachments remain unavailable while pending, infected, or unscannable.
 - Scanning fails closed, retries transient failures, quarantines unsafe objects briefly, then purges them.
@@ -532,9 +540,9 @@ Local and automated validation covers exchange/queue/binding declaration, publis
 
 Trade-offs and rejected alternatives:
 
-- Using four Free infrastructure dependencies across the wider pilot (OCI, Resend, RabbitMQ, and Redis) compounds best-effort availability. This is accepted only because of the project's personal/known-customer context and must remain visible in health/status communication.
-- Hosting RabbitMQ and Redis on the Core VPS is rejected. RabbitMQ recommends a production node with at least 4 CPUs and 4 GiB and advises against colocating it with other I/O-heavy services; the Core host already runs the API, worker, ClamAV, Caddy, tunnel, and Collector.
-- A separate self-managed broker VPS is not initially selected because a suitably sized host approaches the price of managed service while adding patching, backups, monitoring, and recovery to a two-developer team.
+- Using several low-cost or free infrastructure dependencies across a wider pilot can compound best-effort availability. This is accepted only because of the project's personal/known-customer context and must remain visible in health/status communication.
+- Hosting RabbitMQ and Redis on the current Railway Core services is rejected. RabbitMQ recommends a production node with at least 4 CPUs and 4 GiB and advises against colocating it with other I/O-heavy services; the future Core placement must reserve capacity for the API, worker, ClamAV, and telemetry.
+- A separate self-managed broker VPS is not selected for the MVP because a suitably sized host approaches the price of managed service while adding patching, backups, monitoring, and recovery to a two-developer team.
 - Free cloud services do not replace local containers: normal development must remain available without external credentials, quota consumption, or network access.
 
 Upgrade RabbitMQ when any of these occurs: active campaign/automation dependency, contractual availability, repeated provider incidents, more than 50% warning or projected 70% quota use, backlog/connection pressure, queue expiry risk that cannot be safely tolerated, or business impact exceeding the paid plan. The first paid step is dedicated single-node managed RabbitMQ; three-node quorum queues become mandatory before a contractual high-availability promise.
@@ -1024,7 +1032,7 @@ Primary references:
 
 ### Content service and email compilation
 
-Content starts as one independently deployable service on VPS B, beside Audience and Campaign, with two isolated modules: **Template Management** and **Email Document & Compiler**. Template Management owns template metadata, folders, tags, collections, permissions, publication state, versions, localization, brand assignment, and usage references. Email Document & Compiler owns the versioned email-document contract, block validation, variable schemas, asset references, preview compilation, and immutable send artifacts. They share one repository, image, Compose stack, logical PostgreSQL database, and deployment initially; module boundaries prohibit direct cross-module repositories and make later extraction evidence-driven rather than mandatory.
+Content starts as one independently deployable service, with two isolated modules: **Template Management** and **Email Document & Compiler**. Template Management owns template metadata, folders, tags, collections, permissions, publication state, versions, localization, brand assignment, and usage references. Email Document & Compiler owns the versioned email-document contract, block validation, variable schemas, asset references, preview compilation, and immutable send artifacts. They share one repository, image, logical PostgreSQL database, and deployment initially; module boundaries prohibit direct cross-module repositories and make later extraction evidence-driven rather than mandatory. A future VPS reference may place Content beside Audience and Campaign only after the placement gate; Railway remains the current MVP compute platform.
 
 The initial stack is TypeScript on the pinned Node.js LTS runtime, Hono, Zod/OpenAPI, PostgreSQL with Drizzle, R2 for image and exported-template assets, Pino and OpenTelemetry, and RabbitMQ through the accepted outbox/inbox conventions. Redis is not a required Content dependency initially: drafts and versions are durable PostgreSQL state, compiled artifacts are durable object or database state, and cache adoption requires measured compilation or read pressure. The same image runs separate API and compiler-worker processes so compilation load, retries, timeouts, and concurrency do not block interactive API requests.
 
@@ -1065,7 +1073,7 @@ Trade-offs:
 - A compiler upgrade can change output. MailFlow pins the version, records it with artifacts, runs golden and client-render regression tests, and never silently recompiles an already queued send.
 - MJML does not supply the visual editor, durable version model, permissions, variables, localization, sanitization policy, or deliverability validation. These remain MailFlow responsibilities.
 - Separating API and worker processes adds operational structure, but prevents expensive or malformed compilation from consuming interactive request capacity and prepares later independent scaling without declaring another service prematurely.
-- Co-locating Content on VPS B avoids another host for initial customers but shares host-level resource and failure pressure with Audience and Campaign. The placement gate must prove headroom, and compiler concurrency must be capped before production activation.
+- Co-locating Content in a future placement avoids another host for initial customers but shares resource and failure pressure with Audience and Campaign. The placement gate must prove headroom, and compiler concurrency must be capped before production activation.
 
 Validation and re-evaluation:
 
@@ -1291,11 +1299,11 @@ Why this stack fits:
 
 Initial placement:
 
-- Workflow begins on VPS B only after the placement gate proves CPU, memory, connection-pool, broker, and failure-domain headroom beside Audience, Campaign, and Content.
-- VPS A is rejected as the default because it remains the critical Gateway, Identity, Mail, ClamAV, and later Billing host. Workflow authoring and publication must not consume or couple that path for convenience.
-- VPS B groups later marketing control-plane capabilities and keeps Mail available during a Workflow outage. Co-location does not permit shared processes, databases, credentials, repositories, domain code, unsigned calls, or unversioned contracts.
-- A VPS B failure makes Workflow authoring/publication unavailable but must not stop already running automation instances when Runtime is placed in a separate failure domain. RabbitMQ retains bounded publication traffic for recovery, subject to broker policy.
-- If VPS B fails the capacity gate, Workflow receives another host rather than weakening reservations or moving to VPS A. Moving hosts changes routing, workload identity, secrets, network policy, deployment, and telemetry, not its database or contracts.
+- Workflow receives a placement only after a gate proves CPU, memory, connection-pool, broker, and failure-domain headroom beside Audience, Campaign, and Content. In the future VPS reference, this is the VPS B placement; on Railway, services and environments provide the initial deployment boundary.
+- The future VPS A is rejected as the default for Workflow because it remains the critical Gateway, Identity, Mail, ClamAV, and later Billing host. Workflow authoring and publication must not consume or couple that path for convenience.
+- A future VPS B groups later marketing control-plane capabilities and keeps Mail available during a Workflow outage. Co-location does not permit shared processes, databases, credentials, repositories, domain code, unsigned calls, or unversioned contracts.
+- A future VPS B failure makes Workflow authoring/publication unavailable but must not stop already running automation instances when Runtime is placed in a separate failure domain. RabbitMQ retains bounded publication traffic for recovery, subject to broker policy.
+- If a future placement fails the capacity gate, Workflow receives another approved placement rather than weakening reservations or moving it to the critical Core path. Moving hosts changes routing, workload identity, secrets, network policy, deployment, and telemetry, not its database or contracts.
 
 Trade-offs and rejected alternatives:
 
@@ -1306,7 +1314,7 @@ Trade-offs and rejected alternatives:
 - Python and Go remain valid specialized-worker options but do not currently offset the polyglot build, contract, telemetry, deployment, and team-context cost for ordinary graph validation and publication.
 - Building graph-canvas infrastructure in the service is rejected. React Flow is presentation only, and Automation Runtime is execution only; Workflow owns the portable semantics between them.
 
-Re-evaluate when representative graph validation or compilation becomes CPU-bound; publication queue age misses its SLO; collaboration requires a proven CRDT/OT architecture; workflow documents exceed PostgreSQL or API size/latency budgets; node-catalog evolution produces unsafe compatibility burden; VPS B lacks safe headroom; or an independent compliance, availability, or recovery boundary becomes necessary.
+Re-evaluate when representative graph validation or compilation becomes CPU-bound; publication queue age misses its SLO; collaboration requires a proven CRDT/OT architecture; workflow documents exceed PostgreSQL or API size/latency budgets; node-catalog evolution produces unsafe compatibility burden; the selected placement lacks safe headroom; or an independent compliance, availability, or recovery boundary becomes necessary.
 
 Primary references:
 
@@ -1647,7 +1655,7 @@ Initial fair-scheduling policy:
 - Global FIFO is rejected because one import, campaign, resumed hold, or hot workspace could create head-of-line blocking for every tenant. Unbounded priority queues and plan-paid starvation are also rejected.
 - Metrics and deterministic load tests measure per-workspace wait distributions, oldest-ready age, dispatch share, quantum use, starvation, hot-tenant impact, database claim contention, and recovery after a large backlog. Replace the initial algorithm only when evidence shows its fairness or throughput misses the accepted SLO.
 
-Production deployment and placement:
+Future self-managed production deployment and placement:
 
 - Automation Runtime starts production on VPS C, in a failure and resource domain separate from the VPS B Workflow control plane and the critical VPS A Gateway/Identity/Mail plane. Local development and homologation may co-locate containers; production activation does not.
 - Runtime has its own repository, immutable image, Compose project, logical PostgreSQL database, credentials, migrations, RLS policies, Infisical project/scope and machine identity, telemetry identity, deployment lock, health checks, resource limits, rollback target, and backup/restore procedures.
@@ -1658,7 +1666,7 @@ Production deployment and placement:
 - VPS A, VPS B, and VPS C use direct WireGuard peer links in a full mesh. A never relays B-C traffic, B never relays A-C traffic, and C never relays A-B traffic. This removes a host-level transit bottleneck and allows Gateway-to-Runtime, Workflow/Audience-to-Runtime, and Runtime-to-owning-service calls to take the direct private path.
 - Each host has its own environment-specific WireGuard key pair and fixed tunnel address. `AllowedIPs`, provider-native firewalls—OCI NSGs or DigitalOcean cloud firewalls—and host firewalls expose only the peer routes and service ports required by the accepted call graph. Internal DNS names resolve to tunnel addresses; possession of a host key grants transport reachability only and never domain authorization.
 
-Why VPS C is justified:
+Why a future VPS C may be justified:
 
 - Runtime maintains continuous consumers, schedulers, timers, retries, parallel branches, external calls, and recovery work. Its load and incident profile differ materially from interactive authoring and ordinary request/response APIs.
 - VPS A already carries the highest-impact Gateway, Identity, Mail, ClamAV, and later Billing failure domain. Runtime contention, retry storms, or provider incidents cannot be allowed to reduce mail reception, authentication, or inbox availability.
@@ -1767,15 +1775,15 @@ Polyglot choices are reviewed regularly and must earn their deployment, observab
 
 Billing is an independent bounded context and deployable service implemented with the default TypeScript/Node.js, Hono, PostgreSQL, Drizzle, OpenAPI, and OpenTelemetry stack. Stripe owns payment collection, subscription and invoice processing, payment-method handling, and the hosted financial self-service experience. MailFlow owns product plans, workspace subscription projections, entitlements, quotas, grace and suspension policy, operational overrides, and authorization decisions.
 
-Initial physical placement:
+Future physical placement reference after a VPS migration:
 
-- Billing begins co-located on VPS A because its expected API and webhook volume is small and its durable state already lives in managed PostgreSQL and Stripe. Co-location is a cost decision, not a reversal of the service boundary.
+- Billing may begin co-located on future VPS A because its expected API and webhook volume is small and its durable state already lives in managed PostgreSQL and Stripe. On Railway, Billing receives its own environment services if and when it enters the MVP scope. Co-location is a cost decision, not a reversal of the service boundary.
 - Billing has its own repository, immutable image, Compose project, deployment lock, rollback target, health checks, resource limits, logical database, credentials, migrations, and telemetry identity.
 - `billing-api` and `billing-worker` are separate containers that may use the same immutable Billing image with different startup commands. Only the API is reachable from the internal Gateway route; the worker has no inbound product route.
 - Billing never shares a process, tables, schema migrations, database credentials, repositories, or Stripe adapter with Gateway, Identity, or Mail.
-- A Billing process or deployment failure must not make Mail or Identity unready. Full VPS A loss still removes Gateway, Identity, Mail, and Billing together; container separation is not host high availability or a hard VM security boundary.
-- Billing receives its own runtime machine identity and an enforceable service-scoped Infisical boundary. If Billing is the first independently permissioned runtime introduced after Audience, it consumes the sixth identity and activates the accepted paid-Infisical transition; if another service has already activated that transition, Billing is provisioned under the paid service-scoped project/RBAC layout. Reusing the VPS A/Core identity is never a cost workaround.
-- Move Billing to the next dedicated host available when it needs an independent SLO or failure domain; security/compliance requires a separate host trust boundary; Billing deploys or incidents affect Core; VPS A lacks safe CPU/memory headroom; or Billing needs independent scaling. This may be VPS C before Automation is activated, but VPS C becomes reserved for Automation Runtime at that activation and Billing then uses another host such as VPS D. Because the database and Stripe remain external, this move changes image placement, private networking, routing, secrets, and workload identity without moving canonical Billing data.
+- A Billing process or deployment failure must not make Mail or Identity unready. Full future VPS A loss would remove Gateway, Identity, Mail, and Billing together; container separation is not host high availability or a hard VM security boundary.
+- Billing receives its own runtime machine identity and enforceable service-scoped Infisical boundary only when an independently permissioned runtime is introduced. Reusing a Core identity is never a cost workaround.
+- Move Billing to another approved placement when it needs an independent SLO or failure domain; security/compliance requires a separate host trust boundary; Billing deploys or incidents affect Core; the selected placement lacks safe CPU/memory headroom; or Billing needs independent scaling. Because the database and Stripe remain external, this move changes image placement, private networking, routing, secrets, and workload identity without moving canonical Billing data.
 
 Initial Stripe integration:
 
@@ -1851,7 +1859,7 @@ Tiptap JSON is the editable source. Plain text is derived, and the backend perfo
 
 ### Cloudflare
 
-Cloudflare centralizes DNS, TLS, CDN/WAF, frontend Workers, and object storage.
+Cloudflare centralizes DNS, TLS, CDN/WAF, frontend Workers, and object storage. The current Core API uses Railway-generated public domains; Cloudflare custom-domain routing is a future option and is not part of the current Railway API ingress.
 
 Production and homologation use private Cloudflare R2 Standard buckets separated by environment, not by workspace. Object keys include tenant prefixes, and each environment receives least-privilege credentials. Presigned operations are short-lived and restricted by CORS. R2's location hint is best effort and must not be described as strict US data residency. AWS S3 regional storage is reconsidered if contractual residency requires it.
 
@@ -1867,42 +1875,42 @@ The initial Infisical layout is:
 - Development (`dev`), staging, and production environments.
 - `/mailflow-core`, `/mailflow-web`, and `/mailflow-site` paths in the MVP.
 - Two human identities.
-- Machine identities for GitHub Actions OIDC and production VPS A; production VPS B receives its own identity when Audience is extracted. VPS A and VPS B never share a machine credential.
-- GitHub Actions uses OIDC and short-lived access rather than a permanent Infisical token.
-- Homologation has no dedicated runtime identity. GitHub Actions reads the staging secrets from Infisical during deployment and injects only the selected values into the homologation workloads. Infisical remains the source of truth; a staging secret change takes effect through a controlled redeployment.
+- Railway uses one App Connection with a project-scoped token for each Railway environment: `railway-mailflow-core-development`, `railway-mailflow-core-staging`, and `railway-mailflow-core-production`. Each connection is used by two service-level Secret Syncs, one for the API and one for the worker, for six syncs total. Sync source is `/mailflow-core` in the matching Infisical environment.
+- `DATABASE_URL` is synchronized from Infisical into each environment's API and worker services. `APP_ENV` is ordinary non-secret Railway configuration, isolated per environment and service. CI does not receive Neon credentials or need Infisical access for the ordinary quality gates.
+- GitHub Actions may use OIDC and short-lived Infisical access in a future workflow that genuinely needs to read secrets; a permanent Infisical token is not accepted.
+- A future self-managed host or independently permissioned runtime receives its own machine identity only when that runtime is actually introduced. Future VPS A and VPS B, if selected, never share a machine credential.
 - Cloudflare Worker secrets are synchronized into native Cloudflare secret bindings; only server-side Worker code can receive them.
 
-An Infisical agent/fetch step delivers secrets before a process starts. Domain/application code does not call the Infisical SDK and therefore remains secrets-provider neutral. Prefer file-mounted secrets with per-service access; when a library only accepts an environment variable, inject it into that process rather than the image, command arguments, source, or logs. Production secret changes use a controlled restart; development-only `--watch` behavior is not used to restart production unexpectedly.
+Railway Secret Sync delivers the current environment variables before the API and worker processes start or restart. A future local or VPS deployment may use an Infisical agent/fetch step instead. Domain/application code does not call the Infisical SDK and therefore remains secrets-provider neutral. Prefer file-mounted secrets with per-service access; when a library only accepts an environment variable, inject it into that process rather than the image, command arguments, source, or logs. Production secret changes use a controlled service restart; development-only `--watch` behavior is not used to restart production unexpectedly.
 
 Why Infisical fits:
 
 - Two developers receive a shared operational UI and a single source of truth instead of manually exchanging encrypted files.
-- Environments, secret paths, human identities, and machine identities map cleanly to MailFlow's deployment and future service boundaries.
-- GitHub OIDC removes a long-lived CI credential.
-- Native Docker, GitHub, and Cloudflare integrations reduce custom secret-delivery scripts.
-- The current Free allocation of up to five identities and three environments fits both the MVP and the first two-VPS topology: the MVP uses two humans, CI, and VPS A; Audience extraction adds VPS B as the fifth identity.
+- Environments, secret paths, human identities, Railway services, and future service boundaries map cleanly without placing provider-specific secret code in the application.
+- Railway Secret Sync removes the need for a runtime Infisical CLI or a long-lived secret token in the current MVP services.
+- GitHub OIDC remains the preferred short-lived access pattern for any future CI operation that needs Infisical.
+- Native Railway, GitHub, and Cloudflare integrations reduce custom secret-delivery scripts.
 
 Trade-offs and controls:
 
-- The first two-VPS topology consumes the fifth identity and leaves no growth margin. The first independently permissioned runtime introduced after Audience—whether Billing, Campaign, Content, Workflow, Automation Runtime, AI, Analytics, or another service—or a direct homologation runtime identity requires a paid plan or another explicitly approved delivery design.
-- Secret folders organize values but are not automatically an authorization boundary. On the Free plan, built-in project roles do not provide the same per-path isolation as paid custom RBAC.
-- When Audience is extracted, secrets are split into two Infisical projects: `mailflow-core` and `mailflow-audience`. The VPS A identity is assigned only to `mailflow-core`; the VPS B identity is assigned only to `mailflow-audience`; the two human identities and the CI identity may be assigned to both according to their operational responsibilities. This uses project membership as the enforceable Free-plan boundary and remains within the three-project and five-identity allowances.
-- After the paid transition, service secrets use separate projects or enforceable custom RBAC/scopes according to the selected Infisical plan. No fixed service order or third-project assignment is assumed. Every independently permissioned runtime keeps its own machine identity even when services share a VPS.
+- Secret folders organize values but are not automatically an authorization boundary. On the Free plan, built-in project roles do not provide the same per-path isolation as paid custom RBAC; the environment-scoped Railway Project Tokens and separate environment connections provide the current MVP delivery boundary, while each sync targets one service.
+- If Audience or another context is later extracted to a separately permissioned runtime, its secret scope and machine identity are designed before deployment. A future migration to VPS hosts may split projects or use enforceable custom RBAC according to the selected Infisical plan; the current MVP does not pre-provision those identities.
+- After any paid transition, service secrets use separate projects or enforceable custom RBAC/scopes according to the selected Infisical plan. No fixed service order or third-project assignment is assumed. Every independently permissioned runtime keeps its own machine identity even when services share a host.
 - Shared sensitive values are not copied into both projects merely for convenience. A secret belongs to the service that owns the external capability or data boundary. Any unavoidable duplicated credential has an explicit owner, independent rotation procedure, and documented blast radius.
 - Free lacks secret versioning, point-in-time recovery, and searchable audit logs. Pro/alternative cost is reviewed before those controls become contractual requirements.
 - Infisical Cloud becomes a control-plane dependency. Already-running containers continue using injected values, but provisioning a new host may depend on Infisical availability.
 - Keep an encrypted, access-controlled, offline break-glass bundle of essential static secrets. Update and test it after rotation; it is recovery material, not a second editable source of truth.
 - Infisical Agent persistent caching for ordinary VM deployments must not be assumed equivalent to its documented Kubernetes persistent cache.
-- Do not self-host Infisical on the MailFlow MVP VPS. Doing so would create a circular bootstrap/failure dependency and add another PostgreSQL/Redis workload to the same host.
+- Do not self-host Infisical for the Railway MVP. Doing so would create a circular bootstrap/failure dependency and add another high-value control-plane workload to the product's operational surface.
 
 Rejected for the MVP:
 
 - SOPS plus age as the primary workflow: portable and inexpensive, but less convenient for two-person daily operations, access changes, and environment visibility. Age encryption may still protect the break-glass bundle.
 - Plain `.env` files or GitHub Secrets as the system of record: weak sharing, rotation, environment visibility, and runtime delivery semantics.
-- OCI Vault: stronger cloud-native identity but unnecessarily couples the accepted DigitalOcean fallback to OCI.
+- OCI Vault: stronger cloud-native identity but unnecessarily couples a future provider choice to OCI.
 - Self-hosted HashiCorp Vault: excessive operational and availability burden for one host and two developers.
 
-Re-evaluate at the first of: more than five identities, need for path-scoped custom RBAC inside either service project, frequent/dynamic rotation, required secret-access auditing/PITR, the first independently permissioned runtime after Audience, direct homologation runtime authentication, or contractual secrets-manager availability. Audience-on-VPS-B consumes the final Free identity; the exact later service that triggers the transition depends on delivery order.
+Re-evaluate at the first of: more than the available identities, need for path-scoped custom RBAC inside either service project, frequent/dynamic rotation, required secret-access auditing/PITR, the first independently permissioned runtime after the MVP, direct homologation runtime authentication, a future VPS migration, or contractual secrets-manager availability.
 
 Primary references:
 
@@ -1938,9 +1946,9 @@ Primary references:
 
 ### PostgreSQL hosting
 
-Production uses Neon Launch paid in US East:
+Production uses Neon Launch paid in US East, and development/staging use their isolated Neon environments in the same logical region:
 
-- Direct TLS connections from the Core VPS and, after extraction, each service host to its service-owned logical database.
+- Direct TLS connections from the Railway API and worker services to their matching service-owned logical database; a future VPS migration preserves this external database boundary.
 - Scale-to-zero disabled for production.
 - A deliberately sized connection pool.
 - Provider PITR target of at least seven days.
@@ -1950,50 +1958,43 @@ Neon Free remains for disposable development or demos. It was rejected for produ
 
 ### Backend compute
 
-The accepted staged policy is:
+Railway is the accepted MVP compute platform:
 
-1. Run the controlled pilot on an OCI Always Free A1 Flex instance in the Ashburn home region, if capacity is available.
-2. Treat availability and the 99.5% MVP SLO as aspirational rather than contractual while on reclaimable free compute.
-3. Do not create artificial load to avoid Oracle idle-resource reclamation.
-4. At the MVP decision gate, prefer a genuinely paid OCI VM if OCI operations have been satisfactory.
-5. Use DigitalOcean as the tested portable fallback if OCI capacity, complexity, or support is unsatisfactory.
-6. Move to paid compute immediately if customers depend on the service daily or require a contractual availability commitment.
-7. At Audience extraction, provision VPS B with the same selected compute provider and US region as VPS A and attach both to that provider's private network, even if measured traffic would still fit VPS A. OCI uses a VCN/NSGs; the DigitalOcean fallback uses a VPC/cloud firewalls. This deliberate distribution is a learning and validation objective, not a claim that current load requires another host.
+- The `mailflow-core` project has isolated `development`, `staging`, and `production` environments.
+- Each environment has one API service and one worker service. The intended API and worker builds use the same `mailflow-core` repository and selected portable Dockerfile, with distinct start commands; implementation and deployment validation remain pending.
+- API services use environment-specific Railway public domains. Worker services have no public domain or HTTP ingress.
+- The services use Railway in US East (Virginia) and connect to their corresponding Neon PostgreSQL environment in US East (Virginia). R2 and Resend remain external services.
+- `DATABASE_URL` is delivered by the matching Infisical Secret Sync. `APP_ENV` is ordinary Railway configuration isolated per environment. The current MVP does not require runtime Infisical agents or host machine identities.
+- Railway's native auto-deploy and Wait for CI settings are already enabled for all six services. GitHub Actions owns CI quality gates; Railway owns the native build and deployment after CI permits the commit.
 
-Upgrading an OCI account while continuing to use an Always Free-eligible VM does not make that VM a paid reliability tier. The paid transition creates a new non-free VM, expected to be comparable to an OCI `VM.Standard.E4.Flex` with roughly 1 OCPU/2 vCPU and 4 GB RAM, or a comparable DigitalOcean Basic Droplet. Exact shapes and prices must be reverified at purchase time.
+The Dockerfile packaging decision is retained even though Railway can detect and build the project without one. Its contract fixes the Node 24 runtime, non-root execution, API/worker command split, and a portable image contract for the future VPS migration. CI must validate the image locally or in an isolated environment; no secret is embedded in the image.
 
-ClamAV makes 4 GB RAM the safer minimum. The Core API, worker, and ClamAV run as distinct containers. Durable state remains in Neon, R2, and Resend, so compute replacement does not require production data migration.
+The MVP accepts Railway's operational cost. A migration to paid VPS compute is a future, evidence-triggered change when customer dependency, measured resource pressure, availability commitments, provider control, portability, or total-cost evidence justifies taking on host patching, networking, monitoring, backup, and deployment operations. OCI and DigitalOcean remain historical candidates for that migration; neither is a guaranteed future provider.
 
-The current Always Free documentation must be rechecked at provisioning time. If its A1 allocation and capacity permit two instances, the planning baseline is approximately 1 OCPU/8 GB for VPS A and 1 OCPU/4 GB for VPS B. This split is a pilot hypothesis, not a guaranteed entitlement or production sizing result. If free capacity or limits cannot provide both hosts safely, Audience extraction uses a small paid VPS rather than moving Audience back onto VPS A or starving ClamAV/Core.
+Future VPS migration reference:
 
-Portability requirements:
-
-- Docker Compose for each host deployment unit: one Compose project for MVP/VPS A and a separate Audience project for VPS B after extraction.
-- Multi-architecture images in GHCR so OCI Arm and x86 providers remain options.
-- OpenTofu, minimal cloud-init, and Ansible with the responsibility boundaries defined below.
-- External secrets and no canonical durable application state on either VM.
-- Cloudflare origin routing so cutover does not change the public hostname.
-- Idempotent workers and a deploy lock to prevent concurrent database migrations.
-
-A rehearsed compute migration provisions the target host, applies network/secrets, starts the immutable images, performs health checks, updates the relevant internal or Cloudflare route, drains the old worker/API, and retires the old host after verification. Before the distributed topology exists, one service may move independently. After VPS A and VPS B form the accepted private topology, a provider migration moves the related hosts as one planned topology or requires an explicit cross-provider ADR; accidental public or cross-provider service paths are prohibited.
+- Docker Compose, multi-architecture images, external secrets, and no canonical durable application state on a host preserve portability.
+- A future host deployment may use OpenTofu, cloud-init, Ansible, private networking, host firewalls, and a private ingress mechanism. The exact provider, region, network transport, topology, and costs require a new review at migration time.
+- A rehearsed migration must provision the target host, apply network and secrets, start the images, perform health checks, update routing, drain the old worker/API, and retire the old host only after verification.
+- Durable state remains external in Neon, R2, and provider systems, so compute replacement should not require moving canonical application data.
 
 ### Infrastructure as code and host configuration
 
-The selected automation stack is deliberately layered:
+The following automation stack is a future VPS migration reference. It is not required to operate the current Railway MVP; Railway's project/environment/service settings remain the current infrastructure control plane.
 
-- OpenTofu owns external infrastructure resources and their lifecycle: provider-equivalent compute, private-network, and firewall resources (OCI or DigitalOcean), Cloudflare resources, dedicated R2 buckets, DNS, and other resources only when the corresponding provider is sufficiently mature.
+- OpenTofu would own external infrastructure resources and their lifecycle: provider-equivalent compute, private-network, and firewall resources, Cloudflare resources, dedicated R2 buckets, DNS, and other resources only when the corresponding provider is sufficiently mature.
 - Cloud-init performs first-boot bootstrap only: create the operational account and install the minimal prerequisites required to run Ansible. It does not become the long-term host configuration system.
-- Ansible owns repeatable host configuration: operating-system packages, Docker, WireGuard after Audience extraction, local firewall rules, Caddy, `cloudflared`, ClamAV, filesystem permissions, service definitions, and operational hardening. Host roles ensure Audience VPS B does not receive Mail/ClamAV configuration.
+- Ansible would own repeatable host configuration: operating-system packages, Docker, any future private transport, local firewall rules, Caddy, `cloudflared`, ClamAV, filesystem permissions, service definitions, and operational hardening. Host roles would ensure an Audience host does not receive Mail/ClamAV configuration.
 - Docker Compose owns each host's application container topology, health checks, networks, resource limits, and image versions. It does not provision cloud resources, cross-host networking, or the base operating system.
-- GitHub Actions orchestrates validation, OpenTofu plan/apply, immutable image publication, host configuration, and the accepted blue/green deployment procedure.
+- GitHub Actions is assigned CI validation only. A future VPS migration could extend it to OpenTofu plan/apply, immutable image publication, host configuration, and a blue/green deployment procedure after an explicit deployment decision.
 - Infisical remains the secret source of truth. Application code has no OpenTofu, Ansible, or Infisical-specific dependency.
 
 Why this split fits:
 
 - OpenTofu models cloud-resource dependency and lifecycle through declarative state and reviewable plans.
 - Ansible can be safely rerun to reconcile mutable host configuration; cloud-init is intentionally optimized for instance initialization rather than continuing configuration management.
-- Docker Compose remains a portable runtime description across OCI Arm, paid OCI, and the DigitalOcean fallback.
-- GitHub Actions already owns the accepted CI/CD flow and supplies environment protection, OIDC, deployment history, and per-environment concurrency.
+- Docker Compose remains a portable runtime description across future provider candidates, including OCI and DigitalOcean if either is selected after migration review.
+- GitHub Actions owns the current CI validation and can supply environment protection, OIDC, deployment history, and per-environment concurrency if future infrastructure workflows require them.
 - Clear ownership prevents three automation tools from independently modifying the same resource.
 
 #### OpenTofu remote state policy
@@ -2034,29 +2035,31 @@ Primary references:
 
 ### MVP deployment topology
 
-The OCI host runs one Docker Compose deployment with no durable application data on local disk:
+The current MVP runs on Railway with external durable and provider dependencies:
 
-- `cloudflared` creates outbound-only Cloudflare Tunnel connections. Public HTTP/HTTPS origin ports remain closed, preventing direct origin bypass.
-- Caddy is the stable internal reverse proxy and switches traffic between blue and green Core API containers after health checks.
-- `core-api-blue` and `core-api-green` are alternative slots built from the same immutable Core image; only the ready active slot receives new traffic.
-- `core-worker` uses the same Core image with a different startup command and no public route.
-- `clamav` is isolated on the internal container network and can be reached only by the worker.
-- `otel-collector` receives local telemetry and exports it to the selected observability backend.
-- Neon, R2, and Resend remain external systems of record/providers.
-
-The target for the OCI Free pilot is 8 GB RAM when capacity permits; 4 GB is the absolute production minimum. ClamAV receives approximately 1.5–2 GB of reserved/limited memory. Attachment scanning begins at concurrency one, while lightweight inbound/outbound jobs begin at aggregate concurrency four. Both values are configuration and are tuned from measured CPU, memory, queue latency, and provider rate limits.
+- The `mailflow-core` Railway project has isolated `development`, `staging`, and `production` environments.
+- Each environment contains one API service and one worker service. The six services are intended to use the same repository and selected Dockerfile, with separate API and worker start commands; Dockerfile implementation and deployment validation remain pending.
+- API services have environment-specific Railway public domains: `mailflow-core-api-dev.up.railway.app`, `mailflow-core-api-staging.up.railway.app`, and `mailflow-core-api.up.railway.app`.
+- Worker services have no public domain or HTTP ingress. They perform background work through outbound connections and use the same environment's Neon database.
+- Railway is deployed in US East (Virginia), aligned with the corresponding Neon PostgreSQL environments. R2 and Resend remain external systems of record and providers.
+- Railway native auto-deploy and Wait for CI are enabled for all six services. GitHub Actions owns CI validation; Railway performs native build and deployment after the CI result permits the commit.
+- `DATABASE_URL` is synchronized from the matching Infisical environment and `/mailflow-core` path. `APP_ENV` is isolated per Railway environment and service. No Infisical runtime agent, host tunnel, or host machine identity is required by this topology.
+- ClamAV remains mandatory before an attachment becomes available. Its planned MVP deployment is a private Railway workload with no public ingress and a worker-only connection; it has not yet been provisioned. A local container remains a future VPS implementation option.
 
 Health behavior is deliberately separated:
 
 - `/health/live` proves only that the process/event loop is alive.
 - `/health/ready` proves configuration, initialization, and PostgreSQL connectivity.
 - R2 and Resend outages degrade their capabilities but do not make the entire API unready or trigger restart loops.
-- The worker records a PostgreSQL heartbeat and queue lag; ClamAV has an independent health check.
-- Metrics and the Caddy administration API remain internal.
-- Public SSH is closed. Administration uses Cloudflare Access/Tunnel or the OCI console.
-- Resend webhooks remain publicly routable through Cloudflare but require signature and timestamp verification, replay protection, and idempotent persistence.
+- The worker records a PostgreSQL heartbeat and queue lag when worker processing is implemented; ClamAV has an independent private health check when provisioned.
+- Railway service logs and metrics remain platform-internal unless explicitly exported through the observability stack.
+- Resend webhooks remain publicly routable through the approved public API route but require signature and timestamp verification, replay protection, and idempotent persistence.
 
-Deployment uses a single immutable multi-architecture artifact:
+The selected Railway build contract uses the Dockerfile as its portable recipe. Dockerfile and CI implementation and validation are tracked by the CI/CD work; the current panel configuration alone is not deployment evidence. Railway may rebuild API and worker deployments for each environment, so the current configuration does not claim immutable digest promotion. The earlier build-once and same-digest promotion policy remains an open CI/CD decision: native Railway rebuilds cannot be described as immutable promotion, and a GHCR-based promotion path must be introduced only if that policy is retained after the CI/CD review.
+
+### Future VPS reference deployment
+
+If measured scale or operational requirements justify migration from Railway, a future self-managed deployment may use the following reference procedure:
 
 1. GitHub Actions builds and publishes the SHA-tagged image.
 2. Compatible expand migrations run under a deployment lock.
@@ -2066,7 +2069,7 @@ Deployment uses a single immutable multi-architecture artifact:
 6. The old worker stops claiming jobs, completes active work within a bounded grace period, and lets unfinished leases expire for idempotent reprocessing.
 7. Destructive contract migrations occur only in a later release after every old application version is gone.
 
-Blue/green deployment removes routine application-release interruption; it does not make the system highly available. The single OCI host remains a shared failure domain for API, worker, ClamAV, Caddy, and `cloudflared`. Cloudflare Tunnel maintains redundant edge connections, but host-loss tolerance requires a connector/API replica on another machine. That expansion is triggered by a paid availability commitment or measured business impact.
+Blue/green deployment, Cloudflare Tunnel, Caddy, host-local collectors, and the single-host failure-domain assumptions in this reference are future VPS options. They are not current Railway requirements and do not imply that Railway provides host-level high availability. A future VPS migration must revalidate provider, region, resource sizing, network transport, secrets delivery, deployment locks, rollback, and total operating cost before adoption.
 
 Primary references:
 
@@ -2075,9 +2078,9 @@ Primary references:
 - [Caddy graceful configuration reload](https://caddyserver.com/docs/getting-started)
 - [Caddy reverse proxy health checks](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy)
 
-### First distributed topology at Audience extraction
+### Future distributed topology reference after Audience extraction
 
-The first distributed production-like topology is mandatory when Contact/Audience begins. It intentionally places one bounded context on another host even if the initial customer volume could run on VPS A. The objective is to exercise real service ownership, network failure, independent deployment, authorization, event delivery, tracing, and recovery before later domains multiply those concerns.
+When Contact/Audience becomes the first independently deployed business service, the architecture must preserve real service ownership, independent data and release boundaries, authorization, event delivery, tracing, and recovery. The following VPS A/VPS B layout is a future reference for a self-managed deployment; it is not mandatory while the MVP runs on Railway. Audience may first run as an independently deployed Railway service if that better fits measured scale and operating capacity, and a later move to VPS hosts remains reversible while canonical data stays external.
 
 **VPS A — Core edge and Mail failure domain**
 
@@ -2141,9 +2144,9 @@ This topology is preferred over placing the learning service in another provider
 
 The accepted next evolution of this two-host topology is the direct A-B-C full mesh when Automation Runtime activates on VPS C. Re-evaluate the resulting static WireGuard topology when host count makes peer/key management unsafe, services use dynamic scheduling, multi-provider/region routing becomes required, policy needs workload-level transport identity, or compliance requires stronger certificate-bound controls. At that point compare SPIFFE/SPIRE, application mTLS, a managed private network, or a service mesh; do not preserve WireGuard merely because it was the first implementation.
 
-### Progressive placement after Audience extraction
+### Future progressive placement after Audience extraction
 
-An independent service does not imply a dedicated VPS. After the mandatory Audience extraction, VPS A and VPS B are the first placement candidates for each new service, but they are not a permanent two-host ceiling.
+An independent service does not imply a dedicated VPS. After Audience becomes independently deployed, Railway services or future VPS A/VPS B hosts are placement candidates according to evidence; there is no permanent host-count assumption.
 
 Before implementing a new bounded context, its architecture sprint records a placement decision based on:
 
@@ -2156,13 +2159,13 @@ Before implementing a new bounded context, its architecture sprint records a pla
 
 Co-location is allowed only when the service retains its own repository, image, Compose project, process/container, database and credentials, migrations, secret scope, health checks, resource limits, telemetry identity, deployment lock, and rollback target. No host-local shortcut permits cross-service database access, unsigned calls, shared domain code, or unversioned contracts.
 
-VPS B is not a generic overflow host: placing another service there explicitly expands the Audience failure domain and must preserve Audience recovery and capacity. VPS A remains the critical edge/Identity/Mail host, so convenience alone cannot add background or compute-heavy workloads to it. If neither host passes the gate, MailFlow provisions the next dedicated host available rather than weakening isolation, SLOs, or safe resource headroom. VPS C is reserved for Automation Runtime from its production activation onward, so another service may require VPS D.
+In the future VPS reference, VPS B is not a generic overflow host: placing another service there explicitly expands the Audience failure domain and must preserve Audience recovery and capacity. VPS A remains the critical edge/Identity/Mail host, so convenience alone cannot add background or compute-heavy workloads to it. If neither future host passes the gate, MailFlow provisions another host rather than weakening isolation, SLOs, or safe resource headroom. Any VPS C reservation for Automation Runtime is a future placement decision, so another service may require another host.
 
 The placement result is revisited when observed load, latency, incidents, compliance, customer commitments, or deployment coupling invalidate its assumptions. Moving a service between hosts must not move its canonical managed data; routing, workload identity, secrets, firewall/WireGuard policy, deployment, and telemetry change while service contracts remain stable.
 
-### Three-host network at Automation activation
+### Future three-host network at Automation activation
 
-When Automation Runtime activates on VPS C, the production service network becomes a static WireGuard full mesh among VPS A, VPS B, and VPS C. The three direct pairs are A-B, A-C, and B-C; VPS A is not a central transit gateway. This is selected because Runtime needs direct authenticated access to action-owning services, Gateway needs direct access to the Runtime API, and Workflow/Runtime coordination must not make availability or latency depend on forwarding through the critical Core host.
+If a future self-managed deployment activates Automation Runtime on VPS C, the production service network may become a static WireGuard full mesh among VPS A, VPS B, and VPS C. The three direct pairs are A-B, A-C, and B-C; VPS A is not a central transit gateway. This remains a future network decision because Runtime needs direct authenticated access to action-owning services, Gateway needs direct access to the Runtime API, and Workflow/Runtime coordination must not make availability or latency depend on forwarding through the critical Core host.
 
 The full mesh does not mean broad trust. Every host uses a distinct environment-specific key, `AllowedIPs` is limited to known peer tunnel addresses, provider-native firewalls and host firewalls permit only required peer/port combinations, and internal service DNS resolves to stable tunnel addresses. Application-level audience-bound workload tokens and delegated assertions remain mandatory and are validated by the destination service. Managed PostgreSQL, RabbitMQ, Redis, R2, Resend, Stripe, and other approved providers are reached directly over their own authenticated TLS connections rather than through another VPS.
 
@@ -2170,7 +2173,7 @@ Three static hosts keep peer and key operations manageable while avoiding the bo
 
 #### Confirmed Audience service stack and placement
 
-Audience is the first independently deployed business service and begins on VPS B with its own repository, image, Compose project, logical PostgreSQL database, credentials, migrations, Infisical scope, telemetry identity, deployment lock, and rollback target. Its API and worker run as separate containers built from the same immutable image. Audience owns contacts, lists, segment definitions and evaluation, tags, notes, deduplication, suppression audiences, imports, exports, audience-health operational state, and its own audit decisions.
+Audience is the first independently deployed business service. In the future VPS reference it begins on VPS B with its own repository, image, Compose project, logical PostgreSQL database, credentials, migrations, Infisical scope, telemetry identity, deployment lock, and rollback target. On Railway, the same ownership is represented by separate API and worker services in the relevant environment. Its API and worker run as separate processes built from the same repository/image. Audience owns contacts, lists, segment definitions and evaluation, tags, notes, deduplication, suppression audiences, imports, exports, audience-health operational state, and its own audit decisions.
 
 Selected stack:
 
@@ -2265,7 +2268,7 @@ Ownership and privacy rules:
 Transport trade-offs:
 
 - The minimal ready event keeps RabbitMQ payloads bounded and reduces PII exposure, replay cost, broker storage, and schema coupling.
-- Paginated internal ingestion is selected first because expected volumes are small, both services initially run on VPS B, transfer is asynchronous, authorization remains at the owning service, and checkpoints permit bounded recovery.
+- Paginated internal ingestion is selected first because expected volumes are small, both services may initially run in the same Railway environment or future VPS placement, transfer is asynchronous, authorization remains at the owning service, and checkpoints permit bounded recovery.
 - A per-recipient lookup is rejected because it multiplies latency and makes Audience availability part of every delivery attempt. A direct database join is prohibited by service ownership. A giant recipient event is rejected because it turns the broker into a bulk-PII transport.
 - R2 is not the default snapshot transport. Re-evaluate an encrypted, immutable, short-retention R2 manifest/object when measured snapshot size, page count, transfer duration, API resource pressure, or replay cost makes the paginated API materially worse. An event still carries only a durable snapshot/artifact identifier and integrity metadata; consumers obtain access through a scoped mechanism rather than persisting an expiring URL.
 
@@ -2273,7 +2276,7 @@ The handoff is covered by contract, idempotency, pagination-resume, checksum, du
 
 #### Confirmed Campaign modular service, stack, and placement
 
-Campaign begins on VPS B as one independently deployed bounded context containing two extraction-ready modules:
+Campaign begins as one independently deployed bounded context containing two extraction-ready modules. Its future VPS reference placement is VPS B after the placement gate:
 
 - **Campaign Control** owns CRUD, drafts, immutable versions, audience-selection references, validation, test-send intent, scheduling, goals, audit decisions, and the launch command.
 - **Campaign Execution** owns batches, recipient execution state, campaign concurrency, campaign throttling/rate limits, semantic retry decisions, pause/resume execution state, progress, and campaign delivery telemetry. It sends versioned durable delivery commands to Mail and consumes Mail's progress and terminal results; it never uses Resend credentials or calls Resend directly.
@@ -2281,7 +2284,7 @@ Campaign begins on VPS B as one independently deployed bounded context containin
 Selected stack and deployment:
 
 - TypeScript on Node.js 24, Hono, Zod/OpenAPI, PostgreSQL, Drizzle, RabbitMQ, Redis for justified ephemeral controls, Pino, and OpenTelemetry.
-- One Campaign repository, immutable image, Compose project, enforceable Infisical service scope and runtime identity, deployment lock, and rollback target on VPS B. If Campaign is the first independently permissioned runtime after Audience, its identity activates the accepted paid-Infisical transition.
+- One Campaign repository, image, deployable, enforceable Infisical service scope and runtime identity when independently permissioned, deployment lock, and rollback target. In the future VPS reference these are hosted on VPS B; on Railway they are separate environment services. If Campaign is the first independently permissioned runtime after Audience, its identity activates the accepted paid-Infisical transition.
 - `campaign-api` and one or more Campaign worker containers use the same image with distinct startup commands, resource limits, health checks, and concurrency settings. A worker storm cannot run inside the API event loop.
 - One Campaign logical PostgreSQL database initially contains separate `campaign_control` and `campaign_execution` schemas. Each module owns its tables and migrations.
 - No cross-schema foreign keys, joins, views, direct repository access, or transaction spanning Control and Execution are permitted. Separate database roles are used where the process responsibilities allow them.
@@ -2292,20 +2295,20 @@ Selected stack and deployment:
 
 Why this stack and shape fit:
 
-- Campaign Control and Execution initially share product ownership, release sequence, customer volume, launch/execution lifecycle, and VPS B. A second campaign deployable, database deployment, host, networking path, secret identity, and on-call surface would add cost before independent scale is demonstrated.
+- Campaign Control and Execution initially share product ownership, release sequence, customer volume, and launch/execution lifecycle. A second campaign deployable, database deployment, host, networking path, secret identity, and on-call surface would add cost before independent scale is demonstrated.
 - The two modules still have materially different rules, so source dependencies, persistence ownership, runtime commands, queues, metrics, tests, and migrations are separated from the first implementation. Co-location saves infrastructure without creating a distributed monolith inside one database.
 - TypeScript/Node.js matches the two-developer platform and the I/O-bound workload of APIs, PostgreSQL, RabbitMQ, Redis, and Mail delivery commands/results. It reuses validation, authentication, contracts, observability, deployment, and test tooling while keeping CPU-heavy or blocking work outside the API process.
 - Hono preserves the accepted small REST/OpenAPI service surface. PostgreSQL supplies durable state and tenancy controls; RabbitMQ supplies the already-accepted distributed transport; Redis is restricted to state that can be rebuilt.
-- Gateway reaches Campaign through the private VPS A-to-VPS B path. Campaign-to-Audience calls remain versioned, authenticated, deadline-bound service calls even though both deployables share VPS B. No database shortcut is permitted.
+- Gateway reaches Campaign through the approved private service path. In the future VPS reference this is the VPS A-to-VPS B path; in the Railway MVP it is platform-managed service networking. Campaign-to-Audience calls remain versioned, authenticated, deadline-bound service calls even when deployables share a placement. No database shortcut is permitted.
 
 Trade-offs and extraction gate:
 
 - Launch and execution are eventually consistent because no cross-module transaction exists. Explicit intermediate states, idempotent consumption, reconciliation, and observable queue age are the accepted controls.
 - A single repository and image simplify delivery but can allow accidental coupling. Dependency-boundary linting, architecture tests, schema-access tests, contract tests, and separate module ownership in code review enforce the boundary.
 - A shared database simplifies the initial topology but makes future data relocation a migration. The absence of cross-schema joins, foreign keys, and transactions keeps that migration bounded and rehearsable.
-- VPS B failure degrades Audience plus both Campaign modules while Mail, Identity, and Billing continue on VPS A. Resource reservations prevent execution workers from starving Audience or Campaign Control.
+- A future VPS B failure degrades Audience plus both Campaign modules while Mail, Identity, and Billing continue on VPS A. Railway environment and service failures are evaluated with their platform-specific failure semantics. Resource reservations prevent execution workers from starving Audience or Campaign Control.
 - Extract Campaign Execution into the Delivery Service when workers need independent horizontal scale; campaign retry/orchestration incidents degrade authoring; queue age or database contention misses its SLO; deployments require independent cadence; or the execution schema needs independent recovery, retention, or database scaling. Extraction includes its own database, image/repository, Infisical identity, placement gate, and stable consumption of the existing Campaign-to-Mail contracts. It does not inherit Resend credentials or provider ownership unless a later explicit ADR transfers that boundary from Mail.
-- If combined Audience and Campaign load leaves unsafe VPS B headroom before Delivery extraction is justified, Campaign moves to the next dedicated host available rather than being placed on the critical VPS A by default. It may use VPS C only before Automation production reserves that host; afterward it uses another host such as VPS D.
+- If combined Audience and Campaign load leaves unsafe headroom before Delivery extraction is justified, Campaign moves to another approved placement rather than weakening the critical Core boundary. In the future VPS reference it may use another host such as VPS C or VPS D; Railway can scale or separate services according to measured resource and release requirements.
 
 Primary stack evidence:
 
@@ -2331,10 +2334,12 @@ Primary references:
 
 ### CI/CD
 
-- Trunk-based development around `main` with pull-request validation.
-- GitHub Actions runs linting, type checks, unit/integration tests, builds immutable SHA-tagged images, and deploys after merge.
-- Deployment sequence: build once, deploy to homologation, run smoke/E2E tests, then automatically promote the same artifact to production.
-- Use OIDC where supported, protected GitHub environments, deployment concurrency locks, and audited secrets.
+- GitHub Actions is the CI boundary for pull-request and branch quality checks. The workflow must run linting, format checks, type checks, unit/integration tests, and the production build before a merge is eligible.
+- Railway is the current CD boundary. Its native auto-deploy and Wait for CI settings are configured on all six `mailflow-core` services, so an accepted push to the service's deployment branch can trigger Railway's build and deployment after CI succeeds.
+- The intended promotion flow is `development -> staging -> production` through deliberate pull requests. The exact production branch name (`production` versus the existing `main`) remains unresolved and must be recorded before branch protection and service branch mappings are finalized.
+- GitHub Actions does not currently deploy through `railway up` or a competing deploy workflow. The Dockerfile remains the selected portable build recipe and is pending implementation with the CI workflow.
+- The earlier build-once, immutable SHA-tagged image and same-digest promotion policy remains an open CI/CD decision. Native Railway auto-deploy can rebuild per environment and must not be described as same-artifact promotion without evidence.
+- Use OIDC where a future workflow genuinely needs it, protected GitHub environments, deployment concurrency locks, and audited secrets.
 - Database changes follow expand-and-contract migrations.
 - Rollback restores the previous application artifact; forward-compatible migrations avoid destructive rollback assumptions.
 
@@ -2463,7 +2468,7 @@ Primary references:
 
 - OpenTelemetry SDK instruments Core API and worker boundaries.
 - Pino produces structured JSON application logs.
-- A vendor-neutral OpenTelemetry Collector runs on the MVP VPS; after Audience extraction, each VPS has a host-local Collector that performs enrichment, redaction, sampling, batching, and export.
+- OpenTelemetry SDKs and a vendor-neutral Collector remain planned MVP observability requirements. The current Railway services do not imply a host-local Collector: the Collector must run as a private Railway service or use an explicitly configured external endpoint before staging. Railway-native logs do not replace SDK instrumentation, redaction, batching, and export controls. A future VPS migration may run a host-local Collector for enrichment, redaction, sampling, batching, and export.
 - Grafana Cloud Free is the initial backend for metrics, logs, traces, dashboards, alerts, application observability, and synthetic checks.
 - Grafana Faro supplies browser real-user monitoring, JavaScript error collection, Web Vitals, browser logs, and client traces, with private source-map uploads.
 - Cloudflare's native Worker observability remains the fallback/source for Worker signals when the active Cloudflare plan does not permit external OTLP export. External export is enabled when plan support and cost are acceptable.
@@ -2471,7 +2476,7 @@ Primary references:
 Why this stack fits:
 
 - OpenTelemetry keeps instrumentation and correlation portable if the storage/visualization backend changes.
-- One Grafana backend correlates infrastructure metrics, structured logs, distributed traces, frontend behavior, and SLO alerts without operating Loki, Tempo, Mimir, or Grafana on the single MVP host.
+- One Grafana backend correlates infrastructure metrics, structured logs, distributed traces, frontend behavior, and SLO alerts without requiring the MVP team to operate Loki, Tempo, Mimir, or Grafana on Railway or a future host.
 - The current Grafana Cloud Free allowance includes three active users, which fits the team, and usage allowances well above the controlled pilot baseline.
 - Faro supplies browser errors, performance, sessions, and source maps without introducing a second observability vendor.
 - Pino is a small, high-throughput structured logger for the Node.js workload; log routing and policy remain in the Collector rather than custom transports in domain code.
@@ -2537,6 +2542,7 @@ The architecture decision tree is closed. No conditional validation gate or deli
 ### Confirmed
 
 - MVP and distributed service boundaries, database ownership, tenancy/RLS model, REST/OpenAPI and event-contract rules, outbox/inbox semantics, deployment evolution, and trust boundaries.
+- Railway is the accepted MVP compute and CD platform for `mailflow-core`, with three isolated environments, separate API/worker services, public API domains only, external Neon/R2/Resend dependencies, and Infisical Secret Sync delivery. A future migration to paid VPS compute is accepted as an evidence-triggered operational transition.
 - TypeScript/Node.js, Hono, Zod/OpenAPI, PostgreSQL/Drizzle, pg-boss as the transitional MVP job engine, RabbitMQ as the mandatory post-MVP substrate for internal jobs and cross-service messaging after its equivalence gate, and Redis as an independently activated ephemeral-state component, plus Cloudflare/R2, MinIO locally, Neon production PostgreSQL, Infisical, OpenTelemetry, and GitHub Actions.
 - React frontend with TanStack Query, Jotai, React Hook Form/Zod, Tailwind CSS, shadcn/ui with Base UI, Tiptap, and the documented visual-builder/workflow/analytics adapters.
 - Resend owned solely by Mail, Stripe owned by Billing, OpenRouter owned by AI, and provider credentials never shared across bounded contexts.
@@ -2565,7 +2571,7 @@ These gates validate adapters and operations. Passing them confirms the preferre
 
 Re-evaluate an accepted choice when its explicit trigger occurs:
 
-- **OCI Free to paid compute**: daily customer dependency, contractual SLO, reclaim/capacity issues, or sustained resource pressure.
+- **Railway MVP to paid VPS compute**: daily customer dependency, contractual SLO, sustained resource pressure, provider control/portability need, operational incidents, or measured total-cost evidence that justifies host operations. OCI and DigitalOcean remain historical candidates and require fresh provider review.
 - **Logical to physical database separation**: independent scaling, blast-radius reduction, compliance, noisy-neighbor effects, or service-level recovery requirements.
 - **pg-boss to RabbitMQ migration**: at the first independently deployed business service, beginning with Audience, activate RabbitMQ only after the job-equivalence and client-recovery evidence is accepted; migrate Mail's internal queues plus cross-service flows, preserve PostgreSQL outbox/schedule/inbox authority, keep pg-boss as the rollback path during cutover, and remove it after the migration is reconciled. Redis follows its own ephemeral-state activation decision and is not part of this gate.
 - **PostgreSQL search to dedicated search/vector storage**: attachment indexing, semantic retrieval, relevance limits, or measured query/load constraints.
@@ -2603,7 +2609,7 @@ With the architecture decision tree closed, produce:
 - The distributed communication view must contrast the accepted shallow interactive path and bounded parallel Gateway composition with a prohibited sequential service chain. It must also show how projections, outbox/events, durable jobs, choreography, and service-owned sagas replace deeper synchronous dependencies.
 - The provider-ownership view must show Mail as the sole Resend owner. Campaign/Delivery own campaign execution and exchange versioned commands/results with Mail; they do not hold Resend credentials or call the provider directly.
 - The tenant-credential view must separate Infisical platform/deployment secrets from encrypted per-workspace integration credentials in the owning service database, show the provider-neutral `CredentialCipher` boundary and managed-KMS envelope flow, and exclude plaintext secrets from RabbitMQ, Redis, workflow definitions, observability, and shared packages.
-- The evolution/deployment view must show the MVP single-host topology separately from the mandatory first distributed topology: VPS A owns edge/Gateway/Identity/Mail/ClamAV, VPS B owns Audience API/worker, the hosts share the selected provider and US region plus provider-private networking but communicate through WireGuard, and managed Neon/RabbitMQ/Redis/R2 dependencies are reached directly by their owning services. It must identify OCI VCN/NSGs as the preferred implementation and DigitalOcean VPC/cloud firewalls as the tested fallback, and show that VPS B failure degrades Audience without representing VPS B as Core high availability.
+- The evolution/deployment view must show the current Railway MVP topology separately from the future distributed reference: Railway owns the three isolated API/worker environments and public API domains, while managed Neon/R2/Resend dependencies are reached by their owning services. The future reference may show VPS A owning edge/Gateway/Identity/Mail/ClamAV and VPS B owning Audience API/worker, with provider-private networking and a deliberately selected transport; it must identify OCI and DigitalOcean only as historical provider candidates and show that an Audience placement failure degrades Audience without representing it as Core high availability.
 - Per-service stack cards with reasons, trade-offs, and re-evaluation triggers.
 - A non-technical MVP/client Word document stored under `docs/client/`, not rendered or publicly bundled by the architecture application. It contains only MVP delivery scope and delivery ranges, including explicit study, experimentation, understanding, and validation time proportional to feature complexity, and remains suitable for manual PDF export.
 - Implementation epics and stories, including extraction/refactoring sprints created by the strangler plan.

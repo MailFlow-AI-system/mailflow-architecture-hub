@@ -1,127 +1,127 @@
 {
   "schemaVersion": 1,
-  "baselineChecksum": "22486b0560ff42fd63b42475df9ec98fb4315175ccc41a51ad238a814c2bbea4",
+  "baselineChecksum": "9ca1c8e52adec6e4d2a6e6426dfdee6b035b9c9417acbe948c3c4c6dce88ea9d",
   "diagrams": {
     "diagram.context.general": [
       {
         "range": {
-          "startLine": 37,
-          "endLine": 92
+          "startLine": 45,
+          "endLine": 100
         },
-        "digest": "7b71ab270c69d045f539f793e71c675f760076e2dcbbd81ae88c16ef7e8de26e"
+        "digest": "5ee18985479999d5d3b7c3357065b6cc65625a5d0c62646ec05a8d3b4512a4a7"
       },
       {
         "range": {
-          "startLine": 94,
-          "endLine": 110
+          "startLine": 102,
+          "endLine": 118
         },
-        "digest": "54f7f08128e783b731af6fa2c71a032855cb71881451ce5c97a80b057a24f11f"
+        "digest": "613dcbeee9f1e4f0752bb865efa7478a0dd54ca5b6889f954c1dd1d9a9125b51"
       }
     ],
     "diagram.topology.mvp": [
       {
         "range": {
-          "startLine": 39,
-          "endLine": 50
+          "startLine": 47,
+          "endLine": 58
         },
         "digest": "b01e8dfaa145c6675e67269abe9ef558b2b1407d781a653013a57cd74b1a7504"
       },
       {
         "range": {
-          "startLine": 172,
-          "endLine": 190
+          "startLine": 180,
+          "endLine": 198
         },
         "digest": "4774e96eace2aecf1c940115124697db380320b4193cc83fb4f34ddde45200b7"
       },
       {
         "range": {
-          "startLine": 356,
-          "endLine": 479
+          "startLine": 364,
+          "endLine": 487
         },
-        "digest": "819b9208b5492d02f40341fdb1683421c894a084f3f7b1905a7194abde25523f"
+        "digest": "cffb1a555a3014da5c4c2daf9bed9198e51ed3c826d27ae880e9017e5154f6cb"
       },
       {
         "range": {
-          "startLine": 481,
-          "endLine": 499
+          "startLine": 489,
+          "endLine": 507
         },
         "digest": "5e114ddf68bc0bbeac1b84987366f1eeda9a6a63c63c41cf92042a389b9bbde5"
       },
       {
         "range": {
-          "startLine": 2035,
-          "endLine": 2045
+          "startLine": 2036,
+          "endLine": 2047
         },
-        "digest": "c7da988f13d9dcad94640883ad0bcc89a2f92bfdc655d4cfe7de39b4e7a95827"
+        "digest": "aa47aa799a8743b0a7f2e635b3a44aa30f43171c6b64110ff72ca5b5e630ef04"
       }
     ],
     "diagram.evolution.strangler": [
       {
         "range": {
-          "startLine": 39,
-          "endLine": 73
+          "startLine": 47,
+          "endLine": 81
         },
-        "digest": "3a27429d9487f85426bc2a03cf8427d9e1878701ca7f3f1c3f7cf14d3cf4c15d"
+        "digest": "b072a572de0218e22fa40c4613b8e7f3efefb325bbe2b624bee17312f99a6b5c"
       }
     ],
     "diagram.topology.first-distributed": [
       {
         "range": {
-          "startLine": 52,
-          "endLine": 64
+          "startLine": 60,
+          "endLine": 72
         },
-        "digest": "077622164cd945080606b246b17e800349e1254d01275d30a50f003b660ea6f8"
+        "digest": "74831c6e3bddc55ee158543912073d41d06ab4d22b94f335d919ed4bf17e193d"
       },
       {
         "range": {
-          "startLine": 231,
-          "endLine": 327
+          "startLine": 239,
+          "endLine": 335
         },
-        "digest": "59cf9c853801de0e186942971d968e6678e6c4000ffea41a6a0e5891fc2b2090"
+        "digest": "a20c81dda0101006283d5bf76df7c115efffd683c3131a36fd8542c50f46b8bd"
       },
       {
         "range": {
-          "startLine": 501,
-          "endLine": 513
+          "startLine": 509,
+          "endLine": 521
         },
         "digest": "acb37eccae0073fdc3b4c66bb533cbca127f996af7635218887cc6cd0b12b676"
       },
       {
         "range": {
-          "startLine": 2078,
-          "endLine": 2143
+          "startLine": 2081,
+          "endLine": 2146
         },
-        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+        "digest": "62b6a8ba0cf92fc45e3022eb730ead66bce1d31ff7a64d909c4564dce56f08c6"
       }
     ],
     "diagram.topology.future": [
       {
         "range": {
-          "startLine": 1650,
-          "endLine": 1679
+          "startLine": 1658,
+          "endLine": 1687
         },
-        "digest": "5a63d62e466144a46c7c6dbabebbed8999fca40da4dff781f96316d823281ec5"
+        "digest": "c675cb6bbf0d9078080b5aec1db5fa66f0e889ade9adeea5e58a4aa601cb2578"
       },
       {
         "range": {
-          "startLine": 2078,
-          "endLine": 2143
+          "startLine": 2081,
+          "endLine": 2146
         },
-        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+        "digest": "62b6a8ba0cf92fc45e3022eb730ead66bce1d31ff7a64d909c4564dce56f08c6"
       },
       {
         "range": {
-          "startLine": 2163,
-          "endLine": 2329
+          "startLine": 2166,
+          "endLine": 2332
         },
-        "digest": "62e9a8f3519dade4a487b062eaeacfbb1c07f41532c66c1dbfb825aac07a0fed"
+        "digest": "0476fe1f9272b6f1773a061c1cf8a1289e323d4fda981969667c9f238c71fb7a"
       }
     ],
     "diagram.boundaries.ownership": [
       {
         "range": {
-          "startLine": 75,
-          "endLine": 92
+          "startLine": 83,
+          "endLine": 100
         },
         "digest": "9c1729bb4732ed8384f92e5ddbdaa46ed1e06d931c553706dda562538cdac9fd"
       }
@@ -129,22 +129,22 @@
     "diagram.data.tenancy": [
       {
         "range": {
-          "startLine": 168,
-          "endLine": 190
+          "startLine": 176,
+          "endLine": 198
         },
         "digest": "3952c96daf62f7e97c311bda054bcf43c42da4141e9e8dcab37579d460cba6b0"
       },
       {
         "range": {
-          "startLine": 595,
-          "endLine": 623
+          "startLine": 603,
+          "endLine": 631
         },
         "digest": "55767748f020e703e411187cb6d7a54a63f6982e092a6523380bf881f1e0d93a"
       },
       {
         "range": {
-          "startLine": 799,
-          "endLine": 817
+          "startLine": 807,
+          "endLine": 825
         },
         "digest": "210a67379bc5284788b0393a25e642b5dde9d74299a543d7ff4815c61bafad64"
       }
@@ -152,91 +152,91 @@
     "diagram.identity.workspace": [
       {
         "range": {
-          "startLine": 168,
-          "endLine": 214
+          "startLine": 176,
+          "endLine": 222
         },
         "digest": "b6d495fe49f0914fb984a635c34ee8d3d5dded99dc76e89ca18e37f13257d60d"
       },
       {
         "range": {
-          "startLine": 218,
-          "endLine": 299
+          "startLine": 226,
+          "endLine": 307
         },
-        "digest": "090547a198e82e74ba285fcc97465bd44dfed472dc84f2d75a57c6cc200c21a5"
+        "digest": "8c187d978a34d8abe163102f58a1474dced58635e0f4ec0da8bc2e054b44aac6"
       }
     ],
     "diagram.infrastructure.providers": [
       {
         "range": {
-          "startLine": 1850,
-          "endLine": 2034
+          "startLine": 1858,
+          "endLine": 2035
         },
-        "digest": "2476ea3bf2163d2f3c9bcfd55db73fb84b282e94f574ddaf9740c79ea4331367"
+        "digest": "a010c87059dd0bf74c1a0028390a9ce84b252219f1696a1834197fc485168a06"
       },
       {
         "range": {
-          "startLine": 2035,
-          "endLine": 2077
+          "startLine": 2036,
+          "endLine": 2080
         },
-        "digest": "2264bed091b2e25836161fe1b03a621ee43a9bbe1f9cc9c687778c1854ee312e"
+        "digest": "545d9204f87bd87c1096d7012e21c5e7adecb2830646bed3e7465be267bd6d82"
       },
       {
         "range": {
-          "startLine": 2078,
-          "endLine": 2143
+          "startLine": 2081,
+          "endLine": 2146
         },
-        "digest": "c722f5336a00f3bbfe08e6a23a6fc1c85361a8a0cd7a0b7bc0bf0ae6b8266c3e"
+        "digest": "62b6a8ba0cf92fc45e3022eb730ead66bce1d31ff7a64d909c4564dce56f08c6"
       }
     ],
     "diagram.operations.environments": [
       {
         "range": {
-          "startLine": 501,
-          "endLine": 513
+          "startLine": 509,
+          "endLine": 521
         },
         "digest": "acb37eccae0073fdc3b4c66bb533cbca127f996af7635218887cc6cd0b12b676"
       },
       {
         "range": {
-          "startLine": 1860,
-          "endLine": 1915
+          "startLine": 1868,
+          "endLine": 1923
         },
-        "digest": "94c076727ba8ec9c18d5d2eecbb9cf79fe94d1494c56e27f6050d0a50ebf9832"
+        "digest": "986647c945ebca5678f9d8c709b62cfe3945773abdd9ca0556aaba8f05e6a7c8"
       },
       {
         "range": {
-          "startLine": 2000,
-          "endLine": 2034
+          "startLine": 2001,
+          "endLine": 2035
         },
         "digest": "0d248bb84b1c98bbd5581adb7db21489def7abaa87679fff487689763a60d3e9"
       },
       {
         "range": {
-          "startLine": 2450,
-          "endLine": 2517
+          "startLine": 2455,
+          "endLine": 2522
         },
-        "digest": "f4fd74e63cbeaadaa64edf30dc940bdad652e3fe48075902bc263c6897216a81"
+        "digest": "845720dddcef5675595f5492abc35a19e9ec87eae1e32daedf4e06f6ce990565"
       }
     ],
     "diagram.lifecycle.phases": [
       {
         "range": {
-          "startLine": 595,
-          "endLine": 630
+          "startLine": 603,
+          "endLine": 638
         },
         "digest": "44e4d1d5ac1f77eac16860c1dbcc610845cb86bedc82231114f74c73927d78ba"
       },
       {
         "range": {
-          "startLine": 631,
-          "endLine": 656
+          "startLine": 639,
+          "endLine": 664
         },
         "digest": "b73ffdb4bd3fb995af82dbe5a451bc6a841b3d7deea434803fe433bea4916713"
       },
       {
         "range": {
-          "startLine": 658,
-          "endLine": 705
+          "startLine": 666,
+          "endLine": 713
         },
         "digest": "e1c779bb23beae54fdd7878fe5ce29f9ad852edbd0bc41bd4656ba28cce1c97f"
       }
@@ -244,8 +244,8 @@
     "diagram.security.browser-auth.mvp": [
       {
         "range": {
-          "startLine": 218,
-          "endLine": 230
+          "startLine": 226,
+          "endLine": 238
         },
         "digest": "af157a1deec0f8efa99782aa5362a1b241ade9d5220868eebb9c2b4c081b960a"
       }
@@ -253,15 +253,15 @@
     "diagram.security.browser-ingress.first-distributed": [
       {
         "range": {
-          "startLine": 231,
-          "endLine": 247
+          "startLine": 239,
+          "endLine": 255
         },
         "digest": "25caa039f03eab198cd90c01c9bb2955fe59840a4cb27fcd6eab9fa0ce9a9a66"
       },
       {
         "range": {
-          "startLine": 268,
-          "endLine": 274
+          "startLine": 276,
+          "endLine": 282
         },
         "digest": "1b1c643014690bd1d9652799a715063e315d6b935a736da647b2a64c518e0fe2"
       }
@@ -269,8 +269,8 @@
     "diagram.security.workload-delegation.first-distributed": [
       {
         "range": {
-          "startLine": 258,
-          "endLine": 274
+          "startLine": 266,
+          "endLine": 282
         },
         "digest": "ce32d07805ea4f0da3fa744bea1d42cdc8d68073a280cf48725f145b0e33ae70"
       }
@@ -278,24 +278,24 @@
     "diagram.security.jwks-local-validation.first-distributed": [
       {
         "range": {
-          "startLine": 278,
-          "endLine": 299
+          "startLine": 286,
+          "endLine": 307
         },
-        "digest": "e9b99a17e8c376130f8cdeef1f6b303e8584c0e2719cebcb31ebbbc7acb174f8"
+        "digest": "6d778fdad414ca9c123f17f7e1b7dddd0739e054eacfc6a502ff79e3b31825bf"
       }
     ],
     "diagram.security.sync-vs-durable.first-distributed": [
       {
         "range": {
-          "startLine": 284,
-          "endLine": 327
+          "startLine": 292,
+          "endLine": 335
         },
-        "digest": "5c9022dea4baae2dc99684c2f5a4d86196187356bfa9097dde402b4e3dcc04f8"
+        "digest": "2d0a45cb4cc346a9a0343fe0c44324071d6cfa14f8049ec65804feac0ffcb964"
       },
       {
         "range": {
-          "startLine": 481,
-          "endLine": 513
+          "startLine": 489,
+          "endLine": 521
         },
         "digest": "77a709a9fd8042c6ba65c4aab1d3ab260f100d6de2fe4a76937c0f362d0e644b"
       }
@@ -303,15 +303,15 @@
     "diagram.security.broker-credentials.first-distributed": [
       {
         "range": {
-          "startLine": 320,
-          "endLine": 327
+          "startLine": 328,
+          "endLine": 335
         },
         "digest": "177c62f768fb203113cb3b1754c7f55fd2d90e222978d55e98ff96e49e9f2c88"
       },
       {
         "range": {
-          "startLine": 501,
-          "endLine": 513
+          "startLine": 509,
+          "endLine": 521
         },
         "digest": "acb37eccae0073fdc3b4c66bb533cbca127f996af7635218887cc6cd0b12b676"
       }
@@ -319,15 +319,15 @@
     "diagram.security.outbox-inbox-reconciliation.first-distributed": [
       {
         "range": {
-          "startLine": 481,
-          "endLine": 513
+          "startLine": 489,
+          "endLine": 521
         },
         "digest": "77a709a9fd8042c6ba65c4aab1d3ab260f100d6de2fe4a76937c0f362d0e644b"
       },
       {
         "range": {
-          "startLine": 555,
-          "endLine": 593
+          "startLine": 563,
+          "endLine": 601
         },
         "digest": "8dde999b8cec6a01024daa94cffb7ea30fc6277eaa7849c3cadf1a2a45b9afec"
       }
@@ -335,15 +335,15 @@
     "diagram.security.trust-boundaries.first-distributed": [
       {
         "range": {
-          "startLine": 218,
-          "endLine": 356
+          "startLine": 226,
+          "endLine": 364
         },
-        "digest": "4e604732ba8d439d2d7e027d89c3843a50d2c98e41e6514e6a003dd24810f557"
+        "digest": "24a704556d96155d5f9ed4c1c82a7e74bf10b3f28c631ad2f5f1e53da1f0eb5a"
       },
       {
         "range": {
-          "startLine": 320,
-          "endLine": 327
+          "startLine": 328,
+          "endLine": 335
         },
         "digest": "177c62f768fb203113cb3b1754c7f55fd2d90e222978d55e98ff96e49e9f2c88"
       }
@@ -351,68 +351,68 @@
     "diagram.security.tenant-credentials": [
       {
         "range": {
-          "startLine": 1860,
-          "endLine": 1938
+          "startLine": 1868,
+          "endLine": 1946
         },
-        "digest": "c7a56757283ad741d9aa7f5f17778c774b947f88d10586a20d9c0fa53ad656ee"
+        "digest": "3bc6104ddc61eb19349fc91afb021f7fca190cc15f5378e96e08b3cc959d4185"
       }
     ],
     "diagram.capability.mail-provider-ownership": [
       {
         "range": {
-          "startLine": 75,
-          "endLine": 93
+          "startLine": 83,
+          "endLine": 101
         },
         "digest": "c93e59e514be562e9c91ecdd9dbc56bc32c95e90acb78219bfb6f31feeb7d325"
       },
       {
         "range": {
-          "startLine": 142,
-          "endLine": 149
+          "startLine": 150,
+          "endLine": 157
         },
-        "digest": "6df4c0dcf20facea4c0b0c0c76e4f9b174cf32d492130e9c68b7592031ddd78b"
+        "digest": "c6119ccc44de4f8f4d20c3adcd956b4d3300096ee40937394d250a0f53171779"
       },
       {
         "range": {
-          "startLine": 356,
-          "endLine": 425
+          "startLine": 364,
+          "endLine": 433
         },
         "digest": "af0ec8f297a78547a9b08fdb3a49cba0999553e876f68dd3f109c88f8f9ae866"
       },
       {
         "range": {
-          "startLine": 481,
-          "endLine": 503
+          "startLine": 489,
+          "endLine": 511
         },
         "digest": "66f65f37f3449827cbf8243314f6e43e650332e395b7a20bde4bda59a594a38c"
       },
       {
         "range": {
-          "startLine": 2274,
-          "endLine": 2329
+          "startLine": 2277,
+          "endLine": 2332
         },
-        "digest": "00a9bc190e9d5a7575986e85aa56de813066bdc0804ee354ff1946e7608744b8"
+        "digest": "e3bd8460849c92644d2010792edb658c17b44aa68217a1de1bb77ebc3aa0a6f7"
       }
     ],
     "diagram.capability.mail-inbox-composer": [
       {
         "range": {
-          "startLine": 391,
-          "endLine": 450
+          "startLine": 399,
+          "endLine": 458
         },
         "digest": "21c9dd5a4060725eec67ac6bbae01347076c7aa2d457b9cef1f6c8b7e75d9e3d"
       },
       {
         "range": {
-          "startLine": 425,
-          "endLine": 450
+          "startLine": 433,
+          "endLine": 458
         },
         "digest": "617e0f3f4fd1c01d4e04423f997a27c833f25ebe7e75401ee1d7aa391dff6fc4"
       },
       {
         "range": {
-          "startLine": 481,
-          "endLine": 500
+          "startLine": 489,
+          "endLine": 508
         },
         "digest": "cae4156fb18d60dee12055b8ead96affaf2e9a8a17fa6d5dc3395d4353312a4d"
       }
@@ -420,91 +420,91 @@
     "diagram.capability.attachments-security": [
       {
         "range": {
-          "startLine": 452,
-          "endLine": 480
+          "startLine": 460,
+          "endLine": 488
         },
-        "digest": "ee10f0b80662c544797e37c062204978a40ef32869fd1ae578f76c618ac34879"
+        "digest": "be27063441e439fdce1043b8dd3f1171c1e1347532a42d4b712471dfc4d0b864"
       },
       {
         "range": {
-          "startLine": 481,
-          "endLine": 493
+          "startLine": 489,
+          "endLine": 501
         },
         "digest": "6a159d6379a957d23391587fe479b2891674f9755f34de4ad1d16d7f69e8dcdd"
       },
       {
         "range": {
-          "startLine": 1852,
-          "endLine": 1858
+          "startLine": 1860,
+          "endLine": 1866
         },
-        "digest": "b41cd90cbf1ff86807debf6f2ea6b0ee0de210d35b3662806b650ee72647854a"
+        "digest": "c373b523ec3a51eeff9a1f856c6fa5014618c85b4a96cff9dc3be380f6352b63"
       }
     ],
     "diagram.capability.audience-campaign-snapshot": [
       {
         "range": {
-          "startLine": 2078,
-          "endLine": 2137
+          "startLine": 2081,
+          "endLine": 2140
         },
-        "digest": "c1de33b5d2e2dd16a2af21c9835ff288bc82745719e3193e6dda306544eabfda"
+        "digest": "470b62a41d638c70f5aeb82cf21b90b6f31583b23a8c39863803ec3e1a975a42"
       },
       {
         "range": {
-          "startLine": 2222,
-          "endLine": 2273
+          "startLine": 2225,
+          "endLine": 2276
         },
-        "digest": "98e2059b682115ebdb556ea89048f6d752b5b585874a8009ccb9b72bd0f76dbe"
+        "digest": "2f842d1c8ac1b215c3f1ce7865e9220596e753ddc48eb2f7b837c0d603ce2ba9"
       }
     ],
     "diagram.capability.campaign-mail-contracts": [
       {
         "range": {
-          "startLine": 75,
-          "endLine": 93
+          "startLine": 83,
+          "endLine": 101
         },
         "digest": "c93e59e514be562e9c91ecdd9dbc56bc32c95e90acb78219bfb6f31feeb7d325"
       },
       {
         "range": {
-          "startLine": 142,
-          "endLine": 151
+          "startLine": 150,
+          "endLine": 159
         },
-        "digest": "a3403d86a7deb477e395eb05688c4323b6652a9c2f6cfceb20bd47eb1ab70722"
+        "digest": "e5523a05bc09ed461847203624862052d0a640bfcdee09d725a995af1ccae049"
       },
       {
         "range": {
-          "startLine": 356,
-          "endLine": 425
+          "startLine": 364,
+          "endLine": 433
         },
         "digest": "af0ec8f297a78547a9b08fdb3a49cba0999553e876f68dd3f109c88f8f9ae866"
       },
       {
         "range": {
-          "startLine": 2274,
-          "endLine": 2329
+          "startLine": 2277,
+          "endLine": 2332
         },
-        "digest": "00a9bc190e9d5a7575986e85aa56de813066bdc0804ee354ff1946e7608744b8"
+        "digest": "e3bd8460849c92644d2010792edb658c17b44aa68217a1de1bb77ebc3aa0a6f7"
       }
     ],
     "diagram.capability.content-email-pipeline": [
       {
         "range": {
-          "startLine": 1025,
-          "endLine": 1126
+          "startLine": 1033,
+          "endLine": 1134
         },
-        "digest": "9f8fd1886fd54f18915952d6b2a47ab64a0291381273c8969a10e9df89a874f6"
+        "digest": "c5002e3f87934734f0d3cff89a8da4d572333d221794cb54eb37f927485efa2c"
       },
       {
         "range": {
-          "startLine": 1039,
-          "endLine": 1081
+          "startLine": 1047,
+          "endLine": 1089
         },
-        "digest": "5f15e2260dab7ffb7c7eb77fb6b864235e66bfda7765be0d91a2fd5c09d8a2ca"
+        "digest": "75986cfe80c620ce83b098e8811917905cad37305fbb1144701bcf0b8e9734e7"
       },
       {
         "range": {
-          "startLine": 1082,
-          "endLine": 1126
+          "startLine": 1090,
+          "endLine": 1134
         },
         "digest": "31a0aead03a707552032a1f08e78a961bb2ac7c9c44e8233d3a24dd9309ca3b0"
       }
@@ -512,15 +512,15 @@
     "diagram.capability.workflow-control-plane": [
       {
         "range": {
-          "startLine": 1127,
-          "endLine": 1321
+          "startLine": 1135,
+          "endLine": 1329
         },
-        "digest": "e8fa6c18e8e0ff47bc54e5244add5cd8561d726c0f5b86eeb0a469e605264f33"
+        "digest": "cfbb497b5e5779c8e037b8aa00894b254d9fe0fb856cc11a11216257cfb7ad97"
       },
       {
         "range": {
-          "startLine": 300,
-          "endLine": 348
+          "startLine": 308,
+          "endLine": 356
         },
         "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
       }
@@ -528,22 +528,22 @@
     "diagram.capability.automation-runtime": [
       {
         "range": {
-          "startLine": 1322,
-          "endLine": 1730
+          "startLine": 1330,
+          "endLine": 1738
         },
-        "digest": "c78ea20918a9a4e99e0d8e4ea10742a48e3c8138aa9dc9a7785976ba5ae6d769"
+        "digest": "98339816a9b927cff91598092dd04fd97668ca71f50096791ca35034ba45d2d8"
       },
       {
         "range": {
-          "startLine": 2163,
-          "endLine": 2170
+          "startLine": 2166,
+          "endLine": 2173
         },
-        "digest": "44eeacbf3950bf6c7b4795c898d9cba414743717c234004d21a33fd1f6778102"
+        "digest": "123a2c48420d2df047c852472d2cd617d187f3bc0079b16ed972c2e5e0d9c887"
       },
       {
         "range": {
-          "startLine": 300,
-          "endLine": 348
+          "startLine": 308,
+          "endLine": 356
         },
         "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
       }
@@ -551,15 +551,15 @@
     "diagram.capability.ai-rag": [
       {
         "range": {
-          "startLine": 658,
-          "endLine": 760
+          "startLine": 666,
+          "endLine": 768
         },
         "digest": "84f5a6bad2368d35323df9b4656007fbe46365d24be46c8fe958253325b4ee16"
       },
       {
         "range": {
-          "startLine": 760,
-          "endLine": 880
+          "startLine": 768,
+          "endLine": 888
         },
         "digest": "858f7a852b623c7a346b2e761d3c163d611a5c7ba480e6a9c30576847d8bab74"
       }
@@ -567,40 +567,40 @@
     "diagram.capability.analytics-pipeline": [
       {
         "range": {
-          "startLine": 881,
-          "endLine": 1024
+          "startLine": 889,
+          "endLine": 1032
         },
         "digest": "b061508692329201bc9ea2654f42fb60974969f1f55dbe6fc6602367001e5be1"
       },
       {
         "range": {
-          "startLine": 142,
-          "endLine": 151
+          "startLine": 150,
+          "endLine": 159
         },
-        "digest": "a3403d86a7deb477e395eb05688c4323b6652a9c2f6cfceb20bd47eb1ab70722"
+        "digest": "e5523a05bc09ed461847203624862052d0a640bfcdee09d725a995af1ccae049"
       }
     ],
     "diagram.capability.billing-entitlements": [
       {
         "range": {
-          "startLine": 1766,
-          "endLine": 1828
+          "startLine": 1774,
+          "endLine": 1836
         },
-        "digest": "976969453c64345aaadf127755cf401bd17b18da8b5208e5ee5bb0cee0e03c2b"
+        "digest": "198df1ad771a86f3aa304cd8692b93b37614758b73b2b6c0d1369d8164c76766"
       },
       {
         "range": {
-          "startLine": 300,
-          "endLine": 348
+          "startLine": 308,
+          "endLine": 356
         },
         "digest": "a0dcbef4ee4bcd1da2833da17210c1eafe77a82781c1e34b9a21fcfa51131b96"
       },
       {
         "range": {
-          "startLine": 2222,
-          "endLine": 2273
+          "startLine": 2225,
+          "endLine": 2276
         },
-        "digest": "98e2059b682115ebdb556ea89048f6d752b5b585874a8009ccb9b72bd0f76dbe"
+        "digest": "2f842d1c8ac1b215c3f1ce7865e9220596e753ddc48eb2f7b837c0d603ce2ba9"
       }
     ]
   }

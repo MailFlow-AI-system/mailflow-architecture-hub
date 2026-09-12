@@ -4,6 +4,11 @@
 
 ADRs record the decision process, evidence, and approved change history. They complement the active baseline; they do not become a second narrative source of truth. A decision page and diagram link to both the ADR and the precise baseline reference.
 
+## Accepted decisions
+
+- [ADR-0001: RabbitMQ distributed transport](./ADR-0001-rabbitmq-distributed-transport.md).
+- [ADR-0002: Railway as the MVP compute platform](./ADR-0002-railway-mvp-compute.md).
+
 ## Naming and identity
 
 Use a monotonically assigned filename such as `ADR-0001-short-title.md`. The filename is a history identifier, not the canonical decision identity. Every ADR also declares a stable `decisionId` such as `decision.identity.service-tokens` and the relevant `baselineRef` values.

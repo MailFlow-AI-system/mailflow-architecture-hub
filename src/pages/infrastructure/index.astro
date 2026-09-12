@@ -11,13 +11,13 @@ const decisions = architectureRegistry.decisions.filter((item) =>
 
 <Layout
   title="Infrastructure and deployment"
-  description="Static edge, managed data, private compute, secrets, and topology."
+  description="Railway MVP services, managed data, secrets, and the future paid VPS migration path."
   currentPath="/infrastructure/"
   ><div class="content-wrap">
     <TopicView
       eyebrow="Static-first architecture repository"
       title="Infrastructure"
-      description="Cloudflare edge and R2, Neon, Infisical, OCI-preferred compute, DigitalOcean fallback, reproducible hosts, WireGuard, and independently deployable service boundaries."
+      description="Railway-hosted Core API and worker services across isolated environments, external Neon and R2, Infisical Secret Sync, and the selected portable Dockerfile, with implementation and validation tracked by CI/CD work for Railway and a future paid VPS migration when scale or operational evidence justifies host operations."
       {decisions}
     />
   </div></Layout

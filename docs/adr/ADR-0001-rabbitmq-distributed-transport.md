@@ -26,6 +26,11 @@
 
 ## Context and problem
 
+Placement update (2026-09-12): [ADR-0002](./ADR-0002-railway-mvp-compute.md) supersedes this
+record's VPS placement assumptions. Railway hosts the MVP services; paid VPS placement follows a
+scale and operations review. The RabbitMQ decision, ownership boundaries, and equivalence gates
+in this record remain in force. References to VPS A below describe the earlier placement context.
+
 The MVP intentionally uses pg-boss because Mail domain state and internal job creation can commit in one PostgreSQL transaction without a broker. The first distributed architecture introduces RabbitMQ and horizontal workers, creating a choice between retaining two durable-job engines permanently or converging on one asynchronous substrate after the MVP.
 
 A distributed MailFlow needs one explicit transport and worker model for both private service-owned jobs and cross-service messages. It must preserve transactional publication, durable scheduling, idempotency, and reconciliation without turning RabbitMQ into the canonical database or coupling Redis to job execution.
