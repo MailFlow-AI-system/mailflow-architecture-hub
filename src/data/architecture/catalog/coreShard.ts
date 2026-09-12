@@ -169,6 +169,38 @@ const coreShard = {
       trustBoundaryIds: ['trust.service-database', 'trust.broker-transport'],
     },
     {
+      id: 'decision.messaging.rabbitmq-distributed-transport',
+      title: 'RabbitMQ as the post-MVP asynchronous substrate',
+      status: 'confirmed_with_validation_gate',
+      phase: 'first_distributed',
+      summary:
+        'From Audience extraction onward, RabbitMQ carries private service-owned durable jobs and versioned cross-service events or commands after a blocking equivalence gate; PostgreSQL remains the outbox, schedule, inbox, and reconciliation authority.',
+      sourceRanges: [
+        { startLine: 142, endLine: 149 },
+        { startLine: 483, endLine: 503 },
+      ],
+      serviceIds: ['service.mail', 'service.audience'],
+      stackIds: ['stack.rabbitmq', 'stack.postgresql'],
+      gateIds: [
+        'gate.messaging.rabbitmq-job-equivalence',
+        'gate.messaging.amqplib-recovery',
+        'gate.platform.pgboss-to-rabbitmq-redis',
+      ],
+      relatedDecisionIds: [
+        'decision.jobs.pgboss-transactional',
+        'decision.messaging.audience-rabbitmq-redis',
+        'decision.communication.events-commands-projections',
+      ],
+      trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
+      primaryReferences: [
+        'https://www.rabbitmq.com/tutorials/tutorial-two-javascript',
+        'https://www.rabbitmq.com/docs/reliability',
+        'https://www.rabbitmq.com/docs/confirms',
+        'https://www.rabbitmq.com/docs/quorum-queues',
+        'https://www.rabbitmq.com/docs/access-control',
+      ],
+    },
+    {
       id: 'decision.communication.producer-contract-ownership',
       title: 'Producer-owned technical contracts',
       status: 'confirmed',
@@ -679,10 +711,11 @@ const coreShard = {
       status: 'confirmed',
       phase: 'mvp',
       summary:
-        'pg-boss sits behind an internal job port; domain state and job enqueue commit in the same PostgreSQL transaction, with idempotent handlers and reconciliation.',
+        'pg-boss is the transitional MVP durable-job engine behind an internal port; it remains the rollback path until RabbitMQ equivalence and migration evidence is accepted, then leaves the runtime stack.',
       sourceRanges: [{ startLine: 481, endLine: 492 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.pgboss', 'stack.postgresql'],
+      relatedDecisionIds: ['decision.messaging.rabbitmq-distributed-transport'],
       trustBoundaryIds: ['trust.service-database'],
     },
     {
@@ -699,15 +732,19 @@ const coreShard = {
     },
     {
       id: 'decision.messaging.audience-rabbitmq-redis',
-      title: 'RabbitMQ and Redis enter at Audience extraction',
+      title: 'RabbitMQ activation and independent Redis adoption',
       status: 'confirmed',
       phase: 'first_distributed',
       summary:
-        'RabbitMQ and Redis are not MVP dependencies and enter together when Audience becomes the first independently deployed business service.',
+        'RabbitMQ activates with Audience extraction after its blocking gates; Redis follows an independent lifecycle and activates only for approved ephemeral-state workloads.',
       sourceRanges: [{ startLine: 501, endLine: 513 }],
-      serviceIds: ['service.audience'],
+      serviceIds: ['service.mail', 'service.audience'],
       stackIds: ['stack.rabbitmq', 'stack.redis'],
       gateIds: ['gate.evolution.audience-extraction'],
+      relatedDecisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.redis-ephemeral-state',
+      ],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
       primaryReferences: [
         'https://www.cloudamqp.com/plans.html',
@@ -717,6 +754,27 @@ const coreShard = {
         'https://www.rabbitmq.com/docs/access-control',
         'https://redis.io/pricing/',
         'https://redis.io/docs/latest/operate/rc/databases/create-database/create-free-database/',
+        'https://redis.io/docs/latest/operate/rc/databases/configuration/data-persistence/',
+      ],
+    },
+    {
+      id: 'decision.messaging.redis-ephemeral-state',
+      title: 'Redis only for independently activated ephemeral state',
+      status: 'confirmed',
+      phase: 'first_distributed',
+      summary:
+        'Redis is limited to rebuildable cache, distributed rate limiting, presence, and realtime fan-out; it is neither a durable job queue nor canonical domain state and its activation is independent of RabbitMQ migration.',
+      sourceRanges: [
+        { startLine: 494, endLine: 503 },
+        { startLine: 555, endLine: 583 },
+      ],
+      serviceIds: ['service.identity-workspace', 'service.audience'],
+      stackIds: ['stack.redis'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
+      relatedDecisionIds: ['decision.messaging.audience-rabbitmq-redis'],
+      trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
+      primaryReferences: [
+        'https://redis.io/docs/latest/develop/clients/nodejs/',
         'https://redis.io/docs/latest/operate/rc/databases/configuration/data-persistence/',
       ],
     },
@@ -740,7 +798,7 @@ const coreShard = {
       summary:
         'TypeScript services use amqplib behind an adapter that owns reconnect, topology, confirms, acknowledgements, DLQ handling, drain, and telemetry; recovery must pass its blocking spike.',
       sourceRanges: [{ startLine: 555, endLine: 593 }],
-      serviceIds: ['service.audience'],
+      serviceIds: ['service.mail', 'service.audience'],
       stackIds: ['stack.amqplib', 'stack.rabbitmq'],
       gateIds: ['gate.messaging.amqplib-recovery'],
       trustBoundaryIds: ['trust.broker-transport'],
@@ -764,7 +822,7 @@ const coreShard = {
       sourceRanges: [{ startLine: 555, endLine: 593 }],
       serviceIds: ['service.audience'],
       stackIds: ['stack.node-redis', 'stack.redis'],
-      gateIds: ['gate.messaging.amqplib-recovery'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
       primaryReferences: [
         'https://redis.io/docs/latest/develop/clients/nodejs/',
@@ -1356,7 +1414,7 @@ const coreShard = {
       sourceRanges: [{ startLine: 555, endLine: 593 }],
       decisionIds: ['decision.messaging.node-redis-adapter'],
       serviceIds: ['service.audience'],
-      gateIds: ['gate.messaging.amqplib-recovery'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
       primaryReferences: ['https://redis.io/docs/latest/develop/clients/nodejs/'],
     },
     {
@@ -1613,19 +1671,54 @@ const coreShard = {
         'Future RAG or semantic retrieval scope is approved with its own authorization and lifecycle design.',
     },
     {
-      id: 'gate.messaging.amqplib-recovery',
-      name: 'RabbitMQ and Redis client recovery spike',
+      id: 'gate.messaging.rabbitmq-job-equivalence',
+      name: 'RabbitMQ job-equivalence gate',
       summary:
-        'Broker/client TLS, reconnect, topology, confirm, duplicate, shutdown, and Redis subscription recovery must pass before Audience extraction.',
+        'Mail cannot leave pg-boss until RabbitMQ proves the durable execution semantics, recovery behavior, and horizontal worker model required by every migrated job class.',
+      phase: 'first_distributed',
+      sourceRanges: [{ startLine: 483, endLine: 503 }],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.jobs.pgboss-transactional',
+      ],
+      criterion:
+        'Representative Mail jobs prove outbox publication, quorum durability, confirms, manual acknowledgements, retry/backoff with jitter, priority, consumer timeout and heartbeats, dead-letter/redrive, PostgreSQL-backed scheduled dispatch, idempotency, reconciliation, observability, graceful drain, and competing-worker scale; pg-boss rollback remains available until accepted reconciliation.',
+      primaryReferences: [
+        'https://www.rabbitmq.com/tutorials/tutorial-two-javascript',
+        'https://www.rabbitmq.com/docs/reliability',
+        'https://www.rabbitmq.com/docs/confirms',
+        'https://www.rabbitmq.com/docs/quorum-queues',
+      ],
+    },
+    {
+      id: 'gate.messaging.amqplib-recovery',
+      name: 'RabbitMQ client recovery spike',
+      summary:
+        'RabbitMQ TLS, reconnect, topology, confirm, duplicate, consumer recovery, and shutdown behavior must pass before Audience extraction.',
       phase: 'first_distributed',
       sourceRanges: [{ startLine: 555, endLine: 593 }],
-      decisionIds: ['decision.messaging.amqplib-adapter', 'decision.messaging.node-redis-adapter'],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.amqplib-adapter',
+      ],
       criterion:
         'The adapter proves recovery and durable outbox/inbox behavior without changing domain contracts.',
-      primaryReferences: [
-        'https://www.rabbitmq.com/docs/reliability',
-        'https://redis.io/docs/latest/develop/clients/nodejs/',
+      primaryReferences: ['https://www.rabbitmq.com/docs/reliability'],
+    },
+    {
+      id: 'gate.messaging.redis-client-recovery',
+      name: 'Redis client recovery gate',
+      summary:
+        'Redis reconnect, subscription restoration, TTL, cache reconstruction, and degraded fallback are validated independently of RabbitMQ job migration.',
+      phase: 'first_distributed',
+      sourceRanges: [{ startLine: 555, endLine: 593 }],
+      decisionIds: [
+        'decision.messaging.redis-ephemeral-state',
+        'decision.messaging.node-redis-adapter',
       ],
+      criterion:
+        'The Redis adapter proves reconnect, subscription restoration, tenant isolation, TTL behavior, cache reconstruction, and safe degraded operation for each approved ephemeral-state workload.',
+      primaryReferences: ['https://redis.io/docs/latest/develop/clients/nodejs/'],
     },
     {
       id: 'gate.messaging.rabbitmq-paid-upgrade',

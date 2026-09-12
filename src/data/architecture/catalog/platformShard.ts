@@ -34,18 +34,19 @@ const gates: GateSeed[] = [
   },
   {
     id: 'gate.platform.pgboss-to-rabbitmq-redis',
-    name: 'pg-boss to RabbitMQ and Redis',
+    name: 'Migrate pg-boss jobs to RabbitMQ',
     summary:
-      'Replace the MVP durable-job arrangement when service extraction and asynchronous workload requirements justify the distributed broker topology.',
+      'At the first service extraction, migrate Mail internal jobs and cross-service asynchronous flows to RabbitMQ after the equivalence and recovery gates pass; Redis is activated independently.',
     phase: 'first_distributed',
     sourceRanges: [{ startLine: 2564, endLine: 2567 }],
     decisionIds: [
       backendDecisionId,
       'decision.platform.first-distributed-topology',
+      'decision.messaging.rabbitmq-distributed-transport',
       governanceDecisionId,
     ],
     criterion:
-      'The documented extraction, throughput, isolation, or operational trigger requires RabbitMQ and Redis.',
+      'Audience becomes independently deployed, RabbitMQ job equivalence and client recovery evidence is accepted, every pg-boss queue is migrated and reconciled, and the rollback window closes before pg-boss is removed.',
   },
   {
     id: 'gate.platform.postgres-search-to-dedicated-search',
@@ -224,14 +225,14 @@ const gates: GateSeed[] = [
   },
   {
     id: 'gate.platform.rabbitmq-redis-paid',
-    name: 'Free RabbitMQ and Redis to paid services',
+    name: 'Independent managed RabbitMQ and Redis upgrades',
     summary:
-      'Move the distributed broker and cache services to paid capacity when their free allocation or reliability is insufficient.',
+      'Upgrade RabbitMQ or Redis independently when that component reaches its own documented capacity, reliability, or customer-dependency trigger.',
     phase: 'first_distributed',
     sourceRanges: [{ startLine: 2584, endLine: 2585 }],
     decisionIds: ['decision.platform.first-distributed-topology', governanceDecisionId],
     criterion:
-      'Broker or cache capacity, reliability, or customer load requires paid infrastructure.',
+      'The affected broker or cache independently reaches its capacity, reliability, or customer-load threshold; one component does not force the other to upgrade.',
   },
   {
     id: 'gate.platform.wireguard-to-workload-aware-transport',
@@ -334,13 +335,18 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.pg-boss',
     name: 'pg-boss',
-    summary: 'Durable MVP job execution before the documented distributed broker extraction gate.',
+    summary:
+      'PostgreSQL-backed durable jobs for the MVP; retained only as a migration rollback path until RabbitMQ cutover is accepted, then removed from the runtime stack.',
     phase: 'mvp',
     status: 'confirmed',
     sourceRanges: [{ startLine: 1731, endLine: 1757 }],
-    decisionIds: [backendDecisionId],
+    decisionIds: [
+      backendDecisionId,
+      'decision.jobs.pgboss-transactional',
+      'decision.messaging.rabbitmq-distributed-transport',
+    ],
     gateIds: ['gate.platform.pgboss-to-rabbitmq-redis'],
-    serviceIds: ['service.billing'],
+    serviceIds: ['service.mail', 'service.billing'],
   },
   {
     id: 'stack.clamav',
@@ -749,7 +755,8 @@ const stacks: StackSeed[] = [
   {
     id: 'stack.rabbitmq',
     name: 'RabbitMQ',
-    summary: 'Distributed durable command and event broker introduced at service extraction.',
+    summary:
+      'Mandatory post-MVP durable substrate for private service-owned work queues and versioned cross-service commands or events.',
     phase: 'first_distributed',
     status: 'confirmed_with_validation_gate',
     sourceRanges: [
@@ -759,8 +766,15 @@ const stacks: StackSeed[] = [
     decisionIds: [
       'decision.platform.first-distributed-topology',
       'decision.platform.audience-campaign-snapshot',
+      'decision.messaging.rabbitmq-distributed-transport',
     ],
-    gateIds: ['gate.platform.rabbitmq-redis-paid'],
+    gateIds: [
+      'gate.messaging.rabbitmq-job-equivalence',
+      'gate.messaging.amqplib-recovery',
+      'gate.platform.pgboss-to-rabbitmq-redis',
+      'gate.platform.rabbitmq-redis-paid',
+    ],
+    serviceIds: ['service.mail', 'service.audience'],
   },
   {
     id: 'stack.redis',
@@ -776,8 +790,9 @@ const stacks: StackSeed[] = [
     decisionIds: [
       'decision.platform.first-distributed-topology',
       'decision.platform.audience-campaign-snapshot',
+      'decision.messaging.redis-ephemeral-state',
     ],
-    gateIds: ['gate.platform.rabbitmq-redis-paid'],
+    gateIds: ['gate.messaging.redis-client-recovery', 'gate.platform.rabbitmq-redis-paid'],
   },
   {
     id: 'stack.vitest',
@@ -944,7 +959,11 @@ const stacks: StackSeed[] = [
     status: 'confirmed_with_validation_gate',
     sourceRanges: [{ startLine: 2544, endLine: 2557 }],
     decisionIds: [governanceDecisionId],
-    gateIds: ['gate.platform.pgboss-to-rabbitmq-redis'],
+    gateIds: [
+      'gate.messaging.rabbitmq-job-equivalence',
+      'gate.messaging.amqplib-recovery',
+      'gate.platform.pgboss-to-rabbitmq-redis',
+    ],
   },
   {
     id: 'stack.token-exchange',

@@ -1,7 +1,7 @@
 # MailFlow Architecture Baseline
 
 Status: architecture approved, closed, and consolidated; derivative artifact production in progress  
-Last updated: 2026-08-20  
+Last updated: 2026-09-04
 Purpose: canonical input for the architecture website, implementation plans, ADRs, and the non-technical client document.
 
 This document records the approved architecture, confirmed stacks, mandatory implementation-validation gates, and deliberate deferrals. A validation spike may activate an already documented fallback, but it does not reopen the accepted boundaries unless its evidence requires a new explicit architecture decision.
@@ -53,20 +53,20 @@ The worker is not a microservice. It is an asynchronous execution process for th
 
 Event-driven architecture begins when Contact/Audience becomes the first extracted business service. At that point MailFlow introduces:
 
-- RabbitMQ for durable integration events, asynchronous commands, routing, retries, and dead-letter queues.
-- Redis for workloads that need ephemeral low-latency state, such as distributed rate limiting, cache, presence, and realtime fan-out.
+- RabbitMQ as the mandatory durable asynchronous execution substrate after the migration gate: private service-owned work queues plus versioned cross-service integration events and commands, including routing, retries, acknowledgements, and dead-letter queues.
+- Redis, activated independently of the job transport, for workloads that need ephemeral low-latency state such as distributed rate limiting, cache, presence, and realtime fan-out.
 - Transactional outboxes and idempotent consumers.
 - Service-owned databases, credentials, migrations, and authorization boundaries.
 - An API Gateway/BFF that remains thin and owns no business domain.
 - A second VPS dedicated to the Audience API and worker. The Core/Gateway/Mail/Identity workload remains on VPS A, while Audience becomes the first independently hosted business service on VPS B.
 - VPS A and VPS B use the same selected compute provider and US region, with provider-private networking and separate fault domains where available. OCI is the preferred path through VCN/NSGs; DigitalOcean is the portable fallback through VPC/cloud firewalls. Audience extraction begins with a point-to-point WireGuard tunnel between VPS A and VPS B. Automation Runtime activation evolves this into a direct A-B-C full mesh, while workload/delegation tokens continue to protect service traffic.
 
-RabbitMQ and Redis are not MVP dependencies. Running them early would increase memory, I/O, deployment, monitoring, and failure-handling work without supplying a needed distributed capability. RabbitMQ on the same single VPS would not provide high availability, and reliable quorum deployment requires multiple nodes.
+RabbitMQ and Redis are not MVP dependencies. RabbitMQ activates with the first distributed extraction after its equivalence gate passes; Redis activates only when an independently approved ephemeral-state workload needs it. Running either early would increase memory, I/O, deployment, monitoring, and failure-handling work without supplying a needed capability. RabbitMQ on the same single VPS would not provide high availability, and reliable quorum deployment requires multiple nodes.
 
 ### Strangler sequence
 
 1. Start with Identity/Workspace and Mail as modules inside Core, with separate schemas/migrations and explicit module interfaces.
-2. At Contact/Audience scope, add the thin Gateway, extract Audience with its own logical database and credentials onto VPS B, and introduce RabbitMQ, Redis, WireGuard host networking, and outbox delivery. VPS A retains Gateway, Identity/Workspace, Mail, Mail worker, and ClamAV.
+2. At Contact/Audience scope, add the thin Gateway, extract Audience with its own logical database and credentials onto VPS B, and introduce RabbitMQ, WireGuard host networking, and outbox delivery; introduce Redis separately only when its ephemeral-state workloads require it. Before cutover, Mail migrates every durable pg-boss job behind the internal job port to service-owned RabbitMQ work queues after the equivalence gate passes, while cross-service intent moves through versioned outbox/inbox adapters. VPS A retains Gateway, Identity/Workspace, Mail, Mail worker, and ClamAV.
 3. Extract Identity/Workspace when independent ownership or scaling warrants it; Core then becomes the Mail service.
 4. Continue extracting only when a real domain boundary, load profile, reliability need, or team ownership justifies it.
 
@@ -95,7 +95,7 @@ Workflow and Automation Runtime are separate because they have different consist
 
 ### Synchronous communication
 
-- External and internal application APIs use REST/JSON with OpenAPI.
+- External and internal application APIs use REST/JSON with OpenAPI. HTTP errors use RFC 9457 Problem Details with `application/problem+json`; the standard fields are extended with a stable machine-readable `code` and the request correlation identifier, and responses never expose stack traces, secret values, or provider payloads.
 - Every API is versioned, beginning at `/api/v1`.
 - Breaking changes introduce a coexisting major version and a migration window.
 - Browser traffic enters through the Gateway after it exists.
@@ -218,7 +218,7 @@ Platform administrators cannot impersonate tenant users, browse tenant dashboard
 ### Browser authentication
 
 - Browser sessions use revocable opaque session identifiers in `HttpOnly`, `Secure` cookies backed by PostgreSQL.
-- Apply CSRF protection, session rotation, device/session management, and no long-lived browser JWT in local storage.
+- Apply CSRF protection, session rotation, device/session management, and no long-lived browser JWT in local storage. The exact Web/API origin topology, credentialed CORS allowlist, cookie scope, and CSRF mechanism are fixed by the blocking Better Auth integration spike before authenticated browser routes ship; CORS remains disabled until that decision, and wildcard origins are never combined with cookies.
 - Owner and admin accounts use password plus mandatory TOTP.
 - Members use password plus email OTP on first or new devices, with a 30-day trusted-device policy.
 - Password reset, MFA recovery, and active-session revocation are included.
@@ -489,7 +489,7 @@ The MVP uses pg-boss through an internal job-queue port:
 - Worker handlers are idempotent.
 - Provider-side effects remain at least once and require reconciliation.
 
-RabbitMQ later replaces integration transport; it does not invalidate the internal application ports or job semantics.
+At the first distributed extraction, RabbitMQ becomes the mandatory substrate for both service-owned durable work queues and cross-service events or commands. Mail migrates send, provider-fetch, attachment-scan, reconciliation, and other pg-boss queues only after a blocking equivalence gate proves transactional publication through an outbox, durable quorum queues, publisher confirms, manual acknowledgements, bounded retry/backoff with jitter, priority, consumer timeout/heartbeats, dead-letter/redrive, scheduled or delayed dispatch, idempotency, reconciliation, observability, graceful drain, and horizontal competing workers. PostgreSQL remains the canonical state, outbox, schedule authority, inbox, and reconciliation ledger; RabbitMQ is neither a long-duration clock nor a replacement for service-local transactions. pg-boss remains the documented rollback path until cutover evidence is accepted, then leaves the runtime stack.
 
 ### Realtime UI
 
@@ -500,7 +500,7 @@ RabbitMQ later replaces integration transport; it does not invalidate the intern
 
 ### RabbitMQ and Redis environment topology after extraction
 
-RabbitMQ and Redis enter together when Audience becomes the first independently deployed business service. They are not MVP dependencies.
+RabbitMQ enters when Audience becomes the first independently deployed business service and, after the job-equivalence gate, becomes the standard durable asynchronous substrate for Mail, Audience, and every later service. Redis has a separate lifecycle and is introduced only for approved cache, distributed rate-limit, presence, or realtime fan-out needs. Neither is an MVP dependency, and Redis is never a durable job queue or canonical domain store.
 
 The accepted staged topology is:
 
@@ -1863,9 +1863,9 @@ Infisical Cloud is the source of truth for MVP secrets. “Secrets” means sens
 
 The initial Infisical layout is:
 
-- One `mailflow` secrets project during the MVP.
-- `development`, `staging`, and `production` environments.
-- `/core`, `/web`, and `/shared` paths in the MVP.
+- One `MailFlow-AI` secrets project during the MVP.
+- Development (`dev`), staging, and production environments.
+- `/mailflow-core`, `/mailflow-web`, and `/mailflow-site` paths in the MVP.
 - Two human identities.
 - Machine identities for GitHub Actions OIDC and production VPS A; production VPS B receives its own identity when Audience is extracted. VPS A and VPS B never share a machine credential.
 - GitHub Actions uses OIDC and short-lived access rather than a permanent Infisical token.
@@ -2449,7 +2449,7 @@ Primary references:
 
 ### Observability and reliability
 
-- OpenTelemetry begins in the MVP.
+- OpenTelemetry begins in the MVP. The executable foundation may land Pino logging first, but the API SDK, worker SDK, and Collector path are blocking requirements before the first staging deployment.
 - Every request, job, command, and event carries correlation and causation identifiers.
 - Logs are structured and exclude email content and other sensitive payloads.
 - Product audit records are separate from operational logs.
@@ -2537,7 +2537,7 @@ The architecture decision tree is closed. No conditional validation gate or deli
 ### Confirmed
 
 - MVP and distributed service boundaries, database ownership, tenancy/RLS model, REST/OpenAPI and event-contract rules, outbox/inbox semantics, deployment evolution, and trust boundaries.
-- TypeScript/Node.js, Hono, Zod/OpenAPI, PostgreSQL/Drizzle, pg-boss for the MVP, RabbitMQ plus Redis at Audience extraction, Cloudflare/R2, MinIO locally, Neon production PostgreSQL, Infisical, OpenTelemetry, and GitHub Actions.
+- TypeScript/Node.js, Hono, Zod/OpenAPI, PostgreSQL/Drizzle, pg-boss as the transitional MVP job engine, RabbitMQ as the mandatory post-MVP substrate for internal jobs and cross-service messaging after its equivalence gate, and Redis as an independently activated ephemeral-state component, plus Cloudflare/R2, MinIO locally, Neon production PostgreSQL, Infisical, OpenTelemetry, and GitHub Actions.
 - React frontend with TanStack Query, Jotai, React Hook Form/Zod, Tailwind CSS, shadcn/ui with Base UI, Tiptap, and the documented visual-builder/workflow/analytics adapters.
 - Resend owned solely by Mail, Stripe owned by Billing, OpenRouter owned by AI, and provider credentials never shared across bounded contexts.
 
@@ -2549,7 +2549,7 @@ The architecture decision tree is closed. No conditional validation gate or deli
 - MJML: representative compiler/client-compatibility spike; fallback may be the allowlisted React Email adapter while `EmailDocument` remains canonical.
 - ClickHouse: mandatory comparison with TimescaleDB; any tenant-isolation failure selects TimescaleDB even if ClickHouse is faster.
 - OpenRouter community AI SDK adapter: compatibility spike; fallbacks stay behind the AI-owned provider port.
-- `amqplib`: connection/channel/consumer recovery spike; `amqp-connection-manager` may be added inside the adapter if native recovery is insufficient.
+- RabbitMQ job equivalence and `amqplib`: before Mail cutover, prove transactional outbox publication, quorum durability, confirms, manual acknowledgements, bounded retry/backoff with jitter, priority, consumer timeout/heartbeats, dead-letter/redrive, scheduled dispatch from PostgreSQL, idempotency, reconciliation, observability, graceful drain, horizontal competing workers, and connection/channel/consumer recovery; `amqp-connection-manager` may be added inside the adapter if native recovery is insufficient, and pg-boss remains the rollback path until acceptance.
 - R2 for OpenTofu state: locking and encrypted recovery spike; fallback is a managed backend or versioned object store.
 - Token exchange/signing implementation and exact dependency major versions: security and compatibility validation before pinning. Every time-sensitive version or provider-limit claim used for implementation records a `verified_at` date and primary source.
 
@@ -2567,7 +2567,7 @@ Re-evaluate an accepted choice when its explicit trigger occurs:
 
 - **OCI Free to paid compute**: daily customer dependency, contractual SLO, reclaim/capacity issues, or sustained resource pressure.
 - **Logical to physical database separation**: independent scaling, blast-radius reduction, compliance, noisy-neighbor effects, or service-level recovery requirements.
-- **pg-boss to RabbitMQ/Redis**: first independently deployed business service, beginning with Audience.
+- **pg-boss to RabbitMQ migration**: at the first independently deployed business service, beginning with Audience, activate RabbitMQ only after the job-equivalence and client-recovery evidence is accepted; migrate Mail's internal queues plus cross-service flows, preserve PostgreSQL outbox/schedule/inbox authority, keep pg-boss as the rollback path during cutover, and remove it after the migration is reconciled. Redis follows its own ephemeral-state activation decision and is not part of this gate.
 - **PostgreSQL search to dedicated search/vector storage**: attachment indexing, semantic retrieval, relevance limits, or measured query/load constraints.
 - **AI `pgvector` to a dedicated vector database**: retrieval SLO or filtered ANN recall misses after tuning, unsafe index/maintenance cost, ingestion interference, required horizontal scale/isolation, or demonstrably better managed-service total cost and reliability.
 - **ClickHouse to TimescaleDB for Analytics**: the mandatory spike or later evidence fails tenant isolation, managed-service cost, representative query-performance advantage, deletion/reconciliation SLO, contractual controls, or operational-burden criteria. Security failure overrides a performance advantage.

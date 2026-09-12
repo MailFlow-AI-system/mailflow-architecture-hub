@@ -53,7 +53,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
     phases: ['mvp', 'first_distributed', 'future'],
     sourceRanges: [
       { startLine: 75, endLine: 93 },
+      { startLine: 142, endLine: 149 },
       { startLine: 356, endLine: 425 },
+      { startLine: 481, endLine: 503 },
       { startLine: 2274, endLine: 2329 },
     ],
     decisionIds: [
@@ -62,10 +64,15 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'decision.mail.at-least-once-provider-effects',
       'decision.communication.events-commands-projections',
       'decision.communication.producer-contract-ownership',
+      'decision.messaging.rabbitmq-distributed-transport',
       'decision.platform.campaign-modular-boundary',
     ],
     serviceIds: ['service.mail', 'service.campaign', 'service.delivery'],
-    trustBoundaryIds: ['trust.provider-credential-owner', 'trust.mail-provider'],
+    trustBoundaryIds: [
+      'trust.provider-credential-owner',
+      'trust.mail-provider',
+      'trust.broker-transport',
+    ],
     nodes: [
       node(
         'mail-provider.mail',
@@ -77,11 +84,16 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
           'decision.mail.resend-single-provider',
           'decision.mail.provider-port-ownership',
           'decision.mail.at-least-once-provider-effects',
+          'decision.messaging.rabbitmq-distributed-transport',
         ],
         {
           serviceId: 'service.mail',
-          stackIds: ['stack.resend', 'stack.rest-openapi'],
-          trustBoundaryIds: ['trust.provider-credential-owner', 'trust.mail-provider'],
+          stackIds: ['stack.resend', 'stack.rest-openapi', 'stack.pgboss', 'stack.rabbitmq'],
+          trustBoundaryIds: [
+            'trust.provider-credential-owner',
+            'trust.mail-provider',
+            'trust.broker-transport',
+          ],
         },
       ),
       node(
@@ -124,6 +136,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.communication.events-commands-projections',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.platform.campaign-modular-boundary',
         ],
         { group: 'Contract boundary' },
@@ -163,6 +176,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         [
           'decision.communication.events-commands-projections',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.platform.campaign-modular-boundary',
         ],
         {
@@ -185,6 +199,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.mail.provider-port-ownership',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
         ],
         { trustBoundaryId: 'trust.provider-credential-owner' },
       ),
@@ -211,6 +226,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.communication.events-commands-projections',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.mail.provider-port-ownership',
         ],
         {
@@ -733,7 +749,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'decision.communication.events-commands-projections',
       'decision.communication.producer-contract-ownership',
       'decision.tenancy.logical-database-per-service',
-      'decision.messaging.audience-rabbitmq-redis',
+      'decision.messaging.rabbitmq-distributed-transport',
     ],
     serviceIds: ['service.audience', 'service.campaign'],
     trustBoundaryIds: [
@@ -797,7 +813,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         'Carries versioned commands and facts after transactional outbox delivery.',
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.communication.events-commands-projections',
         ],
         {
@@ -897,7 +913,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         'async_command',
         ['first_distributed', 'future'],
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.communication.events-commands-projections',
         ],
         { trustBoundaryId: 'trust.broker-transport' },
@@ -1123,7 +1139,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         'Durable command/event transport with per-service credentials and ACLs.',
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.auth.durable-command-no-expiring-tokens',
         ],
         {
