@@ -116,7 +116,7 @@ Passing this gate validates the implementation and deployment flow; it does not 
 - [x] Affected diagrams and generated architecture pages synchronized and checked locally.
 - [x] Related decision record added.
 - [x] Catalog integrity, 48 unit tests, Astro type checks, lint, formatting, diagram digests, static build, privacy, and route checks pass.
-- [ ] Human coverage review: the regenerated manifest records 362 baseline-delta records requiring review; `coverage:check` deliberately remains blocked until those records are reviewed.
+- [x] Human coverage review: the owner approved both Railway and RabbitMQ and all 362 affected coverage records on 2026-09-12; the exact scope and removal history are recorded in [the review record](../reviews/railwayRabbitmqCoverageReview.md).
 
 ## Listening
 
