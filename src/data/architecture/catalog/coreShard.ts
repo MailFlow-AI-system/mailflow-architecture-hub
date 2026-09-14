@@ -2,7 +2,7 @@ import type { ArchitectureShard } from './types';
 
 const coreShard = {
   id: 'core',
-  sourceRange: { startLine: 1, endLine: 798 },
+  sourceRange: { startLine: 1, endLine: 806 },
   decisions: [
     {
       id: 'decision.product.mvp-scope',
@@ -11,7 +11,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The MVP covers foundation, inbox, viewer, composer, workspace membership and roles, and attachments.',
-      sourceRanges: [{ startLine: 13, endLine: 25 }],
+      sourceRanges: [{ startLine: 21, endLine: 33 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
       stackIds: ['stack.postgresql', 'stack.object-storage'],
       trustBoundaryIds: ['trust.workspace-tenant'],
@@ -23,7 +23,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Teams as a user-facing feature, advanced inbox/composer features, provider synchronization, historical import, and customer-owned domains are outside the MVP.',
-      sourceRanges: [{ startLine: 27, endLine: 35 }],
+      sourceRanges: [{ startLine: 35, endLine: 43 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
       reassessmentTriggers: [
         'A later approved product scope adds one of the excluded capabilities.',
@@ -36,7 +36,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The MVP uses one web application and one Core backend repository with separate API and worker processes, PostgreSQL jobs, object storage, and no internal event bus.',
-      sourceRanges: [{ startLine: 39, endLine: 50 }],
+      sourceRanges: [{ startLine: 47, endLine: 58 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
       stackIds: ['stack.postgresql', 'stack.object-storage', 'stack.pgboss'],
       trustBoundaryIds: ['trust.core-modular', 'trust.workspace-tenant'],
@@ -47,8 +47,8 @@ const coreShard = {
       status: 'confirmed',
       phase: 'first_distributed',
       summary:
-        'Event-driven integration, service-owned databases, a thin Gateway, and the first second-host deployment begin when Audience becomes the first extracted business service.',
-      sourceRanges: [{ startLine: 52, endLine: 64 }],
+        'When Audience becomes the first independently deployed business service, event-driven integration, service-owned databases, and a thin Gateway begin; the service may initially run as an isolated Railway deployable, while a second host is reserved for a later scale-driven VPS migration.',
+      sourceRanges: [{ startLine: 60, endLine: 72 }],
       serviceIds: [
         'service.gateway-bff',
         'service.identity-workspace',
@@ -66,7 +66,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Identity and Mail begin as Core modules, Audience is extracted first, Identity may later extract, and further extraction requires a real boundary or measured need.',
-      sourceRanges: [{ startLine: 66, endLine: 73 }],
+      sourceRanges: [{ startLine: 74, endLine: 81 }],
       serviceIds: ['service.identity-workspace', 'service.mail', 'service.audience'],
       gateIds: ['gate.evolution.identity-extraction', 'gate.evolution.service-extraction'],
       trustBoundaryIds: ['trust.core-modular', 'trust.workspace-tenant'],
@@ -78,7 +78,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Identity/Workspace, Mail, Audience, Campaign, Delivery, Content, Workflow, Automation Runtime, Analytics, AI, Billing, and Audit have distinct responsibilities and ownership boundaries.',
-      sourceRanges: [{ startLine: 75, endLine: 92 }],
+      sourceRanges: [{ startLine: 83, endLine: 100 }],
       serviceIds: [
         'service.identity-workspace',
         'service.mail',
@@ -103,7 +103,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'External and internal application APIs use versioned REST/JSON with OpenAPI, beginning at `/api/v1` and preserving migration windows for breaking changes.',
-      sourceRanges: [{ startLine: 96, endLine: 104 }],
+      sourceRanges: [{ startLine: 104, endLine: 112 }],
       serviceIds: [
         'service.gateway-bff',
         'service.identity-workspace',
@@ -120,7 +120,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'After authenticated ingress, the owning service has at most one justified downstream synchronous dependency; sequential cross-domain chains are prohibited.',
-      sourceRanges: [{ startLine: 106, endLine: 118 }],
+      sourceRanges: [{ startLine: 114, endLine: 126 }],
       serviceIds: [
         'service.gateway-bff',
         'service.identity-workspace',
@@ -137,7 +137,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'The Gateway may compose independent user-facing data in bounded parallel calls without becoming a general data-joining domain.',
-      sourceRanges: [{ startLine: 109, endLine: 112 }],
+      sourceRanges: [{ startLine: 117, endLine: 120 }],
       serviceIds: ['service.gateway-bff'],
       relatedDecisionIds: ['decision.communication.shallow-sync-depth'],
       trustBoundaryIds: ['trust.gateway-domain'],
@@ -148,8 +148,8 @@ const coreShard = {
       status: 'confirmed_with_validation_gate',
       phase: 'first_distributed',
       summary:
-        'The first two-VPS topology has provisional latency, timeout, acceptance, and request-deadline targets that must be validated with representative telemetry and fault tests.',
-      sourceRanges: [{ startLine: 120, endLine: 140 }],
+        'The first distributed topology, whether hosted on Railway or later paid VPS infrastructure, has provisional latency, timeout, acceptance, and request-deadline targets that must be validated with representative telemetry and fault tests.',
+      sourceRanges: [{ startLine: 128, endLine: 148 }],
       serviceIds: ['service.gateway-bff', 'service.identity-workspace', 'service.audience'],
       gateIds: ['gate.communication.distributed-latency'],
       relatedDecisionIds: ['decision.communication.shallow-sync-depth'],
@@ -163,10 +163,42 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Events are immutable facts, commands request outcomes, consumers are idempotent, and local projections replace direct reads of another service database.',
-      sourceRanges: [{ startLine: 142, endLine: 149 }],
+      sourceRanges: [{ startLine: 150, endLine: 157 }],
       serviceIds: ['service.audience', 'service.campaign', 'service.analytics'],
       stackIds: ['stack.rabbitmq'],
       trustBoundaryIds: ['trust.service-database', 'trust.broker-transport'],
+    },
+    {
+      id: 'decision.messaging.rabbitmq-distributed-transport',
+      title: 'RabbitMQ as the post-MVP asynchronous substrate',
+      status: 'confirmed_with_validation_gate',
+      phase: 'first_distributed',
+      summary:
+        'From Audience extraction onward, RabbitMQ carries private service-owned durable jobs and versioned cross-service events or commands after a blocking equivalence gate; PostgreSQL remains the outbox, schedule, inbox, and reconciliation authority.',
+      sourceRanges: [
+        { startLine: 150, endLine: 157 },
+        { startLine: 491, endLine: 511 },
+      ],
+      serviceIds: ['service.mail', 'service.audience'],
+      stackIds: ['stack.rabbitmq', 'stack.postgresql'],
+      gateIds: [
+        'gate.messaging.rabbitmq-job-equivalence',
+        'gate.messaging.amqplib-recovery',
+        'gate.platform.pgboss-to-rabbitmq-redis',
+      ],
+      relatedDecisionIds: [
+        'decision.jobs.pgboss-transactional',
+        'decision.messaging.audience-rabbitmq-redis',
+        'decision.communication.events-commands-projections',
+      ],
+      trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
+      primaryReferences: [
+        'https://www.rabbitmq.com/tutorials/tutorial-two-javascript',
+        'https://www.rabbitmq.com/docs/reliability',
+        'https://www.rabbitmq.com/docs/confirms',
+        'https://www.rabbitmq.com/docs/quorum-queues',
+        'https://www.rabbitmq.com/docs/access-control',
+      ],
     },
     {
       id: 'decision.communication.producer-contract-ownership',
@@ -175,7 +207,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Producers own generated API and event artifacts; shared packages may contain only technical envelope primitives, not domain entities or rules.',
-      sourceRanges: [{ startLine: 151, endLine: 156 }],
+      sourceRanges: [{ startLine: 159, endLine: 164 }],
       serviceIds: ['service.identity-workspace', 'service.mail', 'service.audience'],
       trustBoundaryIds: ['trust.service-database'],
     },
@@ -186,7 +218,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The web application and MVP Core use separate repositories; a new repository appears only when a bounded context becomes a real independent deployable.',
-      sourceRanges: [{ startLine: 158, endLine: 166 }],
+      sourceRanges: [{ startLine: 166, endLine: 174 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
     },
     {
@@ -196,7 +228,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The API and worker remain in one backend repository because they share one bounded context and release sequence.',
-      sourceRanges: [{ startLine: 164, endLine: 166 }],
+      sourceRanges: [{ startLine: 172, endLine: 174 }],
       serviceIds: ['service.mail'],
       relatedDecisionIds: ['decision.evolution.mvp-modular-core'],
     },
@@ -206,7 +238,7 @@ const coreShard = {
       status: 'confirmed',
       phase: 'mvp',
       summary: 'Workspace and tenant have the same meaning throughout MailFlow.',
-      sourceRanges: [{ startLine: 168, endLine: 168 }],
+      sourceRanges: [{ startLine: 176, endLine: 176 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
       trustBoundaryIds: ['trust.workspace-tenant'],
     },
@@ -217,7 +249,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Tenant-owned rows require workspace context, explicit query scoping, composite constraints, RLS, FORCE RLS, and a restricted application role.',
-      sourceRanges: [{ startLine: 172, endLine: 184 }],
+      sourceRanges: [{ startLine: 180, endLine: 192 }],
       serviceIds: ['service.identity-workspace', 'service.mail', 'service.audience'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.service-database'],
@@ -229,7 +261,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Each extracted service owns its logical database, credentials, migrations, and RLS policies; cross-service joins and transactions are prohibited.',
-      sourceRanges: [{ startLine: 186, endLine: 190 }],
+      sourceRanges: [{ startLine: 194, endLine: 198 }],
       serviceIds: ['service.identity-workspace', 'service.mail', 'service.audience'],
       stackIds: ['stack.postgresql'],
       gateIds: ['gate.tenancy.physical-database-separation'],
@@ -245,7 +277,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Workspace membership is mandatory; team membership is optional and can scope access without replacing workspace membership.',
-      sourceRanges: [{ startLine: 192, endLine: 198 }],
+      sourceRanges: [{ startLine: 200, endLine: 206 }],
       serviceIds: ['service.identity-workspace'],
       trustBoundaryIds: ['trust.workspace-tenant'],
     },
@@ -256,7 +288,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Owner, admin, and member roles use named capabilities with workspace/team scope; teams do not become tenants and arbitrary global per-user overrides are excluded.',
-      sourceRanges: [{ startLine: 200, endLine: 208 }],
+      sourceRanges: [{ startLine: 208, endLine: 216 }],
       serviceIds: ['service.identity-workspace', 'service.mail'],
       trustBoundaryIds: ['trust.workspace-tenant'],
     },
@@ -267,7 +299,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Platform administration is a separate audited realm that supports operations and recovery without tenant-user impersonation or email-content access.',
-      sourceRanges: [{ startLine: 210, endLine: 214 }],
+      sourceRanges: [{ startLine: 218, endLine: 222 }],
       serviceIds: ['service.identity-workspace', 'service.audit'],
       trustBoundaryIds: ['trust.platform-admin', 'trust.workspace-tenant'],
     },
@@ -278,7 +310,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Browser authentication uses revocable opaque secure cookies backed by PostgreSQL, with CSRF protection and session rotation instead of long-lived browser JWTs.',
-      sourceRanges: [{ startLine: 218, endLine: 223 }],
+      sourceRanges: [{ startLine: 226, endLine: 231 }],
       serviceIds: ['service.identity-workspace'],
       stackIds: ['stack.opaque-session-cookie', 'stack.postgresql'],
       trustBoundaryIds: ['trust.browser-identity', 'trust.workspace-tenant'],
@@ -290,7 +322,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Owners/admins use password plus mandatory TOTP; members use password plus email OTP on first or new devices with a trusted-device period.',
-      sourceRanges: [{ startLine: 218, endLine: 229 }],
+      sourceRanges: [{ startLine: 226, endLine: 237 }],
       serviceIds: ['service.identity-workspace'],
       stackIds: ['stack.mfa'],
       trustBoundaryIds: ['trust.browser-identity'],
@@ -302,7 +334,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Better Auth is the provisional identity/session/MFA library while MailFlow retains workspace authorization and must pass the blocking transaction, session, and MFA integration spike.',
-      sourceRanges: [{ startLine: 224, endLine: 229 }],
+      sourceRanges: [{ startLine: 232, endLine: 237 }],
       serviceIds: ['service.identity-workspace'],
       stackIds: ['stack.better-auth'],
       gateIds: ['gate.auth.better-auth-integration'],
@@ -315,7 +347,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The opaque session is validated once at ingress: in-process inside Core during MVP and through the Identity boundary after extraction; downstream services validate assertions locally.',
-      sourceRanges: [{ startLine: 231, endLine: 247 }],
+      sourceRanges: [{ startLine: 239, endLine: 255 }],
       serviceIds: ['service.gateway-bff', 'service.identity-workspace'],
       stackIds: ['stack.redis', 'stack.postgresql'],
       trustBoundaryIds: ['trust.browser-identity', 'trust.gateway-domain'],
@@ -327,7 +359,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Signup remains public, workspace routes resolve through an abstraction, and unrelated future customer domains use an authorization-code exchange rather than shared cookies.',
-      sourceRanges: [{ startLine: 249, endLine: 256 }],
+      sourceRanges: [{ startLine: 257, endLine: 264 }],
       serviceIds: ['service.identity-workspace', 'service.gateway-bff'],
       trustBoundaryIds: ['trust.browser-identity', 'trust.workspace-tenant'],
     },
@@ -338,7 +370,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Identity remains the trust issuer and authorization source while target services validate claims locally and combine them with service-owned resource state and projections.',
-      sourceRanges: [{ startLine: 258, endLine: 279 }],
+      sourceRanges: [{ startLine: 266, endLine: 287 }],
       serviceIds: ['service.identity-workspace', 'service.gateway-bff', 'service.audience'],
       stackIds: ['stack.jwks-tokens'],
       trustBoundaryIds: ['trust.identity-issuer', 'trust.gateway-domain', 'trust.service-database'],
@@ -350,7 +382,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Every internal caller authenticates as itself while preserving the delegated user/workspace actor; browser access tokens are never forwarded as service credentials.',
-      sourceRanges: [{ startLine: 258, endLine: 279 }],
+      sourceRanges: [{ startLine: 266, endLine: 287 }],
       serviceIds: ['service.identity-workspace', 'service.gateway-bff', 'service.audience'],
       stackIds: ['stack.jwks-tokens'],
       relatedDecisionIds: ['decision.auth.hybrid-decentralized-authorization'],
@@ -363,7 +395,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'The issuer keeps the asymmetric private key, publishes public JWKS, and validators cache public keys while failing closed on unknown keys or invalid claims.',
-      sourceRanges: [{ startLine: 280, endLine: 299 }],
+      sourceRanges: [{ startLine: 288, endLine: 307 }],
       serviceIds: ['service.identity-workspace', 'service.audience'],
       stackIds: ['stack.jwks-tokens'],
       trustBoundaryIds: ['trust.identity-issuer', 'trust.service-database'],
@@ -379,7 +411,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'The exact token-exchange endpoint, signing algorithm, and implementation library remain subject to a security spike before pinning.',
-      sourceRanges: [{ startLine: 294, endLine: 299 }],
+      sourceRanges: [{ startLine: 302, endLine: 307 }],
       serviceIds: ['service.identity-workspace'],
       stackIds: ['stack.jwks-tokens'],
       gateIds: ['gate.auth.token-exchange-signing'],
@@ -398,7 +430,7 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'RabbitMQ commands contain stable identities, authorization generations, bindings, and operation metadata, never expiring workload, delegated-user, or automation tokens.',
-      sourceRanges: [{ startLine: 294, endLine: 327 }],
+      sourceRanges: [{ startLine: 302, endLine: 335 }],
       serviceIds: ['service.audience', 'service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.rabbitmq', 'stack.rabbitmq-acl'],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
@@ -410,7 +442,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Each capability owner controls its connections, provider credentials, authorization, quota, idempotency, reconciliation, webhook handling, and audit semantics.',
-      sourceRanges: [{ startLine: 300, endLine: 356 }],
+      sourceRanges: [{ startLine: 308, endLine: 364 }],
       serviceIds: [
         'service.mail',
         'service.ai',
@@ -435,7 +467,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Workflow and Runtime carry stable opaque bindings; the owning service resolves current credentials and revalidates authorization at action time.',
-      sourceRanges: [{ startLine: 329, endLine: 343 }],
+      sourceRanges: [{ startLine: 337, endLine: 351 }],
       serviceIds: [
         'service.workflow',
         'service.automation-runtime',
@@ -453,7 +485,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Resend is the accepted single inbound and outbound provider for the controlled MVP, including its explicit transport single point of failure.',
-      sourceRanges: [{ startLine: 356, endLine: 423 }],
+      sourceRanges: [{ startLine: 364, endLine: 431 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.resend'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.provider-credential-owner'],
@@ -475,7 +507,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Each workspace receives one immutable globally unique slug-derived address while a stable Mailbox entity remains the identity key.',
-      sourceRanges: [{ startLine: 360, endLine: 368 }],
+      sourceRanges: [{ startLine: 368, endLine: 376 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.resend'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.workspace-tenant'],
@@ -487,7 +519,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Customer-owned email subdomains, DNS verification guidance, billing recovery, and multiple mailbox support are deferred to a paid workspace capability.',
-      sourceRanges: [{ startLine: 370, endLine: 375 }],
+      sourceRanges: [{ startLine: 378, endLine: 383 }],
       serviceIds: ['service.mail', 'service.billing'],
       gateIds: ['gate.mail.custom-domain-billing'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.workspace-tenant'],
@@ -502,7 +534,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Outbound activation, quotas, suppression, kill switches, and manual quota review protect the shared MailFlow domain and provider capacity.',
-      sourceRanges: [{ startLine: 377, endLine: 389 }],
+      sourceRanges: [{ startLine: 385, endLine: 397 }],
       serviceIds: ['service.mail', 'service.identity-workspace'],
       stackIds: ['stack.resend'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.workspace-tenant'],
@@ -514,7 +546,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Resend webhook notification is authenticated and persisted idempotently before a worker retrieves content, headers, and temporary attachment URLs.',
-      sourceRanges: [{ startLine: 391, endLine: 397 }],
+      sourceRanges: [{ startLine: 399, endLine: 405 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.resend', 'stack.pgboss'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.service-database'],
@@ -526,7 +558,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Mail owns the EmailProvider port, provider adapter, quota/reputation policy, retries, idempotency, unknown-outcome reconciliation, and canonical result.',
-      sourceRanges: [{ startLine: 399, endLine: 423 }],
+      sourceRanges: [{ startLine: 407, endLine: 431 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.resend'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.provider-credential-owner'],
@@ -545,7 +577,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Threads use RFC identifiers, personal flags remain per-user, archive/trash are shared mailbox state, drafts are author-owned, and purge retains only a minimal tombstone.',
-      sourceRanges: [{ startLine: 425, endLine: 435 }],
+      sourceRanges: [{ startLine: 433, endLine: 443 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.service-database'],
@@ -557,7 +589,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The MVP searches normalized email metadata and body text lexically in PostgreSQL and excludes attachment-content and semantic/vector search.',
-      sourceRanges: [{ startLine: 437, endLine: 439 }],
+      sourceRanges: [{ startLine: 445, endLine: 447 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.postgres-lexical-search'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.service-database'],
@@ -569,7 +601,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Attachment-content search and semantic/vector retrieval are separate future capabilities rather than MVP search behavior.',
-      sourceRanges: [{ startLine: 437, endLine: 439 }],
+      sourceRanges: [{ startLine: 445, endLine: 447 }],
       serviceIds: ['service.mail', 'service.ai'],
       gateIds: ['gate.mail.semantic-search'],
       reassessmentTriggers: ['A future RAG or semantic retrieval capability is approved.'],
@@ -581,7 +613,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'PostgreSQL is the draft authority; Jotai holds complex local editing state and unsaved changes without becoming the source of truth.',
-      sourceRanges: [{ startLine: 441, endLine: 447 }],
+      sourceRanges: [{ startLine: 449, endLine: 455 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.postgresql', 'stack.jotai'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.service-database'],
@@ -593,7 +625,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Draft autosave uses a meaningful-change delay and version checks to prevent silent overwrites.',
-      sourceRanges: [{ startLine: 443, endLine: 447 }],
+      sourceRanges: [{ startLine: 451, endLine: 455 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.postgresql', 'stack.jotai'],
       relatedDecisionIds: ['decision.mail.postgres-draft-canonical'],
@@ -606,7 +638,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Sending creates an immutable snapshot, shows `queued`, and lets the worker report progress.',
-      sourceRanges: [{ startLine: 448, endLine: 450 }],
+      sourceRanges: [{ startLine: 456, endLine: 458 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.postgresql', 'stack.pgboss'],
       trustBoundaryIds: ['trust.service-database', 'trust.mail-provider'],
@@ -618,7 +650,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Provider effects require idempotency keys, delivery-attempt records, bounded retry, and reconciliation even when job execution is durable.',
-      sourceRanges: [{ startLine: 448, endLine: 450 }],
+      sourceRanges: [{ startLine: 456, endLine: 458 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.pgboss', 'stack.resend'],
       trustBoundaryIds: ['trust.mail-provider', 'trust.service-database'],
@@ -630,7 +662,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The browser uploads directly to private S3-compatible storage through a short-lived presigned URL; the backend verifies object metadata and checksum.',
-      sourceRanges: [{ startLine: 454, endLine: 460 }],
+      sourceRanges: [{ startLine: 462, endLine: 468 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.object-storage', 'stack.presigned-upload'],
       trustBoundaryIds: ['trust.storage-scanner', 'trust.workspace-tenant'],
@@ -642,7 +674,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'ClamAV runs in an internal container; attachments remain unavailable while pending, infected, or unscannable, with bounded archive protections.',
-      sourceRanges: [{ startLine: 462, endLine: 471 }],
+      sourceRanges: [{ startLine: 470, endLine: 479 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.clamav'],
       trustBoundaryIds: ['trust.storage-scanner'],
@@ -654,7 +686,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'A managed scanner may replace ClamAV behind the same scanning port if a later approved need exists.',
-      sourceRanges: [{ startLine: 470, endLine: 471 }],
+      sourceRanges: [{ startLine: 478, endLine: 479 }],
       serviceIds: ['service.mail'],
       gateIds: ['gate.mail.managed-scanner'],
       relatedDecisionIds: ['decision.mail.clamav-local-scanning'],
@@ -669,7 +701,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Email HTML is sanitized and rendered in a restrictive sandbox; remote images are blocked and sensitive values are excluded from logs.',
-      sourceRanges: [{ startLine: 473, endLine: 479 }],
+      sourceRanges: [{ startLine: 481, endLine: 487 }],
       serviceIds: ['service.mail'],
       trustBoundaryIds: ['trust.storage-scanner', 'trust.workspace-tenant'],
     },
@@ -679,10 +711,11 @@ const coreShard = {
       status: 'confirmed',
       phase: 'mvp',
       summary:
-        'pg-boss sits behind an internal job port; domain state and job enqueue commit in the same PostgreSQL transaction, with idempotent handlers and reconciliation.',
-      sourceRanges: [{ startLine: 481, endLine: 492 }],
+        'pg-boss is the transitional MVP durable-job engine behind an internal port; it remains the rollback path until RabbitMQ equivalence and migration evidence is accepted, then leaves the runtime stack.',
+      sourceRanges: [{ startLine: 489, endLine: 500 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.pgboss', 'stack.postgresql'],
+      relatedDecisionIds: ['decision.messaging.rabbitmq-distributed-transport'],
       trustBoundaryIds: ['trust.service-database'],
     },
     {
@@ -692,22 +725,26 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The API emits lightweight SSE invalidations, PostgreSQL LISTEN/NOTIFY wakes API instances, and TanStack Query refetches authority.',
-      sourceRanges: [{ startLine: 494, endLine: 499 }],
+      sourceRanges: [{ startLine: 502, endLine: 507 }],
       serviceIds: ['service.mail'],
       stackIds: ['stack.sse-listen-notify'],
       trustBoundaryIds: ['trust.service-database'],
     },
     {
       id: 'decision.messaging.audience-rabbitmq-redis',
-      title: 'RabbitMQ and Redis enter at Audience extraction',
+      title: 'RabbitMQ activation and independent Redis adoption',
       status: 'confirmed',
       phase: 'first_distributed',
       summary:
-        'RabbitMQ and Redis are not MVP dependencies and enter together when Audience becomes the first independently deployed business service.',
-      sourceRanges: [{ startLine: 501, endLine: 513 }],
-      serviceIds: ['service.audience'],
+        'RabbitMQ activates with Audience extraction after its blocking gates; Redis follows an independent lifecycle and activates only for approved ephemeral-state workloads.',
+      sourceRanges: [{ startLine: 509, endLine: 521 }],
+      serviceIds: ['service.mail', 'service.audience'],
       stackIds: ['stack.rabbitmq', 'stack.redis'],
       gateIds: ['gate.evolution.audience-extraction'],
+      relatedDecisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.redis-ephemeral-state',
+      ],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
       primaryReferences: [
         'https://www.cloudamqp.com/plans.html',
@@ -721,13 +758,34 @@ const coreShard = {
       ],
     },
     {
+      id: 'decision.messaging.redis-ephemeral-state',
+      title: 'Redis only for independently activated ephemeral state',
+      status: 'confirmed',
+      phase: 'first_distributed',
+      summary:
+        'Redis is limited to rebuildable cache, distributed rate limiting, presence, and realtime fan-out; it is neither a durable job queue nor canonical domain state and its activation is independent of RabbitMQ migration.',
+      sourceRanges: [
+        { startLine: 502, endLine: 511 },
+        { startLine: 563, endLine: 591 },
+      ],
+      serviceIds: ['service.identity-workspace', 'service.audience'],
+      stackIds: ['stack.redis'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
+      relatedDecisionIds: ['decision.messaging.audience-rabbitmq-redis'],
+      trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
+      primaryReferences: [
+        'https://redis.io/docs/latest/develop/clients/nodejs/',
+        'https://redis.io/docs/latest/operate/rc/databases/configuration/data-persistence/',
+      ],
+    },
+    {
       id: 'decision.messaging.environment-isolation',
       title: 'Environment-isolated broker and cache topology',
       status: 'confirmed',
       phase: 'first_distributed',
       summary:
         'Environments do not share RabbitMQ virtual hosts, Redis databases, credentials, messages, or cached data; each permissioned service gets its own broker identity.',
-      sourceRanges: [{ startLine: 505, endLine: 513 }],
+      sourceRanges: [{ startLine: 513, endLine: 521 }],
       serviceIds: ['service.audience'],
       stackIds: ['stack.rabbitmq-acl', 'stack.redis'],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
@@ -739,8 +797,8 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'TypeScript services use amqplib behind an adapter that owns reconnect, topology, confirms, acknowledgements, DLQ handling, drain, and telemetry; recovery must pass its blocking spike.',
-      sourceRanges: [{ startLine: 555, endLine: 593 }],
-      serviceIds: ['service.audience'],
+      sourceRanges: [{ startLine: 563, endLine: 601 }],
+      serviceIds: ['service.mail', 'service.audience'],
       stackIds: ['stack.amqplib', 'stack.rabbitmq'],
       gateIds: ['gate.messaging.amqplib-recovery'],
       trustBoundaryIds: ['trust.broker-transport'],
@@ -761,10 +819,10 @@ const coreShard = {
       phase: 'first_distributed',
       summary:
         'Redis uses node-redis behind narrow cache, rate-limit, presence, and fan-out ports; connection recovery and subscription restoration are part of the broker/client spike.',
-      sourceRanges: [{ startLine: 555, endLine: 593 }],
+      sourceRanges: [{ startLine: 563, endLine: 601 }],
       serviceIds: ['service.audience'],
       stackIds: ['stack.node-redis', 'stack.redis'],
-      gateIds: ['gate.messaging.amqplib-recovery'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
       trustBoundaryIds: ['trust.broker-transport', 'trust.service-database'],
       primaryReferences: [
         'https://redis.io/docs/latest/develop/clients/nodejs/',
@@ -778,7 +836,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'MailFlow is not zero knowledge because search, automation, sanitization, and future RAG require server-readable content; transit, storage, backups, URLs, and logs are controlled.',
-      sourceRanges: [{ startLine: 595, endLine: 598 }],
+      sourceRanges: [{ startLine: 603, endLine: 606 }],
       serviceIds: ['service.mail', 'service.ai'],
       stackIds: ['stack.object-storage'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.provider-credential-owner'],
@@ -790,7 +848,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Cancellation enters a 30-day read-only grace period, followed by idempotent purge across operational data, with a ledger and minimal tombstone preventing restoration of deleted content.',
-      sourceRanges: [{ startLine: 600, endLine: 623 }],
+      sourceRanges: [{ startLine: 608, endLine: 631 }],
       serviceIds: ['service.identity-workspace', 'service.mail', 'service.audit'],
       stackIds: ['stack.postgresql', 'stack.object-storage', 'stack.pgboss'],
       gateIds: ['gate.lifecycle.deletion-reconciliation'],
@@ -803,7 +861,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Export is an asynchronous encrypted ZIP with a short-lived signed URL and automatic deletion of the temporary object.',
-      sourceRanges: [{ startLine: 624, endLine: 628 }],
+      sourceRanges: [{ startLine: 632, endLine: 636 }],
       serviceIds: ['service.mail', 'service.identity-workspace'],
       stackIds: ['stack.object-storage', 'stack.pgboss'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.storage-scanner'],
@@ -815,7 +873,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'Operational logs, security events, workspace audit, billing/statutory records, and legally retained data use distinct retention policies.',
-      sourceRanges: [{ startLine: 630, endLine: 637 }],
+      sourceRanges: [{ startLine: 638, endLine: 645 }],
       serviceIds: ['service.audit', 'service.billing'],
       gateIds: ['gate.privacy.legal-review'],
       trustBoundaryIds: ['trust.workspace-tenant', 'trust.platform-admin'],
@@ -830,7 +888,7 @@ const coreShard = {
       phase: 'mvp',
       summary:
         'The customer workspace is controller for organizational content; MailFlow is operator for that content and controller for its own account, security, billing, and abuse purposes.',
-      sourceRanges: [{ startLine: 639, endLine: 656 }],
+      sourceRanges: [{ startLine: 647, endLine: 664 }],
       serviceIds: [
         'service.identity-workspace',
         'service.mail',
@@ -852,7 +910,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'AI retrieval treats organizational email, contacts, attachments, and knowledge documents as confidential and requires an explicit zero-trust boundary.',
-      sourceRanges: [{ startLine: 658, endLine: 660 }],
+      sourceRanges: [{ startLine: 666, endLine: 668 }],
       serviceIds: ['service.ai'],
       trustBoundaryIds: ['trust.ai-retrieval', 'trust.embedding-data'],
     },
@@ -863,7 +921,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'AI owns its databases, vectors, credentials, migrations, and derived artifacts and fetches source content only through owning-service APIs.',
-      sourceRanges: [{ startLine: 662, endLine: 668 }],
+      sourceRanges: [{ startLine: 670, endLine: 676 }],
       serviceIds: [
         'service.ai',
         'service.mail',
@@ -880,7 +938,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'An owner or admin enables indexing per mailbox or knowledge source; MailFlow does not silently index every source.',
-      sourceRanges: [{ startLine: 664, endLine: 668 }],
+      sourceRanges: [{ startLine: 672, endLine: 676 }],
       serviceIds: ['service.ai', 'service.mail'],
       trustBoundaryIds: ['trust.ai-retrieval', 'trust.workspace-tenant'],
     },
@@ -891,7 +949,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Vector storage must enforce tenant isolation; retrieval authorizes before search and revalidates candidate sources through the owning service.',
-      sourceRanges: [{ startLine: 670, endLine: 676 }],
+      sourceRanges: [{ startLine: 678, endLine: 684 }],
       serviceIds: ['service.ai', 'service.mail', 'service.audience'],
       trustBoundaryIds: ['trust.ai-retrieval', 'trust.embedding-data', 'trust.workspace-tenant'],
     },
@@ -902,7 +960,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Retrieved content is delimited as untrusted data, deterministic code owns authorization, and the model receives no direct database, provider, object-storage, or administration credentials.',
-      sourceRanges: [{ startLine: 678, endLine: 685 }],
+      sourceRanges: [{ startLine: 686, endLine: 693 }],
       serviceIds: ['service.ai'],
       trustBoundaryIds: ['trust.ai-retrieval', 'trust.ai-model-provider'],
     },
@@ -913,7 +971,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Initial AI capabilities generate drafts, templates, explanations, and typed proposals; consequential actions must pass ordinary commands and human approval.',
-      sourceRanges: [{ startLine: 680, endLine: 685 }],
+      sourceRanges: [{ startLine: 688, endLine: 693 }],
       serviceIds: ['service.ai', 'service.workflow', 'service.automation-runtime'],
       trustBoundaryIds: ['trust.ai-model-provider', 'trust.service-database'],
     },
@@ -924,7 +982,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Answers cite authorized source versions, expose uncertainty when evidence is insufficient, version evaluation inputs, and test leakage, injection, groundedness, quality, cost, and latency.',
-      sourceRanges: [{ startLine: 687, endLine: 694 }],
+      sourceRanges: [{ startLine: 695, endLine: 702 }],
       serviceIds: ['service.ai'],
       trustBoundaryIds: ['trust.ai-retrieval', 'trust.embedding-data'],
     },
@@ -935,7 +993,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'AI providers require appropriate DPA/no-training/retention controls; source deletion installs a denylist before cleanup and embeddings remain potentially personal derived data.',
-      sourceRanges: [{ startLine: 696, endLine: 704 }],
+      sourceRanges: [{ startLine: 704, endLine: 712 }],
       serviceIds: ['service.ai'],
       trustBoundaryIds: ['trust.ai-model-provider', 'trust.embedding-data'],
       reassessmentTriggers: [
@@ -949,7 +1007,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'The AI Service uses the Vercel AI SDK and OpenRouter while MailFlow retains capability contracts, routing, authorization, budgets, audit, retries, and durable state; the community adapter requires a spike.',
-      sourceRanges: [{ startLine: 706, endLine: 758 }],
+      sourceRanges: [{ startLine: 714, endLine: 766 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.vercel-ai-sdk', 'stack.openrouter', 'stack.openrouter-ai-sdk-provider'],
       gateIds: ['gate.ai.openrouter-adapter'],
@@ -965,7 +1023,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Clients request versioned business capabilities while an internal registry controls model aliases, allowlists, prompts, schemas, tools, budgets, privacy, fallback, and evaluation.',
-      sourceRanges: [{ startLine: 725, endLine: 732 }],
+      sourceRanges: [{ startLine: 733, endLine: 740 }],
       serviceIds: ['service.ai'],
       relatedDecisionIds: ['decision.ai.sdk-openrouter-integration'],
       trustBoundaryIds: ['trust.ai-model-provider', 'trust.ai-retrieval'],
@@ -977,7 +1035,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'A single call or deterministic multi-step flow is preferred; agent loops and multi-agent orchestration require measured quality gains that justify their added risk and cost.',
-      sourceRanges: [{ startLine: 730, endLine: 732 }],
+      sourceRanges: [{ startLine: 738, endLine: 740 }],
       serviceIds: ['service.ai'],
       trustBoundaryIds: ['trust.ai-model-provider'],
     },
@@ -988,7 +1046,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Embeddings use a dedicated MailFlow-owned provider port so retrieval can evolve independently from generation gateways, credentials, quotas, and failure policy.',
-      sourceRanges: [{ startLine: 760, endLine: 769 }],
+      sourceRanges: [{ startLine: 768, endLine: 777 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.embedding-provider'],
       gateIds: ['gate.ai.embedding-provider-compatibility'],
@@ -1001,7 +1059,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'No concrete embedding model is frozen before implementation; the model, dimensions, distance, chunking, and retrieval configuration are selected through a representative evaluation corpus.',
-      sourceRanges: [{ startLine: 771, endLine: 777 }],
+      sourceRanges: [{ startLine: 779, endLine: 785 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.embedding-evaluation'],
       gateIds: ['gate.ai.embedding-model-evaluation'],
@@ -1017,7 +1075,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'Queries use the indexed embedding space; model changes create versioned indexes, idempotent re-embedding, dual-read evaluation, explicit cutover, and rollback.',
-      sourceRanges: [{ startLine: 779, endLine: 786 }],
+      sourceRanges: [{ startLine: 787, endLine: 794 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.embedding-provider', 'stack.embedding-evaluation'],
       gateIds: ['gate.ai.embedding-provider-compatibility'],
@@ -1031,7 +1089,7 @@ const coreShard = {
       phase: 'future',
       summary:
         'A dedicated vector database is not preselected and remains conditional on measured migration, isolation, retrieval, and operational evidence.',
-      sourceRanges: [{ startLine: 704, endLine: 704 }],
+      sourceRanges: [{ startLine: 712, endLine: 712 }],
       serviceIds: ['service.ai'],
       gateIds: ['gate.ai.vector-store-migration'],
       trustBoundaryIds: ['trust.embedding-data', 'trust.workspace-tenant'],
@@ -1044,7 +1102,7 @@ const coreShard = {
       name: 'Gateway/BFF',
       summary: 'Thin edge service that owns ingress composition and no business domain.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 52, endLine: 59 }],
+      sourceRanges: [{ startLine: 60, endLine: 67 }],
       decisionIds: [
         'decision.evolution.audience-first-distributed',
         'decision.communication.rest-openapi-versioned',
@@ -1057,7 +1115,7 @@ const coreShard = {
       name: 'Identity/Workspace',
       summary: 'Owns identity integration, workspace membership, teams, RBAC, and tenancy context.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 75, endLine: 76 }],
+      sourceRanges: [{ startLine: 83, endLine: 84 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.tenancy.workspace-is-tenant',
@@ -1072,7 +1130,7 @@ const coreShard = {
       summary:
         'Owns mailboxes, messages, drafts, attachments, inbox state, and Resend integration.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 75, endLine: 77 }],
+      sourceRanges: [{ startLine: 83, endLine: 85 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.evolution.mvp-modular-core',
@@ -1085,7 +1143,7 @@ const coreShard = {
       name: 'Audience',
       summary: 'Owns contacts, lists, segments, deduplication, suppressions, and audience health.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 52, endLine: 64 }],
+      sourceRanges: [{ startLine: 60, endLine: 72 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.evolution.audience-first-distributed',
@@ -1099,7 +1157,7 @@ const coreShard = {
       summary:
         'One deployable bounded context with isolated Campaign Control and Campaign Execution modules.',
       phase: 'future',
-      sourceRanges: [{ startLine: 75, endLine: 80 }],
+      sourceRanges: [{ startLine: 83, endLine: 88 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.communication.events-commands-projections',
@@ -1111,7 +1169,7 @@ const coreShard = {
       summary:
         'Future extraction target for Campaign Execution, retaining campaign orchestration and Mail contracts.',
       phase: 'future',
-      sourceRanges: [{ startLine: 79, endLine: 80 }],
+      sourceRanges: [{ startLine: 87, endLine: 88 }],
       decisionIds: ['decision.boundaries.bounded-contexts'],
     },
     {
@@ -1120,7 +1178,7 @@ const coreShard = {
       summary:
         'Owns templates, reusable blocks, visual-builder documents, variables, compilation, assets, localization, and versions.',
       phase: 'future',
-      sourceRanges: [{ startLine: 81, endLine: 81 }],
+      sourceRanges: [{ startLine: 89, endLine: 89 }],
       decisionIds: ['decision.boundaries.bounded-contexts'],
     },
     {
@@ -1129,7 +1187,7 @@ const coreShard = {
       summary:
         'Owns automation authoring, validation, drafts, publication, versioning, and templates.',
       phase: 'future',
-      sourceRanges: [{ startLine: 82, endLine: 82 }],
+      sourceRanges: [{ startLine: 90, endLine: 90 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.auth.opaque-resource-binding',
@@ -1141,7 +1199,7 @@ const coreShard = {
       summary:
         'Owns workflow execution data-plane state, triggers, nodes, delays, branching, retries, recovery, and DLQ behavior.',
       phase: 'future',
-      sourceRanges: [{ startLine: 83, endLine: 83 }],
+      sourceRanges: [{ startLine: 91, endLine: 91 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.auth.durable-command-no-expiring-tokens',
@@ -1153,7 +1211,7 @@ const coreShard = {
       summary:
         'Owns event-fed analytical projections, reports, KPIs, funnels, cohorts, and exports.',
       phase: 'future',
-      sourceRanges: [{ startLine: 84, endLine: 84 }],
+      sourceRanges: [{ startLine: 92, endLine: 92 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.communication.events-commands-projections',
@@ -1165,7 +1223,7 @@ const coreShard = {
       summary:
         'Owns generation, RAG orchestration, ingestion, provider management, usage, brand voice, and AI audit data.',
       phase: 'future',
-      sourceRanges: [{ startLine: 85, endLine: 85 }],
+      sourceRanges: [{ startLine: 93, endLine: 93 }],
       decisionIds: ['decision.boundaries.bounded-contexts', 'decision.ai.zero-trust-rag-boundary'],
     },
     {
@@ -1174,7 +1232,7 @@ const coreShard = {
       summary:
         'Owns Stripe integration, subscriptions, invoices, entitlements, usage, trials, and lifecycle actions.',
       phase: 'future',
-      sourceRanges: [{ startLine: 86, endLine: 86 }],
+      sourceRanges: [{ startLine: 94, endLine: 94 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.auth.connection-ownership-by-capability',
@@ -1186,7 +1244,7 @@ const coreShard = {
       summary:
         'Begins with local append-only audit records and may later receive a central event-fed projection.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 87, endLine: 92 }],
+      sourceRanges: [{ startLine: 95, endLine: 100 }],
       decisionIds: ['decision.boundaries.bounded-contexts', 'decision.lifecycle.retention-classes'],
     },
   ],
@@ -1199,8 +1257,8 @@ const coreShard = {
       phase: 'mvp',
       status: 'confirmed',
       sourceRanges: [
-        { startLine: 45, endLine: 46 },
-        { startLine: 391, endLine: 397 },
+        { startLine: 53, endLine: 54 },
+        { startLine: 399, endLine: 405 },
       ],
       decisionIds: [
         'decision.evolution.mvp-modular-core',
@@ -1214,7 +1272,7 @@ const coreShard = {
       summary: 'Versioned synchronous application contract style.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 96, endLine: 104 }],
+      sourceRanges: [{ startLine: 104, endLine: 112 }],
       decisionIds: ['decision.communication.rest-openapi-versioned'],
       serviceIds: [
         'service.gateway-bff',
@@ -1230,7 +1288,7 @@ const coreShard = {
         'Revocable browser session identifier in HttpOnly, Secure cookies backed by PostgreSQL.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 218, endLine: 223 }],
+      sourceRanges: [{ startLine: 226, endLine: 231 }],
       decisionIds: ['decision.auth.opaque-browser-sessions'],
       serviceIds: ['service.identity-workspace'],
     },
@@ -1240,7 +1298,7 @@ const coreShard = {
       summary: 'Role-specific MVP multi-factor authentication mechanisms.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 218, endLine: 229 }],
+      sourceRanges: [{ startLine: 226, endLine: 237 }],
       decisionIds: ['decision.auth.mfa-policy'],
       serviceIds: ['service.identity-workspace'],
     },
@@ -1251,7 +1309,7 @@ const coreShard = {
         'Short-lived audience-bound service and delegated identities with local public-key validation.',
       phase: 'first_distributed',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 258, endLine: 299 }],
+      sourceRanges: [{ startLine: 266, endLine: 307 }],
       decisionIds: [
         'decision.auth.hybrid-decentralized-authorization',
         'decision.auth.jwks-local-validation',
@@ -1269,7 +1327,7 @@ const coreShard = {
         'Per-service broker identities and virtual-host/exchange/routing-key/queue permissions.',
       phase: 'first_distributed',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 320, endLine: 327 }],
+      sourceRanges: [{ startLine: 328, endLine: 335 }],
       decisionIds: [
         'decision.auth.durable-command-no-expiring-tokens',
         'decision.messaging.environment-isolation',
@@ -1284,7 +1342,7 @@ const coreShard = {
         'MVP inbound/outbound provider behind a Mail-owned adapter and reconciliation ledger.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 356, endLine: 423 }],
+      sourceRanges: [{ startLine: 364, endLine: 431 }],
       decisionIds: [
         'decision.mail.resend-single-provider',
         'decision.mail.provider-port-ownership',
@@ -1301,7 +1359,7 @@ const coreShard = {
       summary: 'Normalized metadata and body-text lexical search for the MVP.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 437, endLine: 439 }],
+      sourceRanges: [{ startLine: 445, endLine: 447 }],
       decisionIds: ['decision.mail.postgres-lexical-search'],
       serviceIds: ['service.mail'],
     },
@@ -1312,7 +1370,7 @@ const coreShard = {
         'Private direct browser upload with backend-selected object keys and completion verification.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 454, endLine: 460 }],
+      sourceRanges: [{ startLine: 462, endLine: 468 }],
       decisionIds: ['decision.mail.presigned-private-upload'],
       serviceIds: ['service.mail'],
     },
@@ -1322,7 +1380,7 @@ const coreShard = {
       summary: 'PostgreSQL-backed MVP durable job queue behind an internal port.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 481, endLine: 492 }],
+      sourceRanges: [{ startLine: 489, endLine: 500 }],
       decisionIds: ['decision.jobs.pgboss-transactional'],
       serviceIds: ['service.mail'],
     },
@@ -1332,7 +1390,7 @@ const coreShard = {
       summary: 'Lightweight UI invalidation with authoritative query refetch.',
       phase: 'mvp',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 494, endLine: 499 }],
+      sourceRanges: [{ startLine: 502, endLine: 507 }],
       decisionIds: ['decision.realtime.sse-listen-notify'],
       serviceIds: ['service.mail'],
     },
@@ -1342,7 +1400,7 @@ const coreShard = {
       summary: 'Pinned local broker/cache containers and disposable integration infrastructure.',
       phase: 'first_distributed',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 505, endLine: 509 }],
+      sourceRanges: [{ startLine: 513, endLine: 517 }],
       decisionIds: ['decision.messaging.audience-rabbitmq-redis'],
       serviceIds: ['service.audience'],
     },
@@ -1353,10 +1411,10 @@ const coreShard = {
         'Redis client isolated behind narrow cache, rate-limit, presence, and fan-out ports.',
       phase: 'first_distributed',
       status: 'confirmed_with_validation_gate',
-      sourceRanges: [{ startLine: 555, endLine: 593 }],
+      sourceRanges: [{ startLine: 563, endLine: 601 }],
       decisionIds: ['decision.messaging.node-redis-adapter'],
       serviceIds: ['service.audience'],
-      gateIds: ['gate.messaging.amqplib-recovery'],
+      gateIds: ['gate.messaging.redis-client-recovery'],
       primaryReferences: ['https://redis.io/docs/latest/develop/clients/nodejs/'],
     },
     {
@@ -1366,7 +1424,7 @@ const coreShard = {
         'AI Service model integration and orchestration runtime behind MailFlow-owned ports.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 706, endLine: 716 }],
+      sourceRanges: [{ startLine: 714, endLine: 724 }],
       decisionIds: ['decision.ai.sdk-openrouter-integration'],
       serviceIds: ['service.ai'],
     },
@@ -1378,8 +1436,8 @@ const coreShard = {
       phase: 'future',
       status: 'confirmed',
       sourceRanges: [
-        { startLine: 710, endLine: 716 },
-        { startLine: 760, endLine: 769 },
+        { startLine: 718, endLine: 724 },
+        { startLine: 768, endLine: 777 },
       ],
       decisionIds: [
         'decision.ai.sdk-openrouter-integration',
@@ -1398,8 +1456,8 @@ const coreShard = {
       phase: 'future',
       status: 'confirmed_with_validation_gate',
       sourceRanges: [
-        { startLine: 712, endLine: 716 },
-        { startLine: 749, endLine: 758 },
+        { startLine: 720, endLine: 724 },
+        { startLine: 757, endLine: 766 },
       ],
       decisionIds: ['decision.ai.sdk-openrouter-integration'],
       serviceIds: ['service.ai'],
@@ -1412,7 +1470,7 @@ const coreShard = {
         'Independent embedding abstraction with versioned model, space, privacy, and re-indexing policy.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 760, endLine: 769 }],
+      sourceRanges: [{ startLine: 768, endLine: 777 }],
       decisionIds: [
         'decision.ai.embedding-provider-port',
         'decision.ai.embedding-compatibility-migration',
@@ -1427,7 +1485,7 @@ const coreShard = {
         'Representative multilingual corpus and retrieval/quality/cost evaluation before freezing embedding choices.',
       phase: 'future',
       status: 'deferred',
-      sourceRanges: [{ startLine: 771, endLine: 777 }],
+      sourceRanges: [{ startLine: 779, endLine: 785 }],
       decisionIds: ['decision.ai.embedding-model-selection'],
       serviceIds: ['service.ai'],
       gateIds: ['gate.ai.embedding-model-evaluation'],
@@ -1441,11 +1499,11 @@ const coreShard = {
       id: 'gate.evolution.audience-extraction',
       name: 'Audience extraction gate',
       summary:
-        'Audience becomes the first independently deployed business service before distributed messaging and the second VPS are introduced.',
+        'Audience becomes the first independently deployed business service; distributed messaging is introduced behind its validation gate, while a second VPS remains a future placement option rather than a current requirement.',
       phase: 'first_distributed',
       sourceRanges: [
-        { startLine: 52, endLine: 64 },
-        { startLine: 501, endLine: 503 },
+        { startLine: 60, endLine: 72 },
+        { startLine: 509, endLine: 511 },
       ],
       decisionIds: [
         'decision.evolution.audience-first-distributed',
@@ -1459,7 +1517,7 @@ const coreShard = {
       name: 'Identity extraction gate',
       summary: 'Identity/Workspace extraction requires independent ownership or scaling evidence.',
       phase: 'future',
-      sourceRanges: [{ startLine: 66, endLine: 73 }],
+      sourceRanges: [{ startLine: 74, endLine: 81 }],
       decisionIds: ['decision.evolution.strangler-sequence'],
       criterion: 'Independent ownership or scaling warrants extraction.',
     },
@@ -1469,7 +1527,7 @@ const coreShard = {
       summary:
         'Further extraction requires a real domain boundary, load profile, reliability need, or team ownership.',
       phase: 'future',
-      sourceRanges: [{ startLine: 66, endLine: 73 }],
+      sourceRanges: [{ startLine: 74, endLine: 81 }],
       decisionIds: [
         'decision.evolution.strangler-sequence',
         'decision.boundaries.bounded-contexts',
@@ -1480,9 +1538,9 @@ const coreShard = {
       id: 'gate.communication.distributed-latency',
       name: 'Distributed latency validation',
       summary:
-        'Homologation load and fault tests validate provisional latency budgets before Audience production extraction.',
+        'Homologation load and fault tests validate provisional latency budgets before the first distributed Audience deployment, whether it runs on Railway or future VPS infrastructure.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 120, endLine: 140 }],
+      sourceRanges: [{ startLine: 128, endLine: 148 }],
       decisionIds: ['decision.communication.latency-budgets'],
       criterion:
         'Representative warm/cold telemetry and fault tests validate or revise the provisional targets.',
@@ -1493,7 +1551,7 @@ const coreShard = {
       summary:
         'More than one downstream synchronous dependency requires an explicit architecture decision.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 106, endLine: 118 }],
+      sourceRanges: [{ startLine: 114, endLine: 126 }],
       decisionIds: ['decision.communication.shallow-sync-depth'],
       criterion:
         'Document owner, deadline, degraded behavior, idempotency/retry semantics, and trace evidence.',
@@ -1504,7 +1562,7 @@ const coreShard = {
       summary:
         'Logical database sharing changes only when load, blast radius, compliance, availability, or operational autonomy requires it.',
       phase: 'future',
-      sourceRanges: [{ startLine: 186, endLine: 190 }],
+      sourceRanges: [{ startLine: 194, endLine: 198 }],
       decisionIds: ['decision.tenancy.logical-database-per-service'],
       criterion: 'Measured service or operational evidence requires physical separation.',
     },
@@ -1514,7 +1572,7 @@ const coreShard = {
       summary:
         'Better Auth must pass the blocking transaction, session, and MFA integration spike.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 224, endLine: 229 }],
+      sourceRanges: [{ startLine: 232, endLine: 237 }],
       decisionIds: ['decision.auth.better-auth-adapter'],
       criterion:
         'Transaction/session/MFA behavior integrates without transferring authorization ownership.',
@@ -1525,7 +1583,7 @@ const coreShard = {
       summary:
         'Token exchange endpoint, signing algorithm, and implementation dependency are validated before pinning.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 294, endLine: 299 }],
+      sourceRanges: [{ startLine: 302, endLine: 307 }],
       decisionIds: ['decision.auth.token-implementation'],
       criterion: 'Security, revocation, outage, clock-skew, and load tests pass.',
       primaryReferences: [
@@ -1540,7 +1598,7 @@ const coreShard = {
       summary:
         'Application mTLS, SPIFFE, or a service mesh is reconsidered only when host/network/policy complexity warrants it.',
       phase: 'future',
-      sourceRanges: [{ startLine: 294, endLine: 299 }],
+      sourceRanges: [{ startLine: 302, endLine: 307 }],
       decisionIds: ['decision.auth.workload-and-delegated-identities'],
       criterion:
         'Static host/key management, regions/providers, compliance, or policy requirements exceed WireGuard plus application tokens.',
@@ -1552,7 +1610,7 @@ const coreShard = {
       summary:
         'A generic integration service is considered only when it has an independently coherent domain and lifecycle.',
       phase: 'future',
-      sourceRanges: [{ startLine: 300, endLine: 309 }],
+      sourceRanges: [{ startLine: 308, endLine: 317 }],
       decisionIds: ['decision.auth.connection-ownership-by-capability'],
       criterion:
         'Multiple owners, independent credential/webhook lifecycle, distinct controls, scaling, or excessive coupling provide evidence.',
@@ -1563,7 +1621,7 @@ const coreShard = {
       summary:
         'Provider limits, pricing, and pilot assumptions are reverified before implementation or launch.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 360, endLine: 389 }],
+      sourceRanges: [{ startLine: 368, endLine: 397 }],
       decisionIds: ['decision.mail.resend-single-provider'],
       criterion: 'Current provider limits and reputation controls are verified before launch.',
       primaryReferences: ['https://resend.com/pricing'],
@@ -1574,7 +1632,7 @@ const coreShard = {
       summary:
         'A second provider requires contractual availability, custom-domain, sustained-volume, or measurable-outage evidence.',
       phase: 'future',
-      sourceRanges: [{ startLine: 401, endLine: 415 }],
+      sourceRanges: [{ startLine: 409, endLine: 423 }],
       decisionIds: ['decision.mail.resend-single-provider'],
       criterion:
         'A documented provider-continuity requirement justifies the additional inbound/outbound design.',
@@ -1586,7 +1644,7 @@ const coreShard = {
       summary:
         'Customer-owned domains and related DNS/provider costs enter only as an approved paid workspace capability.',
       phase: 'future',
-      sourceRanges: [{ startLine: 370, endLine: 375 }],
+      sourceRanges: [{ startLine: 378, endLine: 383 }],
       decisionIds: ['decision.mail.custom-domains'],
       criterion: 'Paid workspace scope and provider-cost recovery are approved.',
     },
@@ -1596,7 +1654,7 @@ const coreShard = {
       summary:
         'ClamAV replacement remains behind the same scanning port and requires a later approved need.',
       phase: 'future',
-      sourceRanges: [{ startLine: 462, endLine: 471 }],
+      sourceRanges: [{ startLine: 470, endLine: 479 }],
       decisionIds: ['decision.mail.managed-scanner-fallback'],
       criterion:
         'A later operational or compliance need justifies replacement without weakening the scanning boundary.',
@@ -1607,25 +1665,60 @@ const coreShard = {
       summary:
         'Attachment-content search and semantic/vector retrieval require a separately approved future capability.',
       phase: 'future',
-      sourceRanges: [{ startLine: 437, endLine: 439 }],
+      sourceRanges: [{ startLine: 445, endLine: 447 }],
       decisionIds: ['decision.mail.semantic-search-future'],
       criterion:
         'Future RAG or semantic retrieval scope is approved with its own authorization and lifecycle design.',
     },
     {
-      id: 'gate.messaging.amqplib-recovery',
-      name: 'RabbitMQ and Redis client recovery spike',
+      id: 'gate.messaging.rabbitmq-job-equivalence',
+      name: 'RabbitMQ job-equivalence gate',
       summary:
-        'Broker/client TLS, reconnect, topology, confirm, duplicate, shutdown, and Redis subscription recovery must pass before Audience extraction.',
+        'Mail cannot leave pg-boss until RabbitMQ proves the durable execution semantics, recovery behavior, and horizontal worker model required by every migrated job class.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 555, endLine: 593 }],
-      decisionIds: ['decision.messaging.amqplib-adapter', 'decision.messaging.node-redis-adapter'],
+      sourceRanges: [{ startLine: 491, endLine: 511 }],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.jobs.pgboss-transactional',
+      ],
+      criterion:
+        'Representative Mail jobs prove outbox publication, quorum durability, confirms, manual acknowledgements, retry/backoff with jitter, priority, consumer timeout and heartbeats, dead-letter/redrive, PostgreSQL-backed scheduled dispatch, idempotency, reconciliation, observability, graceful drain, and competing-worker scale; pg-boss rollback remains available until accepted reconciliation.',
+      primaryReferences: [
+        'https://www.rabbitmq.com/tutorials/tutorial-two-javascript',
+        'https://www.rabbitmq.com/docs/reliability',
+        'https://www.rabbitmq.com/docs/confirms',
+        'https://www.rabbitmq.com/docs/quorum-queues',
+      ],
+    },
+    {
+      id: 'gate.messaging.amqplib-recovery',
+      name: 'RabbitMQ client recovery spike',
+      summary:
+        'RabbitMQ TLS, reconnect, topology, confirm, duplicate, consumer recovery, and shutdown behavior must pass before Audience extraction.',
+      phase: 'first_distributed',
+      sourceRanges: [{ startLine: 563, endLine: 601 }],
+      decisionIds: [
+        'decision.messaging.rabbitmq-distributed-transport',
+        'decision.messaging.amqplib-adapter',
+      ],
       criterion:
         'The adapter proves recovery and durable outbox/inbox behavior without changing domain contracts.',
-      primaryReferences: [
-        'https://www.rabbitmq.com/docs/reliability',
-        'https://redis.io/docs/latest/develop/clients/nodejs/',
+      primaryReferences: ['https://www.rabbitmq.com/docs/reliability'],
+    },
+    {
+      id: 'gate.messaging.redis-client-recovery',
+      name: 'Redis client recovery gate',
+      summary:
+        'Redis reconnect, subscription restoration, TTL, cache reconstruction, and degraded fallback are validated independently of RabbitMQ job migration.',
+      phase: 'first_distributed',
+      sourceRanges: [{ startLine: 563, endLine: 601 }],
+      decisionIds: [
+        'decision.messaging.redis-ephemeral-state',
+        'decision.messaging.node-redis-adapter',
       ],
+      criterion:
+        'The Redis adapter proves reconnect, subscription restoration, tenant isolation, TTL behavior, cache reconstruction, and safe degraded operation for each approved ephemeral-state workload.',
+      primaryReferences: ['https://redis.io/docs/latest/develop/clients/nodejs/'],
     },
     {
       id: 'gate.messaging.rabbitmq-paid-upgrade',
@@ -1633,7 +1726,7 @@ const coreShard = {
       summary:
         'RabbitMQ upgrades when customer dependency, availability, incidents, quota/backlog pressure, or business impact requires it.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 533, endLine: 542 }],
+      sourceRanges: [{ startLine: 541, endLine: 550 }],
       decisionIds: ['decision.messaging.audience-rabbitmq-redis'],
       criterion:
         'An explicit capacity, reliability, operational, or customer-dependency trigger occurs.',
@@ -1645,7 +1738,7 @@ const coreShard = {
       summary:
         'Redis upgrades when memory/connection pressure, persistence, eviction/reconnect impact, multiple dependents, or unsafe fallback appears.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 540, endLine: 542 }],
+      sourceRanges: [{ startLine: 548, endLine: 550 }],
       decisionIds: ['decision.messaging.audience-rabbitmq-redis'],
       criterion: 'Redis remains auxiliary and an explicit reliability/capacity trigger occurs.',
       primaryReferences: ['https://redis.io/pricing/'],
@@ -1656,7 +1749,7 @@ const coreShard = {
       summary:
         'Deletion must reconcile databases, object storage, indexes, jobs, projections, future embeddings, ledgers, and restored backups.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 600, endLine: 623 }],
+      sourceRanges: [{ startLine: 608, endLine: 631 }],
       decisionIds: ['decision.lifecycle.cancel-grace-purge'],
       criterion:
         'Deletion remains idempotent, observable, retryable, and cannot expose purged data after restore.',
@@ -1667,7 +1760,7 @@ const coreShard = {
       summary:
         'Privacy notice, processing agreement, retention schedule, and customer contract require legal review before publication.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 639, endLine: 656 }],
+      sourceRanges: [{ startLine: 647, endLine: 664 }],
       decisionIds: ['decision.privacy.roles-by-purpose', 'decision.lifecycle.retention-classes'],
       criterion:
         'Legal review confirms purpose, role, location, lawful basis, retention, deletion, and transfer treatment.',
@@ -1682,7 +1775,7 @@ const coreShard = {
       summary:
         'AI is introduced only after Mail, Audience, Campaign, Content, Workflow, authorization, and audit contracts are consolidated.',
       phase: 'future',
-      sourceRanges: [{ startLine: 706, endLine: 708 }],
+      sourceRanges: [{ startLine: 714, endLine: 716 }],
       decisionIds: ['decision.ai.zero-trust-rag-boundary'],
       criterion:
         'The prerequisite domain and authorization contracts are stable enough for AI augmentation.',
@@ -1694,8 +1787,8 @@ const coreShard = {
         'The community adapter must pass compatibility and contract tests or be replaced behind the AI-owned provider port.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 710, endLine: 716 },
-        { startLine: 749, endLine: 758 },
+        { startLine: 718, endLine: 724 },
+        { startLine: 757, endLine: 766 },
       ],
       decisionIds: ['decision.ai.sdk-openrouter-integration'],
       criterion:
@@ -1707,7 +1800,7 @@ const coreShard = {
       summary:
         'Every provider receiving customer content must pass ZDR, logging, DPA, retention, region, subprocessor, authorization, and output controls.',
       phase: 'future',
-      sourceRanges: [{ startLine: 734, endLine: 740 }],
+      sourceRanges: [{ startLine: 742, endLine: 748 }],
       decisionIds: ['decision.ai.privacy-and-deletion'],
       criterion:
         'Minimum authorized context, privacy terms, deterministic authorization, and output validation are demonstrated.',
@@ -1719,8 +1812,8 @@ const coreShard = {
         'Embedding support, privacy/routing options, compatible spaces, bounded fallback, and versioned re-indexing must be proven.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 760, endLine: 769 },
-        { startLine: 779, endLine: 786 },
+        { startLine: 768, endLine: 777 },
+        { startLine: 787, endLine: 794 },
       ],
       decisionIds: [
         'decision.ai.embedding-provider-port',
@@ -1735,7 +1828,7 @@ const coreShard = {
       summary:
         'A representative multilingual MailFlow corpus measures retrieval quality, cost, dimensions, storage, throughput, latency, and filtered recall.',
       phase: 'future',
-      sourceRanges: [{ startLine: 771, endLine: 777 }],
+      sourceRanges: [{ startLine: 779, endLine: 785 }],
       decisionIds: ['decision.ai.embedding-model-selection'],
       criterion:
         'The selected model and dimensions are justified by the versioned evaluation corpus and metrics.',
@@ -1748,7 +1841,7 @@ const coreShard = {
       summary:
         'API and worker share a repository, schema, business rules, and database inside Core; the worker is not a separate microservice.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 39, endLine: 50 }],
+      sourceRanges: [{ startLine: 47, endLine: 58 }],
       decisionIds: ['decision.evolution.mvp-modular-core', 'decision.evolution.strangler-sequence'],
       forbiddenData: [
         'Independent service-owned database access before extraction',
@@ -1762,8 +1855,8 @@ const coreShard = {
         'The Gateway handles ingress and bounded composition but owns no business domain or domain database.',
       phase: 'first_distributed',
       sourceRanges: [
-        { startLine: 52, endLine: 59 },
-        { startLine: 96, endLine: 104 },
+        { startLine: 60, endLine: 67 },
+        { startLine: 104, endLine: 112 },
       ],
       decisionIds: [
         'decision.evolution.audience-first-distributed',
@@ -1783,8 +1876,8 @@ const coreShard = {
         'Workspace context is verified from authenticated membership and enforced by explicit scoping, constraints, and RLS.',
       phase: 'mvp',
       sourceRanges: [
-        { startLine: 168, endLine: 184 },
-        { startLine: 192, endLine: 208 },
+        { startLine: 176, endLine: 192 },
+        { startLine: 200, endLine: 216 },
       ],
       decisionIds: [
         'decision.tenancy.workspace-is-tenant',
@@ -1804,7 +1897,7 @@ const coreShard = {
       summary:
         'Platform operations are separated from tenant-user access and use audited operational paths.',
       phase: 'future',
-      sourceRanges: [{ startLine: 210, endLine: 214 }],
+      sourceRanges: [{ startLine: 218, endLine: 222 }],
       decisionIds: [
         'decision.authorization.platform-admin-realm',
         'decision.privacy.roles-by-purpose',
@@ -1817,7 +1910,7 @@ const coreShard = {
       summary:
         'Extracted services own logical databases, credentials, migrations, and RLS policies; cross-service database access, joins, foreign keys, and transactions are prohibited.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 186, endLine: 190 }],
+      sourceRanges: [{ startLine: 194, endLine: 198 }],
       decisionIds: [
         'decision.boundaries.bounded-contexts',
         'decision.communication.rest-openapi-versioned',
@@ -1860,7 +1953,7 @@ const coreShard = {
       summary:
         'Browser sessions terminate at authenticated ingress; Identity owns session state and MFA while downstream services receive separate assertions.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 218, endLine: 247 }],
+      sourceRanges: [{ startLine: 226, endLine: 255 }],
       decisionIds: [
         'decision.auth.opaque-browser-sessions',
         'decision.auth.mfa-policy',
@@ -1878,7 +1971,7 @@ const coreShard = {
       summary:
         'Identity holds the asymmetric private signing key and exposes public verification keys; services validate known keys locally.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 258, endLine: 299 }],
+      sourceRanges: [{ startLine: 266, endLine: 307 }],
       decisionIds: [
         'decision.auth.hybrid-decentralized-authorization',
         'decision.auth.jwks-local-validation',
@@ -1897,8 +1990,8 @@ const coreShard = {
         'RabbitMQ TLS credentials and ACLs identify producer/consumer transport boundaries; durable commands still require local authorization projections and current policy.',
       phase: 'first_distributed',
       sourceRanges: [
-        { startLine: 320, endLine: 327 },
-        { startLine: 501, endLine: 513 },
+        { startLine: 328, endLine: 335 },
+        { startLine: 509, endLine: 521 },
       ],
       decisionIds: [
         'decision.auth.durable-command-no-expiring-tokens',
@@ -1916,7 +2009,7 @@ const coreShard = {
       summary:
         'The capability owner resolves credentials and calls its provider; Runtime and other services carry only opaque bindings and stable authorization evidence.',
       phase: 'future',
-      sourceRanges: [{ startLine: 300, endLine: 356 }],
+      sourceRanges: [{ startLine: 308, endLine: 364 }],
       decisionIds: [
         'decision.auth.connection-ownership-by-capability',
         'decision.auth.opaque-resource-binding',
@@ -1933,7 +2026,7 @@ const coreShard = {
       summary:
         'Mail is the sole owner of Resend credentials, adapter behavior, webhooks, quotas, retries, and reconciliation.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 356, endLine: 423 }],
+      sourceRanges: [{ startLine: 364, endLine: 431 }],
       decisionIds: [
         'decision.mail.resend-single-provider',
         'decision.mail.provider-port-ownership',
@@ -1950,7 +2043,7 @@ const coreShard = {
       summary:
         'Attachments use private object storage and an internal scanner; unsafe or unscannable objects remain unavailable.',
       phase: 'mvp',
-      sourceRanges: [{ startLine: 452, endLine: 479 }],
+      sourceRanges: [{ startLine: 460, endLine: 487 }],
       decisionIds: [
         'decision.mail.presigned-private-upload',
         'decision.mail.clamav-local-scanning',
@@ -1968,7 +2061,7 @@ const coreShard = {
       summary:
         'AI fetches authorized source data through owning-service APIs and revalidates current source authorization before prompt assembly.',
       phase: 'future',
-      sourceRanges: [{ startLine: 658, endLine: 705 }],
+      sourceRanges: [{ startLine: 666, endLine: 713 }],
       decisionIds: [
         'decision.ai.zero-trust-rag-boundary',
         'decision.ai.ai-service-data-ownership',
@@ -1988,7 +2081,7 @@ const coreShard = {
       summary:
         'AI SDK/gateway providers receive minimum authorized context under privacy controls and cannot perform direct MailFlow side effects.',
       phase: 'future',
-      sourceRanges: [{ startLine: 678, endLine: 758 }],
+      sourceRanges: [{ startLine: 686, endLine: 766 }],
       decisionIds: [
         'decision.ai.untrusted-content-boundary',
         'decision.ai.no-autonomous-consequential-effects',
@@ -2009,8 +2102,8 @@ const coreShard = {
         'Embeddings and chunks remain workspace-scoped, versioned, confidential derived data with explicit deletion and compatible-space controls.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 670, endLine: 704 },
-        { startLine: 760, endLine: 797 },
+        { startLine: 678, endLine: 712 },
+        { startLine: 768, endLine: 805 },
       ],
       decisionIds: [
         'decision.ai.tenant-authorized-retrieval',

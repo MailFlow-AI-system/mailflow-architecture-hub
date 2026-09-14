@@ -39,6 +39,13 @@ considered current. Run the full validation and inspect `/coverage/` after every
 
 ## Runtime and commands
 
+The current backend infrastructure decision is Railway for MVP compute, with a future migration to
+paid VPS infrastructure when measured scale and operational requirements justify it. The team accepts
+the migration and ongoing operational costs. Dockerfiles preserve a portable packaging contract;
+Neon and the existing external data providers remain separate from compute. See the
+[Railway decision record](docs/adr/ADR-0002-railway-mvp-compute.md) and the active baseline for scope,
+trade-offs, and validation status. This backend decision does not change hosting for this Hub.
+
 Use Bun exclusively. The repository commits `bun.lock` and does not mix npm, pnpm, or Yarn.
 
 ```bash

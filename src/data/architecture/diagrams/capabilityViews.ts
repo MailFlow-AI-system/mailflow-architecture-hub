@@ -52,9 +52,11 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show the single provider ownership boundary and the versioned campaign paths that enter Mail without sharing Resend credentials.',
     phases: ['mvp', 'first_distributed', 'future'],
     sourceRanges: [
-      { startLine: 75, endLine: 93 },
-      { startLine: 356, endLine: 425 },
-      { startLine: 2274, endLine: 2329 },
+      { startLine: 83, endLine: 101 },
+      { startLine: 150, endLine: 157 },
+      { startLine: 364, endLine: 433 },
+      { startLine: 489, endLine: 511 },
+      { startLine: 2277, endLine: 2332 },
     ],
     decisionIds: [
       'decision.mail.resend-single-provider',
@@ -62,10 +64,15 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'decision.mail.at-least-once-provider-effects',
       'decision.communication.events-commands-projections',
       'decision.communication.producer-contract-ownership',
+      'decision.messaging.rabbitmq-distributed-transport',
       'decision.platform.campaign-modular-boundary',
     ],
     serviceIds: ['service.mail', 'service.campaign', 'service.delivery'],
-    trustBoundaryIds: ['trust.provider-credential-owner', 'trust.mail-provider'],
+    trustBoundaryIds: [
+      'trust.provider-credential-owner',
+      'trust.mail-provider',
+      'trust.broker-transport',
+    ],
     nodes: [
       node(
         'mail-provider.mail',
@@ -77,11 +84,16 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
           'decision.mail.resend-single-provider',
           'decision.mail.provider-port-ownership',
           'decision.mail.at-least-once-provider-effects',
+          'decision.messaging.rabbitmq-distributed-transport',
         ],
         {
           serviceId: 'service.mail',
-          stackIds: ['stack.resend', 'stack.rest-openapi'],
-          trustBoundaryIds: ['trust.provider-credential-owner', 'trust.mail-provider'],
+          stackIds: ['stack.resend', 'stack.rest-openapi', 'stack.pgboss', 'stack.rabbitmq'],
+          trustBoundaryIds: [
+            'trust.provider-credential-owner',
+            'trust.mail-provider',
+            'trust.broker-transport',
+          ],
         },
       ),
       node(
@@ -124,6 +136,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.communication.events-commands-projections',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.platform.campaign-modular-boundary',
         ],
         { group: 'Contract boundary' },
@@ -163,6 +176,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         [
           'decision.communication.events-commands-projections',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.platform.campaign-modular-boundary',
         ],
         {
@@ -185,6 +199,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.mail.provider-port-ownership',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
         ],
         { trustBoundaryId: 'trust.provider-credential-owner' },
       ),
@@ -211,6 +226,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         [
           'decision.communication.events-commands-projections',
           'decision.communication.producer-contract-ownership',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.mail.provider-port-ownership',
         ],
         {
@@ -238,9 +254,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Trace the MVP browser paths through Mail-owned inbox state, provider ingestion, draft autosave, immutable send snapshots, and durable worker processing.',
     phases: ['mvp'],
     sourceRanges: [
-      { startLine: 391, endLine: 450 },
-      { startLine: 425, endLine: 450 },
-      { startLine: 481, endLine: 500 },
+      { startLine: 399, endLine: 458 },
+      { startLine: 433, endLine: 458 },
+      { startLine: 489, endLine: 508 },
     ],
     decisionIds: [
       'decision.mail.idempotent-receiving',
@@ -503,9 +519,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show the private presigned upload path, fail-closed ClamAV processing, quarantine lifecycle, and sandboxed email display.',
     phases: ['mvp', 'future'],
     sourceRanges: [
-      { startLine: 452, endLine: 480 },
-      { startLine: 481, endLine: 493 },
-      { startLine: 1852, endLine: 1858 },
+      { startLine: 460, endLine: 488 },
+      { startLine: 489, endLine: 501 },
+      { startLine: 1860, endLine: 1866 },
     ],
     decisionIds: [
       'decision.mail.presigned-private-upload',
@@ -570,20 +586,20 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         'Mail worker',
         'service',
         ['mvp'],
-        'Processes verification and scanning asynchronously through idempotent durable jobs.',
+        'Railway worker service processes verification and scanning asynchronously through idempotent durable jobs; the private scanner dependency remains a planned MVP workload.',
         ['decision.jobs.pgboss-transactional', 'decision.mail.clamav-local-scanning'],
         {
           serviceId: 'service.mail',
-          stackIds: ['stack.pgboss'],
+          stackIds: ['stack.pgboss', 'stack.railway'],
           trustBoundaryIds: ['trust.storage-scanner'],
         },
       ),
       node(
         'attachments.clamav',
-        'ClamAV container',
+        'Private ClamAV scanner',
         'infrastructure',
         ['mvp'],
-        'Local scanner reachable only on the internal container network; failures fail closed and unsafe objects are quarantined then purged.',
+        'Planned required MVP scanner reachable only through a private service path; failures fail closed and unsafe objects are quarantined then purged. A local container is the future VPS implementation option.',
         ['decision.mail.clamav-local-scanning'],
         { stackIds: ['stack.clamav'], trustBoundaryIds: ['trust.storage-scanner'] },
       ),
@@ -723,8 +739,8 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show the first distributed boundary: Campaign requests an immutable, destination-bound Audience snapshot and ingests only the minimal execution contract.',
     phases: ['first_distributed', 'future'],
     sourceRanges: [
-      { startLine: 2078, endLine: 2137 },
-      { startLine: 2222, endLine: 2273 },
+      { startLine: 2081, endLine: 2140 },
+      { startLine: 2225, endLine: 2276 },
     ],
     decisionIds: [
       'decision.evolution.audience-first-distributed',
@@ -733,7 +749,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'decision.communication.events-commands-projections',
       'decision.communication.producer-contract-ownership',
       'decision.tenancy.logical-database-per-service',
-      'decision.messaging.audience-rabbitmq-redis',
+      'decision.messaging.rabbitmq-distributed-transport',
     ],
     serviceIds: ['service.audience', 'service.campaign'],
     trustBoundaryIds: [
@@ -797,7 +813,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         'Carries versioned commands and facts after transactional outbox delivery.',
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.communication.events-commands-projections',
         ],
         {
@@ -897,7 +913,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         'async_command',
         ['first_distributed', 'future'],
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.communication.events-commands-projections',
         ],
         { trustBoundaryId: 'trust.broker-transport' },
@@ -1022,10 +1038,10 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Contrast Campaign Control and Execution responsibilities with Mail-owned provider effects, minimal payloads, retries, and delivery results.',
     phases: ['first_distributed', 'future'],
     sourceRanges: [
-      { startLine: 75, endLine: 93 },
-      { startLine: 142, endLine: 151 },
-      { startLine: 356, endLine: 425 },
-      { startLine: 2274, endLine: 2329 },
+      { startLine: 83, endLine: 101 },
+      { startLine: 150, endLine: 159 },
+      { startLine: 364, endLine: 433 },
+      { startLine: 2277, endLine: 2332 },
     ],
     decisionIds: [
       'decision.platform.campaign-modular-boundary',
@@ -1123,7 +1139,7 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
         ['first_distributed', 'future'],
         'Durable command/event transport with per-service credentials and ACLs.',
         [
-          'decision.messaging.audience-rabbitmq-redis',
+          'decision.messaging.rabbitmq-distributed-transport',
           'decision.auth.durable-command-no-expiring-tokens',
         ],
         {
@@ -1286,9 +1302,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Connect the canonical EmailDocument through template management, visual editing, compilation, validation, assets, and immutable send artifacts.',
     phases: ['first_distributed', 'future'],
     sourceRanges: [
-      { startLine: 1025, endLine: 1126 },
-      { startLine: 1039, endLine: 1081 },
-      { startLine: 1082, endLine: 1126 },
+      { startLine: 1033, endLine: 1134 },
+      { startLine: 1047, endLine: 1089 },
+      { startLine: 1090, endLine: 1134 },
     ],
     decisionIds: [
       'decision.content.service-modules',
@@ -1505,8 +1521,8 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Separate Workflow graph authoring and immutable publication from Automation Runtime execution, including desired state, trigger ingress, and revocation.',
     phases: ['future'],
     sourceRanges: [
-      { startLine: 1127, endLine: 1321 },
-      { startLine: 300, endLine: 348 },
+      { startLine: 1135, endLine: 1329 },
+      { startLine: 308, endLine: 356 },
     ],
     decisionIds: [
       'decision.workflow.editor.react-flow',
@@ -1756,9 +1772,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show durable workflow instances, temporal semantics, DAG transitions, triggers, holds, retries, action ownership, and the VPS C activation boundary.',
     phases: ['future'],
     sourceRanges: [
-      { startLine: 1322, endLine: 1730 },
-      { startLine: 2163, endLine: 2170 },
-      { startLine: 300, endLine: 348 },
+      { startLine: 1330, endLine: 1738 },
+      { startLine: 2166, endLine: 2173 },
+      { startLine: 308, endLine: 356 },
     ],
     decisionIds: [
       'decision.automation.runtime-interpreter',
@@ -2204,8 +2220,8 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show owner-service ingestion, authorized retrieval, AI SDK/OpenRouter isolation, pgvector ownership, and the prohibition on autonomous consequential effects.',
     phases: ['future'],
     sourceRanges: [
-      { startLine: 658, endLine: 760 },
-      { startLine: 760, endLine: 880 },
+      { startLine: 666, endLine: 768 },
+      { startLine: 768, endLine: 888 },
     ],
     decisionIds: [
       'decision.ai.zero-trust-rag-boundary',
@@ -2521,8 +2537,8 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show event-fed Analytics ownership, ClickHouse primary validation, TimescaleDB fallback, tenant isolation, and accessible chart delivery.',
     phases: ['future'],
     sourceRanges: [
-      { startLine: 881, endLine: 1024 },
-      { startLine: 142, endLine: 151 },
+      { startLine: 889, endLine: 1032 },
+      { startLine: 150, endLine: 159 },
     ],
     decisionIds: [
       'decision.analytics.clickhouse-primary',
@@ -2809,9 +2825,9 @@ export const capabilityViews: ArchitectureDiagramDefinition[] = [
       'Show Stripe as a payment provider behind Billing, with MailFlow-owned plan projections, entitlements, quotas, grace policy, and local authorization checks.',
     phases: ['future'],
     sourceRanges: [
-      { startLine: 1766, endLine: 1828 },
-      { startLine: 300, endLine: 348 },
-      { startLine: 2222, endLine: 2273 },
+      { startLine: 1774, endLine: 1836 },
+      { startLine: 308, endLine: 356 },
+      { startLine: 2225, endLine: 2276 },
     ],
     decisionIds: [
       'decision.billing.stripe-boundary',

@@ -87,7 +87,7 @@ const runtimeReferences = [
 
 const capabilityShard: ArchitectureShard = {
   id: 'architecture.capabilities',
-  sourceRange: { startLine: 799, endLine: 1730 },
+  sourceRange: { startLine: 807, endLine: 1738 },
   decisions: [
     {
       id: 'decision.ai.vector-store.pgvector',
@@ -96,7 +96,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'The AI Service owns an isolated PostgreSQL database with pgvector; vectors, chunks, authorization projections, and deletion tombstones never enter another bounded context database.',
-      sourceRanges: [{ startLine: 799, endLine: 818 }],
+      sourceRanges: [{ startLine: 807, endLine: 826 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.ai.pgvector', 'stack.postgresql'],
       trustBoundaryIds: ['trust.ai.service-database', 'trust.ai.retrieval-authorization'],
@@ -109,7 +109,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Exact search establishes a recall baseline; HNSW is preferred before IVFFlat when measured latency or resource use requires approximation.',
-      sourceRanges: [{ startLine: 819, endLine: 826 }],
+      sourceRanges: [{ startLine: 827, endLine: 834 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.ai.pgvector'],
       relatedDecisionIds: ['decision.ai.vector-store.migration'],
@@ -126,7 +126,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Generation and retrieval integrations remain independently replaceable; embedding model, dimensions, policy, and re-indexing state are explicit persisted configuration.',
-      sourceRanges: [{ startLine: 799, endLine: 800 }],
+      sourceRanges: [{ startLine: 807, endLine: 808 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.ai.embedding-openrouter'],
       trustBoundaryIds: ['trust.ai.service-database'],
@@ -142,7 +142,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'No dedicated vector product is preselected. Migration requires a versioned index, dual-read evaluation, deletion/revocation reconciliation, and controlled rollback.',
-      sourceRanges: [{ startLine: 827, endLine: 844 }],
+      sourceRanges: [{ startLine: 835, endLine: 852 }],
       serviceIds: ['service.ai'],
       stackIds: ['stack.ai.pgvector'],
       gateIds: ['gate.ai.vector-store-migration'],
@@ -163,7 +163,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'ClickHouse owns rebuildable analytical facts, dimensions, and aggregates derived from events; PostgreSQL remains authoritative for transactional analytics configuration.',
-      sourceRanges: [{ startLine: 881, endLine: 922 }],
+      sourceRanges: [{ startLine: 889, endLine: 930 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.analytics.clickhouse', 'stack.postgresql', 'stack.rabbitmq'],
       gateIds: ['gate.analytics.clickhouse-timescaledb', 'gate.analytics.clickhouse-isolation'],
@@ -177,7 +177,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'TimescaleDB preserves PostgreSQL SQL, drivers, migrations, transactions, and mature RLS when security, operational simplicity, or moderate volume outweighs ClickHouse OLAP performance.',
-      sourceRanges: [{ startLine: 932, endLine: 940 }],
+      sourceRanges: [{ startLine: 940, endLine: 948 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.analytics.timescaledb'],
       gateIds: ['gate.analytics.clickhouse-timescaledb'],
@@ -191,7 +191,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'The worker owns schema validation, idempotency, privacy, batching, retries, replay, DLQ handling, observability, and controlled evolution instead of delegating the boundary to ClickHouse transport internals.',
-      sourceRanges: [{ startLine: 895, endLine: 905 }],
+      sourceRanges: [{ startLine: 903, endLine: 913 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.rabbitmq', 'stack.analytics.clickhouse'],
       trustBoundaryIds: ['trust.analytics.api', 'trust.analytics.tenant-isolation'],
@@ -204,7 +204,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Every fact, dimension, aggregate, checkpoint, and deletion instruction carries workspace identity; non-omittable request context, least privilege, pooled-connection safety, and cross-tenant tests are mandatory.',
-      sourceRanges: [{ startLine: 906, endLine: 922 }],
+      sourceRanges: [{ startLine: 914, endLine: 930 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.analytics.clickhouse', 'stack.analytics.timescaledb'],
       gateIds: ['gate.analytics.clickhouse-isolation'],
@@ -218,7 +218,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'ECharts renders chart interactions only. Metric definitions, queries, authorization, persistence, scheduling, calculations, and API contracts remain outside the library.',
-      sourceRanges: [{ startLine: 964, endLine: 983 }],
+      sourceRanges: [{ startLine: 972, endLine: 991 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.analytics.echarts'],
       trustBoundaryIds: ['trust.analytics.api'],
@@ -235,7 +235,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'ARIA descriptions, contrast, non-color encodings, semantic controls, keyboard operation, accessible tables, and downloadable tabular representations are mandatory.',
-      sourceRanges: [{ startLine: 984, endLine: 1000 }],
+      sourceRanges: [{ startLine: 992, endLine: 1008 }],
       serviceIds: ['service.analytics'],
       stackIds: ['stack.analytics.echarts'],
       gateIds: ['gate.analytics.echarts-reassessment'],
@@ -244,12 +244,12 @@ const capabilityShard: ArchitectureShard = {
     },
     {
       id: 'decision.content.service-modules',
-      title: 'Start Content as one deployable service with two isolated modules on VPS B',
+      title: 'Start Content as one deployable service with two isolated modules',
       status: 'confirmed_with_validation_gate',
       phase: 'first_distributed',
       summary:
-        'Template Management and Email Document & Compiler share the initial repository/image/database/deployment but prohibit direct cross-module repositories and remain extraction-ready.',
-      sourceRanges: [{ startLine: 1025, endLine: 1030 }],
+        'Template Management and Email Document & Compiler share the initial repository/image/database/deployment on the selected application platform, but prohibit direct cross-module repositories and remain extraction-ready; future VPS placement is evidence-driven.',
+      sourceRanges: [{ startLine: 1033, endLine: 1038 }],
       serviceIds: ['service.content'],
       stackIds: [
         'stack.nodejs-24-lts',
@@ -271,7 +271,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'first_distributed',
       summary:
         'The contract contains stable blocks, allowlisted properties, layout, styles, variables, assets, localization, and schema version; editor/compiler types never become persisted or public contracts.',
-      sourceRanges: [{ startLine: 1031, endLine: 1052 }],
+      sourceRanges: [{ startLine: 1039, endLine: 1060 }],
       serviceIds: ['service.content'],
       stackIds: ['stack.content.mjml'],
       trustBoundaryIds: ['trust.content.email-document'],
@@ -284,7 +284,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'first_distributed',
       summary:
         'MJML maps the allowlisted customer block model to responsive email output; React Email remains a bounded fallback while EmailDocument stays canonical.',
-      sourceRanges: [{ startLine: 1034, endLine: 1081 }],
+      sourceRanges: [{ startLine: 1042, endLine: 1089 }],
       serviceIds: ['service.content'],
       stackIds: ['stack.content.mjml'],
       gateIds: ['gate.content.mjml-compiler'],
@@ -302,7 +302,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'first_distributed',
       summary:
         'Compilation allowlists block executable JSX/JavaScript, arbitrary MJML, unrestricted HTML, unsafe URLs, unbounded structure, and uncontrolled worker resource use.',
-      sourceRanges: [{ startLine: 1053, endLine: 1069 }],
+      sourceRanges: [{ startLine: 1061, endLine: 1077 }],
       serviceIds: ['service.content'],
       stackIds: ['stack.content.mjml'],
       trustBoundaryIds: ['trust.content.compiler-worker'],
@@ -315,7 +315,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Puck owns transient canvas interaction only. MailFlow owns EmailDocument conversion, autosave, revision conflicts, publication, permissions, and authoritative MJML preview.',
-      sourceRanges: [{ startLine: 1082, endLine: 1126 }],
+      sourceRanges: [{ startLine: 1090, endLine: 1134 }],
       stackIds: ['stack.frontend.puck', 'stack.frontend.tiptap'],
       gateIds: ['gate.content.puck-editor'],
       relatedDecisionIds: ['decision.content.email-document', 'decision.content.mjml'],
@@ -332,7 +332,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'React Flow supplies canvas interaction and accessibility primitives; MailFlow owns workflow semantics, persistence, publication validation, and runtime representation.',
-      sourceRanges: [{ startLine: 1127, endLine: 1194 }],
+      sourceRanges: [{ startLine: 1135, endLine: 1202 }],
       stackIds: ['stack.frontend.react-flow'],
       relatedDecisionIds: ['decision.workflow.control-plane'],
       trustBoundaryIds: ['trust.workflow.editor'],
@@ -349,7 +349,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Automatic layout is an editor adapter only and can never change workflow semantics.',
-      sourceRanges: [{ startLine: 1131, endLine: 1139 }],
+      sourceRanges: [{ startLine: 1139, endLine: 1147 }],
       stackIds: ['stack.frontend.elkjs'],
       gateIds: ['gate.workflow.elk-layout'],
       relatedDecisionIds: ['decision.workflow.editor.react-flow'],
@@ -362,7 +362,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Workflow owns metadata, drafts, revisions, validation, publication, runtime-plan generation, templates, permissions, and audit; it never executes journeys or provider actions.',
-      sourceRanges: [{ startLine: 1195, endLine: 1206 }],
+      sourceRanges: [{ startLine: 1203, endLine: 1214 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: [
         'stack.nodejs-24-lts',
@@ -383,7 +383,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime consumes the event idempotently, retrieves the immutable plan with a Runtime-bound workload token, validates checksum/schema/size, and stores a local execution copy.',
-      sourceRanges: [{ startLine: 1215, endLine: 1224 }],
+      sourceRanges: [{ startLine: 1223, endLine: 1232 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.rabbitmq'],
       gateIds: ['gate.workflow.plan-transfer'],
@@ -400,7 +400,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Workflow does not claim publication success until Runtime ingests and verifies the exact immutable artifact; failures preserve the prior version and diagnostic evidence.',
-      sourceRanges: [{ startLine: 1225, endLine: 1235 }],
+      sourceRanges: [{ startLine: 1233, endLine: 1243 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.rabbitmq', 'stack.postgresql'],
       relatedDecisionIds: ['decision.workflow.publication-contract'],
@@ -413,7 +413,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Published versions remain immutable; new instances pin the applied active version while existing, delayed, retrying, paused, and branching instances retain their original version.',
-      sourceRanges: [{ startLine: 1236, endLine: 1244 }],
+      sourceRanges: [{ startLine: 1244, endLine: 1252 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       relatedDecisionIds: ['decision.workflow.publication-lifecycle'],
@@ -426,7 +426,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Workflow is desired-state authority and Runtime is applied-state authority; complete snapshots with monotonic generations replace broker-order-dependent deltas.',
-      sourceRanges: [{ startLine: 1245, endLine: 1256 }],
+      sourceRanges: [{ startLine: 1253, endLine: 1264 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.rabbitmq', 'stack.postgresql'],
       trustBoundaryIds: ['trust.workflow.publication', 'trust.automation.broker'],
@@ -439,7 +439,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime receives producer-owned events, persists first-match fan-out plans, and creates instances idempotently; RabbitMQ topology is not created per workflow or workspace.',
-      sourceRanges: [{ startLine: 1257, endLine: 1281 }],
+      sourceRanges: [{ startLine: 1265, endLine: 1289 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.rabbitmq', 'stack.postgresql'],
       trustBoundaryIds: ['trust.automation.runtime-state', 'trust.automation.broker'],
@@ -453,7 +453,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime pins the registry state visible when it first accepts an event; event-time selection remains deferred because it would require activation intervals, watermarks, and replay semantics.',
-      sourceRanges: [{ startLine: 1269, endLine: 1278 }],
+      sourceRanges: [{ startLine: 1277, endLine: 1286 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       relatedDecisionIds: [
@@ -469,7 +469,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime is not a generic code-execution platform and never executes customer-supplied JavaScript.',
-      sourceRanges: [{ startLine: 1322, endLine: 1335 }],
+      sourceRanges: [{ startLine: 1330, endLine: 1343 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.nodejs-24-lts', 'stack.postgresql', 'stack.rabbitmq', 'stack.redis'],
       trustBoundaryIds: ['trust.automation.runtime-state', 'trust.automation.action-owner'],
@@ -482,7 +482,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Relative delays persist one UTC due_at; calendar schedules preserve wall-clock intent, IANA timezone, resolved occurrence, policy version, and deterministic DST handling.',
-      sourceRanges: [{ startLine: 1336, endLine: 1360 }],
+      sourceRanges: [{ startLine: 1344, endLine: 1368 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.automation.runtime-state'],
@@ -494,7 +494,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'A due transition keeps its identity; recurring misses produce one bounded recovery occurrence rather than an unbounded catch-up storm.',
-      sourceRanges: [{ startLine: 1348, endLine: 1360 }],
+      sourceRanges: [{ startLine: 1356, endLine: 1368 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.automation.runtime-state'],
@@ -506,7 +506,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Workflow and Runtime reject cycles, unreachable nodes, invalid ports, disconnected executable components, arbitrary loops, and customer code.',
-      sourceRanges: [{ startLine: 1361, endLine: 1373 }],
+      sourceRanges: [{ startLine: 1369, endLine: 1381 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.frontend.react-flow'],
       trustBoundaryIds: ['trust.workflow.editor', 'trust.automation.runtime-state'],
@@ -518,7 +518,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Event, schedule, manual, and webhook families remain distinct; composite OR triggers and runtime unions are deferred.',
-      sourceRanges: [{ startLine: 1374, endLine: 1386 }],
+      sourceRanges: [{ startLine: 1382, endLine: 1394 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.frontend.react-flow'],
       relatedDecisionIds: ['decision.workflow.trigger-ingress'],
@@ -531,7 +531,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Branch groups and tokens are durable, branch-local overlays are isolated, and join output uses explicit deterministic merge mappings.',
-      sourceRanges: [{ startLine: 1387, endLine: 1399 }],
+      sourceRanges: [{ startLine: 1395, endLine: 1407 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.automation.execution-context'],
@@ -543,7 +543,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Applying or cloning a template creates independently owned identities and versions; updates never mutate existing drafts, publications, or instances.',
-      sourceRanges: [{ startLine: 1401, endLine: 1413 }],
+      sourceRanges: [{ startLine: 1409, endLine: 1421 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.workflow.control-plane', 'trust.automation.runtime-state'],
@@ -555,7 +555,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Simulation cannot reach production providers, secrets, routes, domain writes, or instances; real tests use separate operation identities and controls.',
-      sourceRanges: [{ startLine: 1414, endLine: 1426 }],
+      sourceRanges: [{ startLine: 1422, endLine: 1434 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.automation.simulation'],
@@ -567,7 +567,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'New versions coexist with predecessors; published artifacts and running instances retain exact pinned versions, and migration creates a new publication.',
-      sourceRanges: [{ startLine: 1427, endLine: 1440 }],
+      sourceRanges: [{ startLine: 1435, endLine: 1448 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.automation.catalog-github-packages'],
       gateIds: ['gate.automation.catalog-compatibility'],
@@ -580,7 +580,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'The catalog contains schemas, fixtures, lifecycle, permissions, bounded presentation metadata, and compatibility evidence, but no providers, secrets, domain entities, or executable customer code.',
-      sourceRanges: [{ startLine: 1441, endLine: 1471 }],
+      sourceRanges: [{ startLine: 1449, endLine: 1479 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.automation.catalog-github-packages'],
       gateIds: ['gate.automation.catalog-compatibility'],
@@ -593,7 +593,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Conditions use allowlisted boolean, comparison, existence, null, and bounded collection operators; no dynamic traversal, regex, SQL, JavaScript, JSONLogic, or CEL initially.',
-      sourceRanges: [{ startLine: 1481, endLine: 1500 }],
+      sourceRanges: [{ startLine: 1489, endLine: 1508 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.automation.catalog-github-packages'],
       gateIds: ['gate.automation.condition-evaluator'],
@@ -606,7 +606,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Branches read one parent snapshot and write isolated overlays; only canonical accepted node completions supply downstream outputs.',
-      sourceRanges: [{ startLine: 1503, endLine: 1515 }],
+      sourceRanges: [{ startLine: 1511, endLine: 1523 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       trustBoundaryIds: ['trust.automation.execution-context'],
@@ -619,7 +619,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Contract or platform defects produce suspended_system_error and require audited recovery; they never become customer business branches.',
-      sourceRanges: [{ startLine: 1516, endLine: 1528 }],
+      sourceRanges: [{ startLine: 1524, endLine: 1536 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.open-telemetry'],
       trustBoundaryIds: ['trust.automation.runtime-state'],
@@ -632,7 +632,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime creates bounded durable commands with stable operation identities; Mail, Audience, Campaign, Content, AI, and Billing owners perform effects.',
-      sourceRanges: [{ startLine: 1529, endLine: 1539 }],
+      sourceRanges: [{ startLine: 1537, endLine: 1547 }],
       serviceIds: [
         'service.automation-runtime',
         'service.mail',
@@ -652,7 +652,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Technical attempts retain one action_operation_id; Runtime creates a new logical operation only for catalog-approved definitive semantic retries.',
-      sourceRanges: [{ startLine: 1540, endLine: 1560 }],
+      sourceRanges: [{ startLine: 1548, endLine: 1568 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.rabbitmq'],
       gateIds: ['gate.automation.capacity-fairness'],
@@ -665,7 +665,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Unknown outcomes do not automatically retry, compensate, switch providers, or create a second logical operation; later reconciliation retains the original identity.',
-      sourceRanges: [{ startLine: 1561, endLine: 1571 }],
+      sourceRanges: [{ startLine: 1569, endLine: 1579 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.rabbitmq', 'stack.postgresql'],
       trustBoundaryIds: ['trust.automation.action-owner', 'trust.automation.runtime-state'],
@@ -677,7 +677,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Pause removes new matches and blocks future transitions without erasing committed operations, pinned versions, due timestamps, or unknown outcomes.',
-      sourceRanges: [{ startLine: 1572, endLine: 1581 }],
+      sourceRanges: [{ startLine: 1580, endLine: 1589 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.rabbitmq'],
       trustBoundaryIds: ['trust.automation.runtime-state'],
@@ -689,7 +689,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Workflow state controls new matching and future transitions; cancellation is terminal for selected instances and never silently reuses external effects.',
-      sourceRanges: [{ startLine: 1582, endLine: 1591 }],
+      sourceRanges: [{ startLine: 1590, endLine: 1599 }],
       serviceIds: ['service.workflow', 'service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       relatedDecisionIds: ['decision.workflow.desired-state', 'decision.automation.pause-resume'],
@@ -703,7 +703,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Holds compose by most restrictive scope; they preserve durable ingestion/reconciliation behavior and never authorize direct provider fallback.',
-      sourceRanges: [{ startLine: 1592, endLine: 1614 }],
+      sourceRanges: [{ startLine: 1600, endLine: 1622 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.rabbitmq', 'stack.redis'],
       gateIds: ['gate.automation.hold-recovery'],
@@ -716,7 +716,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Durable evidence, cool-down, half-open probes, owner health, and gradual backlog release govern automatic recovery; security/billing/abuse holds require explicit release.',
-      sourceRanges: [{ startLine: 1615, endLine: 1625 }],
+      sourceRanges: [{ startLine: 1623, endLine: 1633 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.redis'],
       gateIds: ['gate.automation.hold-recovery'],
@@ -729,7 +729,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Every transition/action must fit global, workspace, workflow, owner, provider, entitlement, and hold limits; Redis cannot be the only admission record.',
-      sourceRanges: [{ startLine: 1626, endLine: 1638 }],
+      sourceRanges: [{ startLine: 1634, endLine: 1646 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql', 'stack.redis'],
       gateIds: ['gate.automation.capacity-fairness'],
@@ -742,7 +742,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'The initial scheduler rotates eligible workspaces, applies bounded aging, and rejects global FIFO, unbounded priority, and paid starvation.',
-      sourceRanges: [{ startLine: 1639, endLine: 1649 }],
+      sourceRanges: [{ startLine: 1647, endLine: 1657 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.postgresql'],
       gateIds: ['gate.automation.capacity-fairness'],
@@ -755,7 +755,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'Runtime receives its own repository/image/database/credentials and separate failure domain; direct peer links avoid a transit gateway and preserve application-level workload authorization.',
-      sourceRanges: [{ startLine: 1650, endLine: 1680 }],
+      sourceRanges: [{ startLine: 1658, endLine: 1688 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.network.wireguard-full-mesh'],
       gateIds: ['gate.automation.vps-c-activation'],
@@ -772,7 +772,7 @@ const capabilityShard: ArchitectureShard = {
       phase: 'future',
       summary:
         'The I/O-bound orchestration workload and existing platform tooling favor TypeScript/Node.js; Go, Python, Temporal, Restate, and DBOS remain evidence-triggered alternatives.',
-      sourceRanges: [{ startLine: 1681, endLine: 1716 }],
+      sourceRanges: [{ startLine: 1689, endLine: 1724 }],
       serviceIds: ['service.automation-runtime'],
       stackIds: ['stack.nodejs-24-lts'],
       gateIds: ['gate.automation.runtime-engine'],
@@ -794,7 +794,7 @@ const capabilityShard: ArchitectureShard = {
         'Initial vector storage and exact/approximate vector search inside the AI-owned PostgreSQL database.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 799, endLine: 832 }],
+      sourceRanges: [{ startLine: 807, endLine: 840 }],
       decisionIds: ['decision.ai.vector-store.pgvector', 'decision.ai.vector-search.exact-first'],
       serviceIds: ['service.ai'],
       primaryReferences: ['https://github.com/pgvector/pgvector'],
@@ -805,7 +805,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Initial embedding gateway behind the AI-owned EmbeddingProvider port.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 799, endLine: 800 }],
+      sourceRanges: [{ startLine: 807, endLine: 808 }],
       decisionIds: ['decision.ai.embedding.gateway'],
       serviceIds: ['service.ai'],
       primaryReferences: ['https://openrouter.ai/docs/api/reference/embeddings'],
@@ -817,7 +817,7 @@ const capabilityShard: ArchitectureShard = {
         'Primary future analytical database candidate for append-heavy, high-cardinality event analysis.',
       phase: 'future',
       status: 'confirmed_with_validation_gate',
-      sourceRanges: [{ startLine: 881, endLine: 949 }],
+      sourceRanges: [{ startLine: 889, endLine: 957 }],
       decisionIds: ['decision.analytics.clickhouse-primary', 'decision.analytics.tenant-isolation'],
       gateIds: ['gate.analytics.clickhouse-timescaledb', 'gate.analytics.clickhouse-isolation'],
       serviceIds: ['service.analytics'],
@@ -829,7 +829,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Mandatory PostgreSQL-compatible Analytics fallback when the ClickHouse gate fails.',
       phase: 'future',
       status: 'deferred',
-      sourceRanges: [{ startLine: 932, endLine: 940 }],
+      sourceRanges: [{ startLine: 940, endLine: 948 }],
       decisionIds: ['decision.analytics.timescaledb-fallback'],
       gateIds: ['gate.analytics.clickhouse-timescaledb'],
       serviceIds: ['service.analytics'],
@@ -842,7 +842,7 @@ const capabilityShard: ArchitectureShard = {
         'Primary chart renderer behind semantic MailFlow chart components and accessible table equivalents.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 964, endLine: 1024 }],
+      sourceRanges: [{ startLine: 972, endLine: 1032 }],
       decisionIds: ['decision.analytics.echarts', 'decision.analytics.chart-accessibility'],
       serviceIds: ['service.analytics'],
       primaryReferences: chartReferences,
@@ -853,7 +853,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Initial allowlisted authoritative email compiler behind the Content Service port.',
       phase: 'first_distributed',
       status: 'confirmed_with_validation_gate',
-      sourceRanges: [{ startLine: 1034, endLine: 1081 }],
+      sourceRanges: [{ startLine: 1042, endLine: 1089 }],
       decisionIds: [
         'decision.content.email-document',
         'decision.content.mjml',
@@ -870,7 +870,7 @@ const capabilityShard: ArchitectureShard = {
         'Allowlisted compiler fallback/candidate retained behind the canonical EmailDocument boundary.',
       phase: 'future',
       status: 'deferred',
-      sourceRanges: [{ startLine: 1039, endLine: 1074 }],
+      sourceRanges: [{ startLine: 1047, endLine: 1082 }],
       decisionIds: ['decision.content.mjml'],
       gateIds: ['gate.content.mjml-compiler'],
       serviceIds: ['service.content'],
@@ -882,7 +882,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Conditional frontend-only visual email editor adapter.',
       phase: 'future',
       status: 'confirmed_with_validation_gate',
-      sourceRanges: [{ startLine: 1082, endLine: 1126 }],
+      sourceRanges: [{ startLine: 1090, endLine: 1134 }],
       decisionIds: ['decision.content.editor.puck'],
       gateIds: ['gate.content.puck-editor'],
       primaryReferences: editorReferences.slice(0, 4),
@@ -893,7 +893,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Control-oriented visual-editor fallback if the Puck spike fails.',
       phase: 'future',
       status: 'deferred',
-      sourceRanges: [{ startLine: 1101, endLine: 1114 }],
+      sourceRanges: [{ startLine: 1109, endLine: 1122 }],
       decisionIds: ['decision.content.editor.puck'],
       gateIds: ['gate.content.puck-editor'],
       primaryReferences: editorReferences.slice(4, 6),
@@ -904,7 +904,7 @@ const capabilityShard: ArchitectureShard = {
       summary: 'Restricted rich-text editor embedded inside visual email rich-text blocks.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 1082, endLine: 1094 }],
+      sourceRanges: [{ startLine: 1090, endLine: 1102 }],
       decisionIds: ['decision.content.editor.puck'],
     },
     {
@@ -914,7 +914,7 @@ const capabilityShard: ArchitectureShard = {
         'Selected Workflow Builder canvas adapter, isolated from canonical workflow semantics and Runtime.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 1127, endLine: 1194 }],
+      sourceRanges: [{ startLine: 1135, endLine: 1202 }],
       decisionIds: [
         'decision.workflow.editor.react-flow',
         'decision.automation.dag',
@@ -929,7 +929,7 @@ const capabilityShard: ArchitectureShard = {
         'Deferred automatic graph-layout adapter pending shape, bundle, and performance evidence.',
       phase: 'future',
       status: 'deferred',
-      sourceRanges: [{ startLine: 1131, endLine: 1139 }],
+      sourceRanges: [{ startLine: 1139, endLine: 1147 }],
       decisionIds: ['decision.workflow.editor.elk-layout'],
       gateIds: ['gate.workflow.elk-layout'],
     },
@@ -940,7 +940,7 @@ const capabilityShard: ArchitectureShard = {
         'Checksummed private contract-only package for Workflow and Runtime build-time compatibility.',
       phase: 'future',
       status: 'confirmed',
-      sourceRanges: [{ startLine: 1441, endLine: 1471 }],
+      sourceRanges: [{ startLine: 1449, endLine: 1479 }],
       decisionIds: [
         'decision.automation.contract-versioning',
         'decision.automation.catalog-bundle',
@@ -960,7 +960,7 @@ const capabilityShard: ArchitectureShard = {
         'Direct host transport for the three-host Runtime topology; application workload/delegation tokens remain mandatory.',
       phase: 'future',
       status: 'confirmed_with_validation_gate',
-      sourceRanges: [{ startLine: 1650, endLine: 1680 }],
+      sourceRanges: [{ startLine: 1658, endLine: 1688 }],
       decisionIds: ['decision.automation.placement-vps-c'],
       gateIds: ['gate.automation.vps-c-activation'],
       serviceIds: ['service.automation-runtime'],
@@ -976,7 +976,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Dedicated vector-store migration gate',
       summary: 'Evidence gate for moving away from pgvector.',
       phase: 'future',
-      sourceRanges: [{ startLine: 827, endLine: 844 }],
+      sourceRanges: [{ startLine: 835, endLine: 852 }],
       decisionIds: ['decision.ai.vector-store.migration'],
       criterion:
         'Prove tenant scoping, fine-grained filtering, deletion/export, consistency, recovery, region/DPA suitability, client quality, measured cost, and reversible migration.',
@@ -987,7 +987,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'ClickHouse versus TimescaleDB spike',
       summary: 'Mandatory analytical-store comparison.',
       phase: 'future',
-      sourceRanges: [{ startLine: 923, endLine: 948 }],
+      sourceRanges: [{ startLine: 931, endLine: 956 }],
       decisionIds: [
         'decision.analytics.clickhouse-primary',
         'decision.analytics.timescaledb-fallback',
@@ -1001,7 +1001,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'ClickHouse tenant-isolation security gate',
       summary: 'Blocking security criterion within the analytical-store spike.',
       phase: 'future',
-      sourceRanges: [{ startLine: 906, endLine: 922 }],
+      sourceRanges: [{ startLine: 914, endLine: 930 }],
       decisionIds: ['decision.analytics.tenant-isolation', 'decision.analytics.clickhouse-primary'],
       criterion:
         'If isolation cannot be enforced and operated, select TimescaleDB regardless of ClickHouse performance.',
@@ -1012,7 +1012,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'ECharts re-evaluation gate',
       summary: 'Reconsideration gate for the Analytics visualization adapter.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1001, endLine: 1011 }],
+      sourceRanges: [{ startLine: 1009, endLine: 1019 }],
       decisionIds: ['decision.analytics.echarts', 'decision.analytics.chart-accessibility'],
       criterion:
         'Reassess if bundle, interaction, accessibility, report rendering, chart coverage, or maintenance gates fail.',
@@ -1023,7 +1023,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'MJML compiler compatibility spike',
       summary: 'Mandatory compiler comparison while EmailDocument remains canonical.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 1070, endLine: 1081 }],
+      sourceRanges: [{ startLine: 1078, endLine: 1089 }],
       decisionIds: ['decision.content.mjml', 'decision.content.email-document'],
       criterion:
         'Compare MJML and allowlisted React Email on representative client output, responsive behavior, accessibility, custom-block effort, HTML size, latency/memory, determinism, errors, upgrades, and maintenance.',
@@ -1034,7 +1034,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Puck visual-editor spike',
       summary: 'Mandatory visual-builder adaptation and accessibility spike.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1109, endLine: 1114 }],
+      sourceRanges: [{ startLine: 1117, endLine: 1122 }],
       decisionIds: ['decision.content.editor.puck'],
       criterion:
         'Prove constrained layout, block allowlists, Tiptap, keyboard/screen-reader operation, responsiveness, lossless EmailDocument mapping, autosave conflict recovery, and authoritative preview mapping.',
@@ -1045,7 +1045,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'ELK.js layout spike',
       summary: 'Conditional automatic-layout spike for the Workflow editor.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1131, endLine: 1139 }],
+      sourceRanges: [{ startLine: 1139, endLine: 1147 }],
       decisionIds: ['decision.workflow.editor.elk-layout'],
       criterion:
         'Prove graph-shape coverage, semantics-preserving layout, bundle impact, and representative performance.',
@@ -1055,7 +1055,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Workflow plan-transfer evidence gate',
       summary: 'Evidence gate before changing the small-event/API-retrieval default.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1215, endLine: 1224 }],
+      sourceRanges: [{ startLine: 1223, endLine: 1232 }],
       decisionIds: ['decision.workflow.publication-contract'],
       criterion:
         'Measure serialized/compressed plan size, ingestion latency, publication lag, checksum failures, retry/DLQ volume, API load, duplication, network cost, and recovery throughput.',
@@ -1063,20 +1063,21 @@ const capabilityShard: ArchitectureShard = {
     },
     {
       id: 'gate.content.vps-b-placement',
-      name: 'Content VPS B placement gate',
-      summary: 'Capacity and failure-domain gate for initial Content placement.',
+      name: 'Content placement gate',
+      summary:
+        'Capacity, cost, and failure-domain gate for initial Content placement and any later VPS migration.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 1025, endLine: 1030 }],
+      sourceRanges: [{ startLine: 1033, endLine: 1038 }],
       decisionIds: ['decision.content.service-modules'],
       criterion:
-        'Prove CPU, memory, database pool, broker, compiler concurrency, and failure-domain headroom beside Audience and Campaign.',
+        'Prove CPU, memory, database pool, broker, compiler concurrency, cost, and failure-domain headroom before selecting an isolated deployable or future VPS placement beside Audience and Campaign.',
     },
     {
       id: 'gate.automation.catalog-compatibility',
       name: 'Automation catalog compatibility gate',
       summary: 'Producer-to-Workflow-to-Runtime compatibility and rollout gate.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1427, endLine: 1471 }],
+      sourceRanges: [{ startLine: 1435, endLine: 1479 }],
       decisionIds: [
         'decision.automation.contract-versioning',
         'decision.automation.catalog-bundle',
@@ -1092,7 +1093,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Condition evaluator compatibility gate',
       summary: 'Pinned AST and evaluator behavior gate across Workflow and Runtime.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1481, endLine: 1500 }],
+      sourceRanges: [{ startLine: 1489, endLine: 1508 }],
       decisionIds: ['decision.automation.condition-ast'],
       criterion:
         'Golden fixtures must prove identical typed validation/evaluation, including missing/null, wrong types, boundaries, Unicode, dates, collections, and version compatibility.',
@@ -1102,7 +1103,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Automation hold and recovery gate',
       summary: 'Operational hold, backpressure, provider recovery, and gradual drain gate.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1592, endLine: 1625 }],
+      sourceRanges: [{ startLine: 1600, endLine: 1633 }],
       decisionIds: [
         'decision.automation.operational-holds',
         'decision.automation.auto-provider-hold',
@@ -1115,7 +1116,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Automation capacity and fairness gate',
       summary: 'Admission, leases, fairness, and backlog recovery gate.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1626, endLine: 1649 }],
+      sourceRanges: [{ startLine: 1634, endLine: 1657 }],
       decisionIds: [
         'decision.automation.capacity-admission',
         'decision.automation.fair-scheduling',
@@ -1129,7 +1130,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Automation VPS C activation gate',
       summary: 'Three-host production topology and direct-mesh validation gate.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1650, endLine: 1680 }],
+      sourceRanges: [{ startLine: 1658, endLine: 1688 }],
       decisionIds: ['decision.automation.placement-vps-c'],
       criterion:
         'Run independent A-B/A-C/B-C latency, fault, route, key rotation, resource-pressure, backlog, recovery, and complete-call-graph tests; refresh capacity and cost.',
@@ -1143,7 +1144,7 @@ const capabilityShard: ArchitectureShard = {
       name: 'Automation runtime-engine reassessment gate',
       summary: 'Evidence gate for changing language or replacing the custom engine.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1703, endLine: 1716 }],
+      sourceRanges: [{ startLine: 1711, endLine: 1724 }],
       decisionIds: [
         'decision.automation.runtime-language',
         'decision.automation.runtime-interpreter',
@@ -1160,7 +1161,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'AI owns vector data and derived artifacts; source content is fetched through owner APIs/events, never direct database access.',
       phase: 'future',
-      sourceRanges: [{ startLine: 799, endLine: 818 }],
+      sourceRanges: [{ startLine: 807, endLine: 826 }],
       decisionIds: ['decision.ai.vector-store.pgvector', 'decision.ai.embedding.gateway'],
       forbiddenData: [
         'Mail, Audience, Campaign, Content, or Identity database reads',
@@ -1174,7 +1175,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Verified workspace/resource authorization is applied before vector search and source ownership is revalidated before prompt assembly.',
       phase: 'future',
-      sourceRanges: [{ startLine: 811, endLine: 818 }],
+      sourceRanges: [{ startLine: 819, endLine: 826 }],
       decisionIds: ['decision.ai.vector-store.pgvector', 'decision.ai.vector-store.migration'],
       forbiddenData: [
         'Prompt-supplied tenant scope',
@@ -1188,7 +1189,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Browsers and services query through Analytics API; ClickHouse credentials remain behind least-privilege service identities.',
       phase: 'future',
-      sourceRanges: [{ startLine: 895, endLine: 905 }],
+      sourceRanges: [{ startLine: 903, endLine: 913 }],
       decisionIds: [
         'decision.analytics.clickhouse-primary',
         'decision.analytics.application-ingestion',
@@ -1206,7 +1207,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Workspace identity is verified and non-optional; ClickHouse row policies supplement but do not replace application enforcement.',
       phase: 'future',
-      sourceRanges: [{ startLine: 906, endLine: 922 }],
+      sourceRanges: [{ startLine: 914, endLine: 930 }],
       decisionIds: ['decision.analytics.tenant-isolation', 'decision.analytics.clickhouse-primary'],
       forbiddenData: [
         'Unrestricted client workspace filters',
@@ -1220,7 +1221,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'EmailDocument is the only durable/public semantic content contract; editor and compiler representations remain adapters.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 1031, endLine: 1052 }],
+      sourceRanges: [{ startLine: 1039, endLine: 1060 }],
       decisionIds: ['decision.content.email-document', 'decision.content.mjml'],
       forbiddenData: [
         'React elements',
@@ -1236,7 +1237,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Compiler input, document complexity, asset references, memory, time, concurrency, and output are allowlisted and bounded.',
       phase: 'first_distributed',
-      sourceRanges: [{ startLine: 1053, endLine: 1069 }],
+      sourceRanges: [{ startLine: 1061, endLine: 1077 }],
       decisionIds: ['decision.content.mjml', 'decision.content.compiler-safety'],
       forbiddenData: [
         'Executable customer JavaScript/JSX',
@@ -1251,7 +1252,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Puck owns transient interaction only; durable drafts, revisions, publication, and rendering remain Content responsibilities.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1082, endLine: 1094 }],
+      sourceRanges: [{ startLine: 1090, endLine: 1102 }],
       decisionIds: ['decision.content.editor.puck'],
       forbiddenData: [
         'Puck runtime types in APIs/databases/events',
@@ -1265,7 +1266,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'React Flow renders/manipulates the canvas; canonical workflow semantics and publication validation remain MailFlow-owned.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1127, endLine: 1147 }],
+      sourceRanges: [{ startLine: 1135, endLine: 1155 }],
       decisionIds: ['decision.workflow.editor.react-flow', 'decision.workflow.editor.elk-layout'],
       forbiddenData: [
         'React Flow node/edge/store types in public contracts',
@@ -1279,7 +1280,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Workflow owns its database and lifecycle; Runtime, Campaign, Audience, and frontend processes cannot read its tables.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1197, endLine: 1206 }],
+      sourceRanges: [{ startLine: 1205, endLine: 1214 }],
       decisionIds: ['decision.workflow.control-plane'],
       forbiddenData: [
         'Runtime direct table reads',
@@ -1294,7 +1295,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Small event, authenticated exact-plan retrieval, checksum/schema/size verification, immutable Runtime copy.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1215, endLine: 1235 }],
+      sourceRanges: [{ startLine: 1223, endLine: 1243 }],
       decisionIds: [
         'decision.workflow.publication-contract',
         'decision.workflow.publication-lifecycle',
@@ -1312,7 +1313,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'The catalog distributes data-only schemas, fixtures, lifecycle, authorization, and bounded presentation metadata.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1441, endLine: 1471 }],
+      sourceRanges: [{ startLine: 1449, endLine: 1479 }],
       decisionIds: [
         'decision.automation.contract-versioning',
         'decision.automation.catalog-bundle',
@@ -1332,7 +1333,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'PostgreSQL owns execution truth; RabbitMQ and Redis provide transport or ephemeral acceleration only.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1324, endLine: 1335 }],
+      sourceRanges: [{ startLine: 1332, endLine: 1343 }],
       decisionIds: [
         'decision.automation.runtime-interpreter',
         'decision.automation.temporal-semantics',
@@ -1353,8 +1354,8 @@ const capabilityShard: ArchitectureShard = {
         'Parent snapshots, branch-local overlays, namespaced node outputs, and explicit joins prevent timing-dependent shared mutation.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 1387, endLine: 1399 },
-        { startLine: 1503, endLine: 1515 },
+        { startLine: 1395, endLine: 1407 },
+        { startLine: 1511, endLine: 1523 },
       ],
       decisionIds: [
         'decision.automation.structured-parallelism',
@@ -1373,7 +1374,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Runtime orchestrates bounded commands; owning services validate policy, resolve credentials, perform provider effects, and publish results.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1529, endLine: 1539 }],
+      sourceRanges: [{ startLine: 1537, endLine: 1547 }],
       decisionIds: [
         'decision.automation.domain-action-boundary',
         'decision.automation.unknown-outcomes',
@@ -1392,8 +1393,8 @@ const capabilityShard: ArchitectureShard = {
         'Broker authentication and per-service ACLs identify the producer transport boundary; durable payloads carry stable authorization evidence rather than expiring tokens.',
       phase: 'future',
       sourceRanges: [
-        { startLine: 1215, endLine: 1224 },
-        { startLine: 1529, endLine: 1539 },
+        { startLine: 1223, endLine: 1232 },
+        { startLine: 1537, endLine: 1547 },
       ],
       decisionIds: [
         'decision.workflow.publication-contract',
@@ -1412,7 +1413,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'Preview and simulation remain isolated from production effects; constrained real tests are explicit owner capabilities.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1414, endLine: 1426 }],
+      sourceRanges: [{ startLine: 1422, endLine: 1434 }],
       decisionIds: ['decision.automation.simulation-boundary'],
       forbiddenData: [
         'Production command routes',
@@ -1428,7 +1429,7 @@ const capabilityShard: ArchitectureShard = {
       summary:
         'WireGuard protects host transport; destination services still require audience-bound workload and delegated authorization.',
       phase: 'future',
-      sourceRanges: [{ startLine: 1650, endLine: 1680 }],
+      sourceRanges: [{ startLine: 1658, endLine: 1688 }],
       decisionIds: ['decision.automation.placement-vps-c'],
       forbiddenData: [
         'Host-key-as-domain-authorization',

@@ -4,6 +4,24 @@ import { architectureRegistry } from '../../src/data/architecture/catalog';
 import { createCoverageManifest } from '../../scripts/architecture/coverageManifest';
 
 describe('coverage manifest', () => {
+  test('preserves the original before count and checksum when regenerated', () => {
+    const manifest = createCoverageManifest(architectureRegistry, {
+      baseline: { checksum: 'previous-baseline' },
+      summary: { records: architectureRegistry.coverage.length - 3 },
+    });
+    const regenerated = createCoverageManifest(architectureRegistry, manifest);
+
+    expect(manifest.delta.coverage.before).toBe(architectureRegistry.coverage.length - 3);
+    expect(regenerated).toEqual(manifest);
+  });
+
+  test('preserves the absent predecessor when regenerating the initial manifest', () => {
+    const manifest = createCoverageManifest(architectureRegistry);
+
+    expect(manifest.delta.coverage.before).toBeNull();
+    expect(createCoverageManifest(architectureRegistry, manifest)).toEqual(manifest);
+  });
+
   test('records complete source references and carries a review-blocking baseline delta', () => {
     const first = architectureRegistry.coverage[0];
     if (!first) throw new Error('coverage fixture missing');
