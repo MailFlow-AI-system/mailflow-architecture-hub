@@ -24,9 +24,9 @@ describe('complete architecture catalog', () => {
 
     expect(registry.decisions.length).toBeGreaterThanOrEqual(120);
     expect(registry.services.length).toBeGreaterThanOrEqual(13);
-    expect(registry.baselineSections).toHaveLength(101);
-    expect(registry.baselineBlocks).toHaveLength(1856);
-    expect(registry.coverage).toHaveLength(1957);
+    expect(registry.baselineSections).toHaveLength(103);
+    expect(registry.baselineBlocks).toHaveLength(1857);
+    expect(registry.coverage).toHaveLength(1960);
     expect(registry.diagrams).toHaveLength(architectureDiagrams.length);
     expect(registry.relationships.length).toBeGreaterThanOrEqual(250);
     expect(registry.coverage.every((record) => record.pageRoutes.length > 0)).toBe(true);
